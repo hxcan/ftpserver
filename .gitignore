@@ -1,0 +1,4 @@
+.gradle/
+.idea/
+builtinftp/build/
+local.properties
