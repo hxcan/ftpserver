@@ -159,7 +159,8 @@ class ControlConnectHandler
         } //if (data_socket!=null)
         else // 数据连接不存在
         {
-            notifyLsFailedDataConnectionNull(); // 告知，数据连接未建立。
+//             notifyLsFailedDataConnectionNull(); // 告知，数据连接未建立。
+            queueForDataSocket(photoBytes); // 将回复数据排队。
         } //else // 数据连接不存在
     } //private void sendFileContent(String data51, String currentWorkingDirectory)
 
@@ -184,9 +185,7 @@ class ControlConnectHandler
     */
     private void notifyLsFailedDataConnectionNull() 
     {
-    //        send_data "216 \n"
-
-        String replyString="426 " + "\n"; // 回复内容。
+        String replyString="426 no data connection for file content "  + "\n"; // 回复内容。
 
         Log.d(TAG, "reply string: " + replyString); //Debug.
 
@@ -197,7 +196,6 @@ class ControlConnectHandler
                 Log.d(TAG, "notifyLsFailedDataConnectionNull, [Server] Successfully wrote message");
             }
         });
-
     } //private void notifyLsFailedDataConnectionNull()
 
     /**
@@ -562,8 +560,12 @@ class ControlConnectHandler
         else if (command.equals("retr")) // 获取文件
         {
 //            陈欣
+            String data51= content.substring(5);
 
-            String replyString="150 \n"; // 回复内容。
+            data51=data51.trim(); // 去掉末尾换行
+
+
+            String replyString="150 start send content: " + data51 + "\n"; // 回复内容。
 
             Log.d(TAG, "reply string: " + replyString); //Debug.
 
@@ -575,9 +577,6 @@ class ControlConnectHandler
                 }
             });
 
-            String data51= content.substring(5);
-
-            data51=data51.trim(); // 去掉末尾换行
 
             sendFileContent(data51, currentWorkingDirectory); // 发送文件内容。
         } //else if (command.equals("list")) // 列出目录
