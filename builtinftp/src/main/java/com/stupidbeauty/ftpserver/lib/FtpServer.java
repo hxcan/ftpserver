@@ -27,7 +27,7 @@ public class FtpServer
 {
     private ErrorListener errorListener=null; //!< Error listener. Chen xin. 
     private Context context; //!< 执行时使用的上下文。
-    private static final String TAG="Server"; //!< 输出调试信息时使用的标记
+    private static final String TAG="FtpServer"; //!< 输出调试信息时使用的标记
     private InetAddress host;
     private int port;
     private boolean allowActiveMode=true; //!< 是否允许主动模式。
