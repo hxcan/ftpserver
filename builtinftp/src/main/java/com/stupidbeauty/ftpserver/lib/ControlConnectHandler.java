@@ -42,6 +42,7 @@ class ControlConnectHandler
     public void setRootDirectory(File root)
     {
         rootDirectory=root;
+        Log.d(TAG, "setRootDirectory, rootDirectory: " + rootDirectory); // Debug.
     }
 
     /**
@@ -72,7 +73,7 @@ class ControlConnectHandler
             setupDataServer(); // 启动数据传输服务器。
     }
     
-        /**
+    /**
     * 打开指向客户端特定端口的连接。
     */
     private void openDataConnectionToClient(String content)
@@ -86,7 +87,7 @@ class ControlConnectHandler
     
     //连接：陈欣
     
-            AsyncServer.getDefault().connectSocket(new InetSocketAddress(ip, port), new ConnectCallback() {
+        AsyncServer.getDefault().connectSocket(new InetSocketAddress(ip, port), new ConnectCallback() {
             @Override
             public void onConnectCompleted(Exception ex, final AsyncSocket socket) {
                 handleConnectCompleted(ex, socket);
@@ -94,23 +95,21 @@ class ControlConnectHandler
         });
     } //private void openDataConnectionToClient(String content)
 
-
-        /**
+    /**
     * 以二进制模式发送字符串内容。
     */
     private void sendStringInBinaryMode(String stringToSend)
     {
-            Util.writeAll(socket, stringToSend.getBytes(), new CompletedCallback() {
+        Util.writeAll(socket, stringToSend.getBytes(), new CompletedCallback() {
             @Override
             public void onCompleted(Exception ex) {
                 if (ex != null) throw new RuntimeException(ex);
                 System.out.println("[Server] Successfully wrote message");
             }
         });
-
     } //private sendStringInBinaryMode(String stringToSend)
 
-        /**
+    /**
     * 告知已经发送文件内容数据。
     */
     private void notifyFileSendCompleted() 
@@ -120,12 +119,9 @@ class ControlConnectHandler
         Log.d(TAG, "reply string: " + replyString); //Debug.
         
         sendStringInBinaryMode(replyString); // 发送。
-
-
-
     } //private void notifyFileSendCompleted()
 
-        /**
+    /**
     * 发送文件内容。
     */
     private void sendFileContent(String data51, String currentWorkingDirectory) 
@@ -242,6 +238,8 @@ class ControlConnectHandler
 
         currentWorkingDirectory=currentWorkingDirectory.trim();
 
+        Log.d(TAG, "sendListContent, rootDirectory: " + rootDirectory); // Debug.
+        
         String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory; // 构造完整路径。
 
         String output = getDirectoryContentList(wholeDirecotoryPath, parameter); // Get the whole directory list.
