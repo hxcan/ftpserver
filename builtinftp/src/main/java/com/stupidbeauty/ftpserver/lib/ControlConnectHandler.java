@@ -269,6 +269,14 @@ class ControlConnectHandler
     } //private void queueForDataSocket(String output)
 
     /**
+    * 将回复数据排队。
+    */
+    private void queueForDataSocket(byte[] output) 
+    {
+        dataSocketPendingByteArray=output; // 排队。
+    } //private void queueForDataSocket(String output)
+
+    /**
     *  获取目录的完整列表。
     */
     private String getDirectoryContentList(String wholeDirecotoryPath, String nameOfFile)
