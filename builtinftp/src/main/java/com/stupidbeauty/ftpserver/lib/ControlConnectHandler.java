@@ -126,7 +126,7 @@ class ControlConnectHandler
     */
     private void sendFileContent(String data51, String currentWorkingDirectory) 
     {
-        String wholeDirecotoryPath= context.getFilesDir().getPath() + currentWorkingDirectory+data51; // 构造完整路径。
+        String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
                     
         wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
@@ -134,12 +134,12 @@ class ControlConnectHandler
             
         String replyString=""; // 回复字符串。
 
-            byte[] photoBytes=null; //数据内容。
+        byte[] photoBytes=null; //数据内容。
 
-            try //尝试构造请求对象，并且捕获可能的异常。
-            {
-				photoBytes= FileUtils.readFileToByteArray(photoDirecotry); //将照片文件内容全部读取。
-            } //try //尝试构造请求对象，并且捕获可能的异常。
+        try //尝试构造请求对象，并且捕获可能的异常。
+        {
+            photoBytes= FileUtils.readFileToByteArray(photoDirecotry); //将照片文件内容全部读取。
+        } //try //尝试构造请求对象，并且捕获可能的异常。
 		catch (Exception e)
 		{
 			e.printStackTrace();
@@ -156,13 +156,11 @@ class ControlConnectHandler
                 notifyFileSendCompleted(); // 告知已经发送文件内容数据。
             }
         });
-
-                } //if (data_socket!=null)
+        } //if (data_socket!=null)
         else // 数据连接不存在
         {
             notifyLsFailedDataConnectionNull(); // 告知，数据连接未建立。
         } //else // 数据连接不存在
-
     } //private void sendFileContent(String data51, String currentWorkingDirectory)
 
     /**
@@ -346,12 +344,12 @@ class ControlConnectHandler
     */
     private void processSizeCommand(String data51)
     {
-        Log.d(TAG, "processSizeCommand: filesdir: " + context.getFilesDir().getPath()); // Debug.
+        Log.d(TAG, "processSizeCommand: filesdir: " + rootDirectory.getPath()); // Debug.
         Log.d(TAG, "processSizeCommand: workding directory: " + currentWorkingDirectory); // Debug.
         Log.d(TAG, "processSizeCommand: data51: " + data51); // Debug.
 
     
-        String wholeDirecotoryPath= context.getFilesDir().getPath() + currentWorkingDirectory+data51; // 构造完整路径。
+        String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
                     
         wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
@@ -556,12 +554,10 @@ class ControlConnectHandler
                     Log.d(TAG, "[Server] Successfully wrote message");
                 }
             });
-
         } //else if (command.equals("EPSV")) // Extended passive mode.
         else if (command.equals("list")) // 列出目录
         {
             processListCommand(content); // 处理目录列表命令。
-            
         } //else if (command.equals("list")) // 列出目录
         else if (command.equals("retr")) // 获取文件
         {
@@ -579,10 +575,9 @@ class ControlConnectHandler
                 }
             });
 
-            String data51=            content.substring(5);
+            String data51= content.substring(5);
 
-data51=data51.trim(); // 去掉末尾换行
-
+            data51=data51.trim(); // 去掉末尾换行
 
             sendFileContent(data51, currentWorkingDirectory); // 发送文件内容。
         } //else if (command.equals("list")) // 列出目录
@@ -606,7 +601,7 @@ data51=data51.trim(); // 去掉末尾换行
 
 // 删除文件。陈欣
 
-                        String wholeDirecotoryPath= context.getFilesDir().getPath() + currentWorkingDirectory+data51; // 构造完整路径。
+                        String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
                     
                     wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
@@ -679,7 +674,7 @@ data51=data51.trim(); // 去掉末尾换行
     */
     private void startStor(String data51, String currentWorkingDirectory) 
     {
-        String wholeDirecotoryPath= context.getFilesDir().getPath() + currentWorkingDirectory+data51; // 构造完整路径。
+        String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
                     
         wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
