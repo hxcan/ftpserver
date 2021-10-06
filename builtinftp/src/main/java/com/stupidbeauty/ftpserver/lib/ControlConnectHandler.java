@@ -222,7 +222,7 @@ class ControlConnectHandler
         });
     } //private void notifyLsCompleted()
 
-        /**
+    /**
      * 发送目录列表数据。
      * @param content The path of the directory.
      * @param currentWorkingDirectory 当前工作目录。
@@ -277,47 +277,42 @@ class ControlConnectHandler
     */
     private String getDirectoryContentList(String wholeDirecotoryPath, String nameOfFile)
     {
-    nameOfFile=nameOfFile.trim();
+        nameOfFile=nameOfFile.trim(); // 去除空白字符。陈欣
     
-    String result="";
-            File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
+        String result=""; // 结果。
+        File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
             
-           File[]   paths = photoDirecotry.listFiles();
+        File[]   paths = photoDirecotry.listFiles();
          
          // for each pathname in pathname array
-         for(File path:paths) {
-         
-            // prints file and directory paths
-            System.out.println(path);
-            
+        for(File path:paths) 
+        {
             // -rw-r--r-- 1 nobody nobody     35179727 Oct 16 07:31 VID_20201015_181816.mp4
-// -rw-r--r-- 1 nobody nobody       243826 Jan 15 11:52 forum.php.jpg
-// -rw-r--r-- 1 nobody nobody       240927 Jan 16 11:15 forum.php.1.jpg
-// -rw-r--r-- 1 nobody nobody       205318 Jan 16 11:16 forum.php.2.jpg
 
             String fileName=path.getName(); // 获取文件名。
 
-                            Date date=new Date(path.lastModified());  
+            Date date=new Date(path.lastModified());  
                             
-                            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 //   String time= date.format(formatter);
-                            String time="8:00";
+            String time="8:00";
 
-                              DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM");
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM");
 
-                            String dateString="30";
+            String dateString="30";
                             
-                            long fileSize=path.length(); // 文件尺寸。
+            long fileSize=path.length(); // 文件尺寸。
                             
-                            String group="cx";
+            String group="cx";
                             
-                            String user = "ChenXin";
+            String user = "ChenXin";
                             
-                            String linkNumber="1";
+            String linkNumber="1";
                             
-                            String permission="-rw-r--r--";
+//             String permission="-rw-r--r--"; // 权限。
+            String permission=getPermissionForFile(path); // 权限。
 
-                            String month="Jan"; // 月份 。
+            String month="Jan"; // 月份 。
             String currentLine = permission + " " + linkNumber + " " + user + " " + group + " " + fileSize + " " + month + " " + dateString + " " + time + " " + fileName + "\n" ; // 构造当前行。
             
             if (fileName.equals(nameOfFile)  || (nameOfFile.isEmpty())) // 名字匹配。
@@ -328,6 +323,23 @@ class ControlConnectHandler
 
          return result;
     } //private String getDirectoryContentList(String wholeDirecotoryPath)
+    
+    /**
+    * 获取文件或目录的权限。
+    */
+    private String  getPermissionForFile(File path)
+    {
+        String permission="-rw-r--r--"; // 默认权限。
+        
+        Log.d(TAG, "getPermissionForFile, path: " + path + ", is directory: " + path.isDirectory()); // Debug.
+        
+        if (path.isDirectory())
+        {
+            permission="drw-r--r--"; // 目录默认权限。
+        }
+        
+        return permission;
+    } //private String  getPermissionForFile(File path)
 
         /**
     * 处理尺寸查询命令。
