@@ -428,9 +428,6 @@ class ControlConnectHandler
         } //else if (command.equals("SYST")) // 系统信息
         else if (command.equals("PWD")) // 查询当前工作目录
         {
-            //        send_data "200 #{@currentWorkingDirectory}\n"
-//        puts "200 #{@currentWorkingDirectory}\n"
-
             String replyString="257 \"" + currentWorkingDirectory + "\"\n"; // 回复内容。
 
             Log.d(TAG, "reply string: " + replyString); //Debug.
@@ -442,39 +439,32 @@ class ControlConnectHandler
                     System.out.println("[Server] Successfully wrote message");
                 }
             });
-
         } //else if (command.equals("PWD")) // 查询当前工作目录
         else if (command.equals("cwd")) // 切换工作目录
         {
-            //        elsif command=='cwd'
-//        newWorkingDirectory=data[4..-1]
-
-            String targetWorkingDirectory=content.substring(4).trim();
+            String targetWorkingDirectory=content.substring(4).trim(); // 获取新的工作目录。
             
-                        String wholeDirecotoryPath= context.getFilesDir().getPath() + targetWorkingDirectory; // 构造完整路径。
+            String wholeDirecotoryPath= rootDirectory.getPath() + targetWorkingDirectory; // 构造完整路径。
                     
-                    wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
+            wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
-                    Log.d(TAG, "processSizeCommand: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
+            Log.d(TAG, "processSizeCommand: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
                     
             File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
 
-                        String replyString="" ; // 回复内容。
+            String replyString="" ; // 回复内容。
 
             if (photoDirecotry.isDirectory()) // 是个目录
             {
-            currentWorkingDirectory=targetWorkingDirectory;
+                currentWorkingDirectory=targetWorkingDirectory;
 
-            replyString="250 cwd succeed" + "\n"; // 回复内容。
-            
+                replyString="250 cwd succeed" + "\n"; // 回复内容。
             } //if (photoDirecotry.isDirectory()) // 是个目录
-                else //不是个目录
-                {
+            else //不是个目录
+            {
 //                 陈欣
-            replyString="550 " + "\n"; // 回复内容。
-                
-                }
-
+                replyString="550 not a directory: " + wholeDirecotoryPath + "\n"; // 回复内容。
+            }
 
             Log.d(TAG, "reply string: " + replyString); //Debug.
 
@@ -485,14 +475,9 @@ class ControlConnectHandler
                     System.out.println("[Server] Successfully wrote message");
                 } //public void onCompleted(Exception ex) {
             }); //Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() {
-
-
         } //else if (command.equals("cwd")) // 切换工作目录
         else if (command.equals("TYPE")) // 传输类型
         {
-//        elsif command =='TYPE'
-//        send_data "200 \n"
-
             String replyString="200 binery type set" + "\n"; // 回复内容。
 
             Log.d(TAG, "reply string: " + replyString); //Debug.
