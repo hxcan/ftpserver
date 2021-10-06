@@ -1,35 +1,35 @@
-BuiltinFtp: Embed a FTP server into the Android application you are developing, to operate the private files of the application with your computer, to help your debug process
+FtpServer: Android FTP server library, embed a FTP server into the Android application you are developing
 ===
 
-[![](https://jitpack.io/v/hxcan/builtinftp.svg)](https://jitpack.io/#hxcan/builtinftp)
+[![](https://jitpack.io/v/hxcan/ftpserver.svg)](https://jitpack.io/#hxcan/ftpserver)
 
 Summary 
 ==
 
 This is an Android library, the title has explained its functionality.
 
-Source code: https://github.com/hxcan/builtinftp
+Source code: https://github.com/hxcan/ftpserver
 
-Demo application: https://github.com/hxcan/builtinftpdemo
+Real application: https://github.com/hxcan/hxftpserver
 
-![](https://stupidbeauty.com/ArticleImages/1903/0.jpg)
+![](https://stupidbeauty.com/ArticleImages/1906/0.jpg)
 
 Add dependency
 ==
 
-Follow the instructions here: https://jitpack.io/#hxcan/builtinftp
+Follow the instructions here: https://jitpack.io/#hxcan/ftpserver
 
-Remember to replace the Tag to the latest tag value, currently it is “2021.9.60”.
+Remember to replace the Tag to the latest tag value, currently it is “2021.10.15”.
 
-Start the builtin FTP server
+Start the FTP server
 ==
 
-Refer to the code in the demo application: https://github.com/hxcan/builtinftpdemo/blob/master/app/src/main/java/com/stupidbeauty/builtinftp/demo/LauncherActivity.java#L45
+Refer to the code in the real application: https://github.com/hxcan/hxftpserver/blob/master/app/src/main/java/com/stupidbeauty/builtinftp/BuiltinFtpServer.java#L73
 
 To support more FTP clients
 ===
 
-If your FTP client did not work well with this FTP server, please report an issue: https://github.com/hxcan/builtinftp/issues
+If your FTP client did not work well with this FTP server, please report an issue: https://github.com/hxcan/ftpserver/issues
 
 Mysterious text
 ===
