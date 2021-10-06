@@ -9,9 +9,7 @@ import java.time.format.DateTimeFormatter;
 import java.io.File;
 import com.koushikdutta.async.AsyncServerSocket;
 import com.koushikdutta.async.AsyncSocket;
-// import com.stupidbeauty.async.AsyncServer;
 import com.koushikdutta.async.AsyncServer;
-// import com.stupidbeauty.async.*;
 import com.koushikdutta.async.callback.CompletedCallback;
 import com.koushikdutta.async.callback.DataCallback;
 import com.koushikdutta.async.callback.ListenCallback;
@@ -21,32 +19,41 @@ import java.net.InetSocketAddress;
 import android.text.format.Formatter;
 import android.net.wifi.WifiManager;
 import java.util.Random;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-
 import static com.stupidbeauty.builtinftp.Utils.shellExec;
 
-public class FtpServer {
+public class FtpServer 
+{
     private ErrorListener errorListener=null; //!< Error listener. Chen xin. 
     private Context context; //!< 执行时使用的上下文。
     private static final String TAG="Server"; //!< 输出调试信息时使用的标记
     private InetAddress host;
     private int port;
     private boolean allowActiveMode=true; //!< 是否允许主动模式。
+    private File rootDirectory=null; //!< 根目录。
+    
+    public void setRootDirectory(File root)
+    {
+        rootDirectory=root;
+    }
         
     public void setErrorListener(ErrorListener errorListener)    
     {
         this.errorListener = errorListener;
     } //public void setErrorListener(ErrorListener errorListener)    
 
-    public FtpServer(String host, int port, Context context, boolean allowActiveMode) {
+    public FtpServer(String host, int port, Context context, boolean allowActiveMode) 
+    {
         this.context=context;
         this.allowActiveMode=allowActiveMode;
         
-        try {
+        try 
+        {
             this.host = InetAddress.getByName(host);
-        } catch (UnknownHostException e) {
+        }
+        catch (UnknownHostException e) 
+        {
             throw new RuntimeException(e);
         }
 
@@ -62,8 +69,9 @@ public class FtpServer {
         @Override
         public void onAccepted(final AsyncSocket socket)
         {
-        ControlConnectHandler handler=new ControlConnectHandler(context, allowActiveMode, host); // 创建处理器。
+            ControlConnectHandler handler=new ControlConnectHandler(context, allowActiveMode, host); // 创建处理器。
             handler.handleAccept(socket);
+            handler.setRootDirectory(rootDirectory); // 设置根目录。
         }
 
         @Override
@@ -72,33 +80,31 @@ public class FtpServer {
             System.out.println("[Server] Server started listening for connections");
         }
 
-            @Override
-            public void onCompleted(Exception ex) {
-                if(ex != null) 
-                {
-//                 Caused by: java.net.BindException: Address already in use
-
-                        
-                    if ( ex instanceof BindException )
-                    {  
-                        if (errorListener!=null)
-                        {
-                            errorListener.onError(Constants.ErrorCode.ADDRESS_ALREADY_IN_USE); // Report error. Chen xin.
-                        }
-                        else // No error listener
-                        {
-                            throw new RuntimeException(ex);
-                        } //else // No error listener
+        @Override
+        public void onCompleted(Exception ex) 
+        {
+            if(ex != null) 
+            {
+                if ( ex instanceof BindException )
+                {  
+                    if (errorListener!=null)
+                    {
+                        errorListener.onError(Constants.ErrorCode.ADDRESS_ALREADY_IN_USE); // Report error. Chen xin.
                     }
-                    else // Other exceptions
+                    else // No error listener
                     {
                         throw new RuntimeException(ex);
-                    }
+                    } //else // No error listener
                 }
-                System.out.println("[Server] Successfully shutdown server");
+                else // Other exceptions
+                {
+                    throw new RuntimeException(ex);
+                }
             }
-        });
-    }
+            System.out.println("[Server] Successfully shutdown server");
+        }
+    });
+}
     
     
     

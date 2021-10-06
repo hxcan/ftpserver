@@ -15,16 +15,13 @@ import com.koushikdutta.async.callback.CompletedCallback;
 import com.koushikdutta.async.callback.DataCallback;
 import com.koushikdutta.async.callback.ListenCallback;
 import org.apache.commons.io.FileUtils;
-// import com.stupidbeauty.commons.io.FileUtils;
 import com.koushikdutta.async.callback.ConnectCallback;
 import java.net.InetSocketAddress;
 import android.text.format.Formatter;
 import android.net.wifi.WifiManager;
 import java.util.Random;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-
 import static com.stupidbeauty.builtinftp.Utils.shellExec;
 
 class ControlConnectHandler
@@ -32,16 +29,22 @@ class ControlConnectHandler
     private AsyncSocket socket; //!< 当前的客户端连接。
     private static final String TAG ="ControlConnectHandler"; //!<  输出调试信息时使用的标记。
      private Context context; //!< 执行时使用的上下文。
-       private AsyncSocket data_socket; //!< 当前的数据连接。
+    private AsyncSocket data_socket; //!< 当前的数据连接。
     private byte[] dataSocketPendingByteArray=null; //!< 数据套接字数据内容 排队。
     private String currentWorkingDirectory="/"; //!< 当前工作目录
     private int data_port=1544; //!< 数据连接端口。
-        private boolean allowActiveMode=true; //!< 是否允许主动模式。
+    private boolean allowActiveMode=true; //!< 是否允许主动模式。
     private File writingFile; //!< 当前正在写入的文件。
-        private boolean isUploading=false; //!< 是否正在上传。陈欣
+    private boolean isUploading=false; //!< 是否正在上传。陈欣
     private InetAddress host;
+    private File rootDirectory=null; //!< 根目录。
+    
+    public void setRootDirectory(File root)
+    {
+        rootDirectory=root;
+    }
 
-        /**
+    /**
     * 从数据套接字处接收数据。陈欣
     */
     private void receiveDataSocket( ByteBufferList bb)
@@ -221,7 +224,6 @@ class ControlConnectHandler
                 System.out.println("[Server] Successfully wrote message");
             }
         });
-
     } //private void notifyLsCompleted()
 
         /**
@@ -231,29 +233,16 @@ class ControlConnectHandler
      */
     private void sendListContent(String content, String currentWorkingDirectory)
     {
-//        puts "currentWorkingDirectory: #{currentWorkingDirectory}, lenght: #{currentWorkingDirectory.length}"
-//        currentWorkingDirectory.strip!
-//            puts "currentWorkingDirectory: #{currentWorkingDirectory}, lenght: #{currentWorkingDirectory.length}"
-//        extraParameter=data.split(" ")[1]
-//        puts "extraParameter: #{extraParameter}"
-//        command="ls #{extraParameter} #{currentWorkingDirectory}"
-//        puts "command: #{command}"
-//        #command: ls -la /
-//
-//            output=`#{command}`
-
         String parameter=content.substring(5).trim(); // 获取额外参数。
         
         if (parameter.equals("-la")) // 忽略
         {
             parameter=""; // 忽略成空白。
         } //if (parameter.equals("-la")) // 忽略
-        
-        
 
         currentWorkingDirectory=currentWorkingDirectory.trim();
 
-        String wholeDirecotoryPath= context.getFilesDir().getPath() + currentWorkingDirectory; // 构造完整路径。
+        String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory; // 构造完整路径。
 
         String output = getDirectoryContentList(wholeDirecotoryPath, parameter); // Get the whole directory list.
         
@@ -273,13 +262,11 @@ class ControlConnectHandler
         } //if (data_socket!=null)
         else // 数据连接不存在
         {
-//             notifyLsFailedDataConnectionNull(); // 告知，数据连接未建立。
             queueForDataSocket(output); // 将回复数据排队。
         } //else // 数据连接不存在
-
     } //private void sendListContent(String content, String currentWorkingDirectory)
 
-        /**
+    /**
     * 将回复数据排队。
     */
     private void queueForDataSocket(String output) 
@@ -507,24 +494,18 @@ class ControlConnectHandler
                     System.out.println("[Server] Successfully wrote message");
                 }
             });
-
         } //else if (command.equals("TYPE")) // 传输类型
         else if (command.equals("PASV")) // 被动传输
         {
-            //        elsif command=='PASV'
-//            #227 Entering Passive Mode (a1,a2,a3,a4,p1,p2)
-//            #where a1.a2.a3.a4 is the IP address and p1*256+p2 is the port number.
+            setupDataServer(); // 初始化数据服务器。
         
-        setupDataServer(); // 初始化数据服务器。
-        
-                WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-        String ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
+            WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+            String ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
 
+            String ip = ipAddress.replace(".", ",");
         
-        String ip = ipAddress.replace(".", ",");
-        
-        int port256=data_port/256;
-        int portModule=data_port-port256*256;
+            int port256=data_port/256;
+            int portModule=data_port-port256*256;
 
             String replyString="227 Entering Passive Mode ("+ip+","+port256+","+portModule+") \n"; // 回复内容。
 
