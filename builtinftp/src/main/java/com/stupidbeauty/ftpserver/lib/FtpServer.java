@@ -21,7 +21,6 @@ import android.net.wifi.WifiManager;
 import java.util.Random;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import static com.stupidbeauty.builtinftp.Utils.shellExec;
 
 public class FtpServer 
 {

@@ -22,13 +22,12 @@ import android.net.wifi.WifiManager;
 import java.util.Random;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import static com.stupidbeauty.builtinftp.Utils.shellExec;
 
 class ControlConnectHandler
 {
     private AsyncSocket socket; //!< 当前的客户端连接。
     private static final String TAG ="ControlConnectHandler"; //!<  输出调试信息时使用的标记。
-     private Context context; //!< 执行时使用的上下文。
+    private Context context; //!< 执行时使用的上下文。
     private AsyncSocket data_socket; //!< 当前的数据连接。
     private byte[] dataSocketPendingByteArray=null; //!< 数据套接字数据内容 排队。
     private String currentWorkingDirectory="/"; //!< 当前工作目录
