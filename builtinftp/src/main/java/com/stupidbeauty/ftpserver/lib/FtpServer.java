@@ -44,8 +44,14 @@ public class FtpServer
 
     public FtpServer(String host, int port, Context context, boolean allowActiveMode) 
     {
+        this(host, port, context, allowActiveMode, null);
+    } //public FtpServer(String host, int port, Context context, boolean allowActiveMode) 
+
+    public FtpServer(String host, int port, Context context, boolean allowActiveMode, ErrorListener errorListener) 
+    {
         this.context=context;
         this.allowActiveMode=allowActiveMode;
+        this.errorListener=errorListener; // 记录错误事件监听器。
         
         try 
         {
@@ -59,7 +65,7 @@ public class FtpServer
         this.port = port;
 
         setup();
-    }
+    } //public FtpServer(String host, int port, Context context, boolean allowActiveMode) 
 
     private void setup()
     {
