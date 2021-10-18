@@ -53,6 +53,8 @@ public class FtpServer
         this.allowActiveMode=allowActiveMode;
         this.errorListener=errorListener; // 记录错误事件监听器。
         
+        rootDirectory=context.getFilesDir(); // 默认在家目录下工作。
+        
         try 
         {
             this.host = InetAddress.getByName(host);
