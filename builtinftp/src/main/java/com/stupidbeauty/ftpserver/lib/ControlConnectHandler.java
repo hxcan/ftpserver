@@ -110,6 +110,17 @@ class ControlConnectHandler
             }
         });
     } //private sendStringInBinaryMode(String stringToSend)
+    
+    public void notifyFileNotExist() // 告知文件不存在
+    {
+//         controlConnectHandler.notifyFileNotExist(); // 告知文件不存在。
+//         String replyString="216 " + "\n"; // 回复内容。
+        String replyString="550 File not exist\n"; // File does not exist.
+// 陈欣
+        Log.d(TAG, "reply string: " + replyString); //Debug.
+        
+        sendStringInBinaryMode(replyString); // 发送。
+    } //private void notifyFileNotExist()
 
     /**
     * 告知已经发送文件内容数据。
@@ -649,11 +660,11 @@ data51=data51.trim(); // 去掉末尾换行
 
             startStor(data51, currentWorkingDirectory); // 发送文件内容。
         } //else if (command.equals("stor")) // 上传文件
-        else  // 要求服务器主动连接客户端的端口
+        else  // 其它命令
         {
             String replyString="150 \n"; // 回复内容。正在打开数据连接
 
-            replyString="202 " + content.trim()  +  " not implemented\n"; // 回复内容。未实现。
+            replyString="502 " + content.trim()  +  " not implemented\n"; // 回复内容。未实现。
 
             Log.d(TAG, "reply string: " + replyString); //Debug.
 

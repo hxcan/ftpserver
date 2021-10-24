@@ -46,7 +46,10 @@ public class FileContentSender
         } // if (dataSocketPendingByteArray!=null)
     } //public void setDataSocket(AsyncSocket socket)
     
-    private void startSendFileContent() // 开始发送文件内容。
+    /**
+    * 开始发送文件内容。
+    */
+    private void startSendFileContent() 
     {
         byte[] photoBytes=null; //数据内容。
 
@@ -59,15 +62,23 @@ public class FileContentSender
 			e.printStackTrace();
 		}
 
-        Util.writeAll(data_socket, photoBytes, new CompletedCallback() {
-            @Override
-            public void onCompleted(Exception ex) {
-                if (ex != null) throw new RuntimeException(ex);
-                System.out.println("[Server] data Successfully wrote message");
-                
-                notifyFileSendCompleted(); // 告知已经发送文件内容数据。
-            }
-        });
+		if (photoBytes!=null) // 读取的文件存在
+		{
+            Util.writeAll(data_socket, photoBytes, new CompletedCallback() 
+            {
+                @Override
+                public void onCompleted(Exception ex) {
+                    if (ex != null) throw new RuntimeException(ex);
+                    System.out.println("[Server] data Successfully wrote message");
+                    
+                    notifyFileSendCompleted(); // 告知已经发送文件内容数据。
+                }
+            });
+		} //if (photoBytes!=null) // 读取的文件存在
+		else // 读取的文件不存在
+		{
+            notifyFileNotExist(); // 告知文件不存在
+		} //else // 读取的文件不存在
     } //private void startSendFileContent()
 
     /**
@@ -97,6 +108,11 @@ public class FileContentSender
     {
         controlConnectHandler.notifyFileSendCompleted(); // 告知文件内容发送完毕。
     } //private void notifyFileSendCompleted()
+    
+    private void notifyFileNotExist() // 告知文件不存在
+    {
+        controlConnectHandler.notifyFileNotExist(); // 告知文件不存在。
+    } //private void notifyFileNotExist()
 
     /**
     * 将回复数据排队。
