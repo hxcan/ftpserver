@@ -3,10 +3,8 @@ package com.stupidbeauty.ftpserver.lib;
 import com.koushikdutta.async.AsyncSocket;
 import java.net.InetSocketAddress;
 import com.koushikdutta.async.callback.ConnectCallback;
-
 import android.app.Application;
 import java.io.File;
-// import com.koushikdutta.async.*;
 import com.koushikdutta.async.callback.CompletedCallback;
 import com.koushikdutta.async.callback.DataCallback;
 import com.koushikdutta.async.callback.ListenCallback;
@@ -23,6 +21,7 @@ public class FileContentSender
     private ControlConnectHandler controlConnectHandler=null; //!< 控制连接处理器。
     private AsyncSocket data_socket=null; //!< 当前的数据连接。
     private File rootDirectory=null; //!< 根目录。
+    private File fileToSend=null; //!< 要发送的文件。
     
     public void  setRootDirectory(File rootDirectory) // 设置根目录。
     {
@@ -41,23 +40,35 @@ public class FileContentSender
     {
         data_socket=socket; // 记录。
         
-                if (dataSocketPendingByteArray!=null) // 有等待发送的内容。
+        if (fileToSend!=null) // 有等待发送的内容。
         {
-            Util.writeAll(data_socket, dataSocketPendingByteArray, new CompletedCallback() {
-                @Override
-                public void onCompleted(Exception ex) 
-                {
-                    if (ex != null) throw new RuntimeException(ex);
-                    System.out.println("[Server] data Successfully wrote message");
-                    
-                    notifyFileSendCompleted(); // 告知已经发送文件数据。
-                } //public void onCompleted(Exception ex) 
-            });
-        
-            dataSocketPendingByteArray=null; // 数据置空。
+            startSendFileContent(); // 开始发送文件内容。
         } // if (dataSocketPendingByteArray!=null)
-
     } //public void setDataSocket(AsyncSocket socket)
+    
+    private void startSendFileContent() // 开始发送文件内容。
+    {
+        byte[] photoBytes=null; //数据内容。
+
+        try //尝试构造请求对象，并且捕获可能的异常。
+        {
+            photoBytes= FileUtils.readFileToByteArray(fileToSend); //将照片文件内容全部读取。
+        } //try //尝试构造请求对象，并且捕获可能的异常。
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+        Util.writeAll(data_socket, photoBytes, new CompletedCallback() {
+            @Override
+            public void onCompleted(Exception ex) {
+                if (ex != null) throw new RuntimeException(ex);
+                System.out.println("[Server] data Successfully wrote message");
+                
+                notifyFileSendCompleted(); // 告知已经发送文件内容数据。
+            }
+        });
+    } //private void startSendFileContent()
 
     /**
     * 发送文件内容。
@@ -69,55 +80,25 @@ public class FileContentSender
         wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
         File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
+        
+        fileToSend=photoDirecotry; // 记录，要发送的文件对象。
+        
+        if (data_socket!=null) // 数据连接存在。
+        {
+            startSendFileContent(); // 开始发送文件内容。
+        } //if (data_socket!=null) // 数据连接存在。
             
-        String replyString=""; // 回复字符串。
-
-        byte[] photoBytes=null; //数据内容。
-
-        try //尝试构造请求对象，并且捕获可能的异常。
-        {
-            photoBytes= FileUtils.readFileToByteArray(photoDirecotry); //将照片文件内容全部读取。
-        } //try //尝试构造请求对象，并且捕获可能的异常。
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-
-        if (data_socket!=null) // 数据连接存在
-        {
-            Util.writeAll(data_socket, photoBytes, new CompletedCallback() {
-            @Override
-            public void onCompleted(Exception ex) {
-                if (ex != null) throw new RuntimeException(ex);
-                System.out.println("[Server] data Successfully wrote message");
-                
-                notifyFileSendCompleted(); // 告知已经发送文件内容数据。
-            }
-        });
-        } //if (data_socket!=null)
-        else // 数据连接不存在
-        {
-            
-            queueForDataSocket(photoBytes); // 将回复数据排队。
-        } //else // 数据连接不存在
     } //private void sendFileContent(String data51, String currentWorkingDirectory)
     
-        /**
+    /**
     * 告知已经发送文件内容数据。
     */
     private void notifyFileSendCompleted() 
     {
         controlConnectHandler.notifyFileSendCompleted(); // 告知文件内容发送完毕。
-        
-//         String replyString="216 " + "\n"; // 回复内容。
-// 
-//         Log.d(TAG, "reply string: " + replyString); //Debug.
-//         
-//         sendStringInBinaryMode(replyString); // 发送。
     } //private void notifyFileSendCompleted()
 
-
-        /**
+    /**
     * 将回复数据排队。
     */
     private void queueForDataSocket(byte[] output) 
@@ -125,14 +106,11 @@ public class FileContentSender
         dataSocketPendingByteArray=output; // 排队。
     } //private void queueForDataSocket(String output)
 
-
-        /**
+    /**
     * 将回复数据排队。
     */
     private void queueForDataSocket(String output) 
     {
         dataSocketPendingByteArray=output.getBytes(); // 排队。
     } //private void queueForDataSocket(String output)
-
-
 }
