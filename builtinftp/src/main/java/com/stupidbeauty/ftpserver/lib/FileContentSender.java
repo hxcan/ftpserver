@@ -42,9 +42,32 @@ public class FileContentSender
         
         if ((fileToSend!=null) && (data_socket!=null)) // 有等待发送的内容。
         {
-            startSendFileContent(); // 开始发送文件内容。
+            startSendFileContentForLarge(); // 开始发送文件内容。
         } // if (dataSocketPendingByteArray!=null)
     } //public void setDataSocket(AsyncSocket socket)
+    
+    private void startSendFileContentForLarge()
+    {
+        if (fileToSend.exists()) // 文件存在
+        {
+        Util.pump(fileToSend, data_socket, new CompletedCallback() 
+        {
+            @Override
+            public void onCompleted(Exception ex) 
+            {
+                if (ex != null) throw new RuntimeException(ex);
+                System.out.println("[Server] data Successfully wrote message");
+                    
+                notifyFileSendCompleted(); // 告知已经发送文件内容数据。
+                fileToSend=null; // 将要发送的文件对象清空。
+            }
+        });
+        } //if (fileToSend.exist()) // 文件存在
+        else
+        {
+            notifyFileNotExist(); // 报告文件不存在。
+        }
+    } //private void startSendFileContentForLarge()
     
     /**
     * 开始发送文件内容。
@@ -97,7 +120,7 @@ public class FileContentSender
         
         if (data_socket!=null) // 数据连接存在。
         {
-            startSendFileContent(); // 开始发送文件内容。
+            startSendFileContentForLarge(); // 开始发送文件内容。
         } //if (data_socket!=null) // 数据连接存在。
             
     } //private void sendFileContent(String data51, String currentWorkingDirectory)
