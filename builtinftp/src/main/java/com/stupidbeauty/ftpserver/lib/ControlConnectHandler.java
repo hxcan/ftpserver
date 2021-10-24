@@ -29,6 +29,7 @@ class ControlConnectHandler
     private static final String TAG ="ControlConnectHandler"; //!<  输出调试信息时使用的标记。
     private Context context; //!< 执行时使用的上下文。
     private AsyncSocket data_socket; //!< 当前的数据连接。
+    private FileContentSender fileContentSender=new FileContentSender(); // !< 文件内容发送器。
     private byte[] dataSocketPendingByteArray=null; //!< 数据套接字数据内容 排队。
     private String currentWorkingDirectory="/"; //!< 当前工作目录
     private int data_port=1544; //!< 数据连接端口。
@@ -42,6 +43,8 @@ class ControlConnectHandler
     {
         rootDirectory=root;
         Log.d(TAG, "setRootDirectory, rootDirectory: " + rootDirectory); // Debug.
+        
+        fileContentSender.setRootDirectory(rootDirectory); // 设置根目录。
     }
 
     /**
@@ -111,7 +114,7 @@ class ControlConnectHandler
     /**
     * 告知已经发送文件内容数据。
     */
-    private void notifyFileSendCompleted() 
+    public void notifyFileSendCompleted() 
     {
         String replyString="216 " + "\n"; // 回复内容。
 
@@ -125,42 +128,45 @@ class ControlConnectHandler
     */
     private void sendFileContent(String data51, String currentWorkingDirectory) 
     {
-        String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
-                    
-        wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
-                    
-        File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
-            
-        String replyString=""; // 回复字符串。
-
-        byte[] photoBytes=null; //数据内容。
-
-        try //尝试构造请求对象，并且捕获可能的异常。
-        {
-            photoBytes= FileUtils.readFileToByteArray(photoDirecotry); //将照片文件内容全部读取。
-        } //try //尝试构造请求对象，并且捕获可能的异常。
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-
-        if (data_socket!=null) // 数据连接存在
-        {
-            Util.writeAll(data_socket, photoBytes, new CompletedCallback() {
-            @Override
-            public void onCompleted(Exception ex) {
-                if (ex != null) throw new RuntimeException(ex);
-                System.out.println("[Server] data Successfully wrote message");
-                
-                notifyFileSendCompleted(); // 告知已经发送文件内容数据。
-            }
-        });
-        } //if (data_socket!=null)
-        else // 数据连接不存在
-        {
-//             notifyLsFailedDataConnectionNull(); // 告知，数据连接未建立。
-            queueForDataSocket(photoBytes); // 将回复数据排队。
-        } //else // 数据连接不存在
+        fileContentSender.setControlConnectHandler(this); // 设置控制连接处理器。
+        fileContentSender.setDataSocket(data_socket); // 设置数据连接套接字。
+        fileContentSender.sendFileContent(data51, currentWorkingDirectory); // 让文件内容发送器来发送。
+        
+//         String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
+//                     
+//         wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
+//                     
+//         File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
+//             
+//         String replyString=""; // 回复字符串。
+// 
+//         byte[] photoBytes=null; //数据内容。
+// 
+//         try //尝试构造请求对象，并且捕获可能的异常。
+//         {
+//             photoBytes= FileUtils.readFileToByteArray(photoDirecotry); //将照片文件内容全部读取。
+//         } //try //尝试构造请求对象，并且捕获可能的异常。
+// 		catch (Exception e)
+// 		{
+// 			e.printStackTrace();
+// 		}
+// 
+//         if (data_socket!=null) // 数据连接存在
+//         {
+//             Util.writeAll(data_socket, photoBytes, new CompletedCallback() {
+//             @Override
+//             public void onCompleted(Exception ex) {
+//                 if (ex != null) throw new RuntimeException(ex);
+//                 System.out.println("[Server] data Successfully wrote message");
+//                 
+//                 notifyFileSendCompleted(); // 告知已经发送文件内容数据。
+//             }
+//         });
+//         } //if (data_socket!=null)
+//         else // 数据连接不存在
+//         {
+//             queueForDataSocket(photoBytes); // 将回复数据排队。
+//         } //else // 数据连接不存在
     } //private void sendFileContent(String data51, String currentWorkingDirectory)
 
     /**
@@ -647,7 +653,7 @@ data51=data51.trim(); // 去掉末尾换行
         {
             String replyString="150 \n"; // 回复内容。正在打开数据连接
 
-            replyString="202 " + content.trim()  +  "not implemented\n"; // 回复内容。未实现。
+            replyString="202 " + content.trim()  +  " not implemented\n"; // 回复内容。未实现。
 
             Log.d(TAG, "reply string: " + replyString); //Debug.
 
@@ -725,6 +731,7 @@ data51=data51.trim(); // 去掉末尾换行
         else // 无异常。
         {
             this.data_socket=socket; // Remember the data connection.
+            fileContentSender.setDataSocket(socket); // 设置数据连接套接字。
 
 //         Util.writeAll(socket, "Hello Server".getBytes(), new CompletedCallback() {
 //             @Override
@@ -775,6 +782,8 @@ data51=data51.trim(); // 去掉末尾换行
     private void handleDataAccept(final AsyncSocket socket)
     {
         this.data_socket=socket;
+                    fileContentSender.setDataSocket(socket); // 设置数据连接套接字。
+
         Log.d(TAG, "handleDataAccept, [Server] data New Connection " + socket.toString());
         
         if (dataSocketPendingByteArray!=null) // 有等待发送的内容。
