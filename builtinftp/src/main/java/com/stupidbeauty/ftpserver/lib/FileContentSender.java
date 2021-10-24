@@ -40,7 +40,7 @@ public class FileContentSender
     {
         data_socket=socket; // 记录。
         
-        if (fileToSend!=null) // 有等待发送的内容。
+        if ((fileToSend!=null) && (data_socket!=null)) // 有等待发送的内容。
         {
             startSendFileContent(); // 开始发送文件内容。
         } // if (dataSocketPendingByteArray!=null)
@@ -72,6 +72,7 @@ public class FileContentSender
                     System.out.println("[Server] data Successfully wrote message");
                     
                     notifyFileSendCompleted(); // 告知已经发送文件内容数据。
+                    fileToSend=null; // 将要发送的文件对象清空。
                 }
             });
 		} //if (photoBytes!=null) // 读取的文件存在

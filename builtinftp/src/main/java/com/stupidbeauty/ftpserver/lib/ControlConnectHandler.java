@@ -829,6 +829,7 @@ data51=data51.trim(); // 去掉末尾换行
                 System.out.println("[Server] data Successfully closed connection");
                 
                 data_socket=null;
+                fileContentSender.setDataSocket(data_socket); // 将数据连接清空
                 
                 if (isUploading) // 是处于上传状态。
                 {
