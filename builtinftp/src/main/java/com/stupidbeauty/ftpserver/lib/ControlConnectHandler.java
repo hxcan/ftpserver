@@ -639,19 +639,28 @@ data51=data51.trim(); // 去掉末尾换行
 
             String data51=            content.substring(5);
 
-data51=data51.trim(); // 去掉末尾换行
-
+            data51=data51.trim(); // 去掉末尾换行
 
             startStor(data51, currentWorkingDirectory); // 发送文件内容。
-
         } //else if (command.equals("stor")) // 上传文件
+        else  // 要求服务器主动连接客户端的端口
+        {
+            String replyString="150 \n"; // 回复内容。正在打开数据连接
 
-//        2021-08-29 20:57:40.287 16876-16916/com.stupidbeauty.builtinftp.demo D/Server: [Server] Received Message cwd /
-//            2021-08-29 20:57:40.287 16876-16916/com.stupidbeauty.builtinftp.demo D/Server: command: cwd, content: cwd /
-//            2021
+            replyString="202 " + content.trim()  +  "not implemented\n"; // 回复内容。未实现。
 
-//        def processCommand (command,data)
-//        if command== 'USER'
+            Log.d(TAG, "reply string: " + replyString); //Debug.
+
+            Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() 
+            {
+                @Override
+                public void onCompleted(Exception ex) 
+                {
+                    if (ex != null) throw new RuntimeException(ex);
+                    Log.d(TAG, "[Server] Successfully wrote message");
+                }
+            });
+        } //else if (command.equals("EPSV")) // Extended passive mode.
     } //private void processCommand(String command, String content)
 
     /**
