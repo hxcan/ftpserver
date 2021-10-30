@@ -10,7 +10,7 @@ import android.util.Log;
 import java.util.Date;    
 import java.time.format.DateTimeFormatter;
 import java.io.File;
-import com.koushikdutta.async.*;
+//import com.koushikdutta.async.*;
 import com.koushikdutta.async.callback.CompletedCallback;
 import com.koushikdutta.async.callback.DataCallback;
 import com.koushikdutta.async.callback.ListenCallback;
@@ -142,42 +142,6 @@ class ControlConnectHandler
         fileContentSender.setControlConnectHandler(this); // 设置控制连接处理器。
         fileContentSender.setDataSocket(data_socket); // 设置数据连接套接字。
         fileContentSender.sendFileContent(data51, currentWorkingDirectory); // 让文件内容发送器来发送。
-        
-//         String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
-//                     
-//         wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
-//                     
-//         File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
-//             
-//         String replyString=""; // 回复字符串。
-// 
-//         byte[] photoBytes=null; //数据内容。
-// 
-//         try //尝试构造请求对象，并且捕获可能的异常。
-//         {
-//             photoBytes= FileUtils.readFileToByteArray(photoDirecotry); //将照片文件内容全部读取。
-//         } //try //尝试构造请求对象，并且捕获可能的异常。
-// 		catch (Exception e)
-// 		{
-// 			e.printStackTrace();
-// 		}
-// 
-//         if (data_socket!=null) // 数据连接存在
-//         {
-//             Util.writeAll(data_socket, photoBytes, new CompletedCallback() {
-//             @Override
-//             public void onCompleted(Exception ex) {
-//                 if (ex != null) throw new RuntimeException(ex);
-//                 System.out.println("[Server] data Successfully wrote message");
-//                 
-//                 notifyFileSendCompleted(); // 告知已经发送文件内容数据。
-//             }
-//         });
-//         } //if (data_socket!=null)
-//         else // 数据连接不存在
-//         {
-//             queueForDataSocket(photoBytes); // 将回复数据排队。
-//         } //else // 数据连接不存在
     } //private void sendFileContent(String data51, String currentWorkingDirectory)
 
     /**
@@ -260,7 +224,7 @@ class ControlConnectHandler
         
         if (data_socket!=null) // 数据连接存在
         {
-        Util.writeAll(data_socket, (output + "\n").getBytes(), new CompletedCallback() {
+            Util.writeAll(data_socket, (output + "\n").getBytes(), new CompletedCallback() {
             @Override
             public void onCompleted(Exception ex) {
                 if (ex != null) throw new RuntimeException(ex);
@@ -361,7 +325,7 @@ class ControlConnectHandler
         return permission;
     } //private String  getPermissionForFile(File path)
 
-        /**
+    /**
     * 处理尺寸查询命令。
     */
     private void processSizeCommand(String data51)
@@ -369,42 +333,37 @@ class ControlConnectHandler
         Log.d(TAG, "processSizeCommand: filesdir: " + rootDirectory.getPath()); // Debug.
         Log.d(TAG, "processSizeCommand: workding directory: " + currentWorkingDirectory); // Debug.
         Log.d(TAG, "processSizeCommand: data51: " + data51); // Debug.
-
     
-        String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
-                    
-        wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
-                    
-                    Log.d(TAG, "processSizeCommand: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
-                    
-            File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
-            
-            String replyString=""; // 回复字符串。
+        FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
+        File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
 
-            if (photoDirecotry.exists()) // 文件存在
-            {
+        String replyString=""; // 回复字符串。
+
+        if (photoDirecotry.exists()) // 文件存在
+        {
             long fileSize= photoDirecotry.length(); //文件尺寸。 陈欣
             
-                replyString="213 " + fileSize + " \n"; // 文件尺寸。
-            } //if (photoDirecotry.exists()) // 文件存在
-            else // 文件不 存在
+            replyString="213 " + fileSize + " \n"; // 文件尺寸。
+        } //if (photoDirecotry.exists()) // 文件存在
+        else // 文件不 存在
+        {
+            replyString="550 No directory traversal allowed in SIZE param\n"; // File does not exist.
+        } //else // 文件不 存在
+
+        Log.d(TAG, "reply string: " + replyString); //Debug.
+
+        Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() 
+        {
+            @Override
+            public void onCompleted(Exception ex) 
             {
-                replyString="550 No directory traversal allowed in SIZE param\n"; // File does not exist.
-            } //else // 文件不 存在
-
-            Log.d(TAG, "reply string: " + replyString); //Debug.
-
-            Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() {
-                @Override
-                public void onCompleted(Exception ex) 
-                {
-                    if (ex != null) throw new RuntimeException(ex);
-                    System.out.println("[Server] Successfully wrote message");
-                } //public void onCompleted(Exception ex) 
-            });
+                if (ex != null) throw new RuntimeException(ex);
+                System.out.println("[Server] Successfully wrote message");
+            } //public void onCompleted(Exception ex) 
+        });
     } //private void processSizeCommand(String data51)
 
-        /**
+    /**
      * 处理命令。
      * @param command 命令关键字
      * @param content 整个消息内容。
@@ -544,34 +503,29 @@ class ControlConnectHandler
                     System.out.println("[Server] Successfully wrote message");
                 }
             });
-
         } //else if (command.equals("EPSV")) // 扩展被动模式
         else if (command.equals("PORT")) // 要求服务器主动连接客户端的端口
         {
-            //        elsif command=='EPSV'
-
             String replyString="150 \n"; // 回复内容。正在打开数据连接
 
+            if (allowActiveMode) // 允许主动模式
+            {
+                openDataConnectionToClient(content); // 打开指向客户端特定端口的连接。
 
-        if (allowActiveMode) // 允许主动模式
-        {
-            openDataConnectionToClient(content); // 打开指向客户端特定端口的连接。
-
-                         replyString="150 \n"; // 回复内容。正在打开数据连接
-
+                replyString="150 \n"; // 回复内容。正在打开数据连接
             } //if (allowActiveMode) // 允许主动模式
-        else // 不允许主动模式。
-        {
-
-                     replyString="202 \n"; // 回复内容。未实现。
-} //else // 不允许主动模式。
-
+            else // 不允许主动模式。
+            {
+                replyString="202 \n"; // 回复内容。未实现。
+            } //else // 不允许主动模式。
 
             Log.d(TAG, "reply string: " + replyString); //Debug.
 
-            Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() {
+            Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() 
+            {
                 @Override
-                public void onCompleted(Exception ex) {
+                public void onCompleted(Exception ex) 
+                {
                     if (ex != null) throw new RuntimeException(ex);
                     Log.d(TAG, "[Server] Successfully wrote message");
                 }
@@ -588,19 +542,19 @@ class ControlConnectHandler
 
             data51=data51.trim(); // 去掉末尾换行
 
-
             String replyString="150 start send content: " + data51 + "\n"; // 回复内容。
 
             Log.d(TAG, "reply string: " + replyString); //Debug.
 
-            Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() {
+            Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() 
+            {
                 @Override
-                public void onCompleted(Exception ex) {
+                public void onCompleted(Exception ex) 
+                {
                     if (ex != null) throw new RuntimeException(ex);
                     System.out.println("[Server] Successfully wrote message");
                 }
             });
-
 
             sendFileContent(data51, currentWorkingDirectory); // 发送文件内容。
         } //else if (command.equals("list")) // 列出目录
