@@ -24,6 +24,7 @@ import java.net.UnknownHostException;
 
 public class FtpServer 
 {
+    private EventListener eventListener=null; //!< Event listener.
     private ErrorListener errorListener=null; //!< Error listener. Chen xin. 
     private Context context; //!< 执行时使用的上下文。
     private static final String TAG="FtpServer"; //!< 输出调试信息时使用的标记
@@ -31,6 +32,11 @@ public class FtpServer
     private int port;
     private boolean allowActiveMode=true; //!< 是否允许主动模式。
     private File rootDirectory=null; //!< 根目录。
+    
+    public void setEventListener(EventListener eventListener)
+    {
+        this.eventListener=eventListener;
+    } //public void setEventListener(eventListener)
     
     public void setRootDirectory(File root)
     {
@@ -71,14 +77,15 @@ public class FtpServer
 
     private void setup()
     {
-        AsyncServer.getDefault().listen(host, port, new ListenCallback() {
-
+        AsyncServer.getDefault().listen(host, port, new ListenCallback() 
+        {
         @Override
         public void onAccepted(final AsyncSocket socket)
         {
             ControlConnectHandler handler=new ControlConnectHandler(context, allowActiveMode, host); // 创建处理器。
             handler.handleAccept(socket);
             handler.setRootDirectory(rootDirectory); // 设置根目录。
+            handler.setEventListener(eventListener); // 设置事件监听器。
         }
 
         @Override
