@@ -3,7 +3,11 @@ package com.stupidbeauty.ftpserver.lib;
 import com.koushikdutta.async.*;
 import java.net.InetSocketAddress;
 import com.koushikdutta.async.callback.ConnectCallback;
-
+import android.os.Handler;
+import android.os.Looper;
+import android.speech.SpeechRecognizer;
+import android.util.Log;
+import com.stupidbeauty.hxlauncher.rpc.RecognizerResult;
 import android.app.Application;
 import android.content.Context;
 import android.util.Log;
@@ -639,7 +643,20 @@ class ControlConnectHandler
     {   
         if (eventListener!=null) // 有事件监听器。
         {
-            eventListener.onEvent(eventCode); // 报告事件。
+            Handler uiHandler = new Handler(Looper.getMainLooper());
+
+            Runnable runnable= new Runnable()
+            {
+                /**
+                * 具体执行的代码
+                */
+                public void run()
+                {
+                    eventListener.onEvent(eventCode); // 报告事件。
+                } //public void run()
+            };
+
+            uiHandler.post(runnable);
         } //if (eventListener!=null) // 有事件监听器。
     } //private void notifyEvent(String eventCode)
     
