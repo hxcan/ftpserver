@@ -25,6 +25,7 @@ import java.net.UnknownHostException;
 
 class ControlConnectHandler
 {
+    private EventListener eventListener=null; //!< 事件监听器。
     private AsyncSocket socket; //!< 当前的客户端连接。
     private static final String TAG ="ControlConnectHandler"; //!<  输出调试信息时使用的标记。
     private Context context; //!< 执行时使用的上下文。
@@ -38,6 +39,11 @@ class ControlConnectHandler
     private boolean isUploading=false; //!< 是否正在上传。陈欣
     private InetAddress host;
     private File rootDirectory=null; //!< 根目录。
+    
+    public void setEventListener(EventListener eventListener)
+    {
+        this.eventListener=eventListener;
+    } //eventListener
     
     public void setRootDirectory(File root)
     {
@@ -149,10 +155,6 @@ class ControlConnectHandler
     */
     private void notifyStorCompleted() 
     {
-//         def notifyStorCompleted
-//         send_data("226 \n")
-//     end
-
         String replyString="226 Stor completed." + "\n"; // 回复内容。
 
         Log.d(TAG, "reply string: " + replyString); //Debug.
@@ -568,26 +570,23 @@ class ControlConnectHandler
         } //else if (command.equals("SIZE")) // 文件尺寸
         else if (command.equals("DELE")) // 删除文件
         {
-        //        fileName=data[5..-1]
-//        File.delete(fileName.strip)
-//        send_data "250 \n"
+            String data51=            content.substring(5);
 
-String data51=            content.substring(5);
+            data51=data51.trim(); // 去掉末尾换行
 
-data51=data51.trim(); // 去掉末尾换行
+            // 删除文件。陈欣
 
-// 删除文件。陈欣
-
-                        String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
+            String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
                     
-                    wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
+            wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
-                    Log.d(TAG, "processSizeCommand: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
+            Log.d(TAG, "processSizeCommand: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
                     
             File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
 
             photoDirecotry.delete();
             
+            notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
             
             String replyString="250 \n"; // 回复内容。
 
@@ -600,7 +599,6 @@ data51=data51.trim(); // 去掉末尾换行
                     System.out.println("[Server] Successfully wrote message");
                 }
             });
-
         } //else if (command.equals("DELE")) // 删除文件
         else if (command.equals("stor")) // 上传文件
         {
@@ -634,6 +632,17 @@ data51=data51.trim(); // 去掉末尾换行
         } //else if (command.equals("EPSV")) // Extended passive mode.
     } //private void processCommand(String command, String content)
 
+    /**
+    * 报告事件，删除文件。
+    */
+    private void notifyEvent(String eventCode)
+    {   
+        if (eventListener!=null) // 有事件监听器。
+        {
+            eventListener.onEvent(eventCode); // 报告事件。
+        } //if (eventListener!=null) // 有事件监听器。
+    } //private void notifyEvent(String eventCode)
+    
     /**
     * 处理目录列表命令。
     */
