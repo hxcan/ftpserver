@@ -7,14 +7,12 @@ import android.os.Handler;
 import android.os.Looper;
 import android.speech.SpeechRecognizer;
 import android.util.Log;
-import com.stupidbeauty.hxlauncher.rpc.RecognizerResult;
 import android.app.Application;
 import android.content.Context;
 import android.util.Log;
 import java.util.Date;    
 import java.time.format.DateTimeFormatter;
 import java.io.File;
-//import com.koushikdutta.async.*;
 import com.koushikdutta.async.callback.CompletedCallback;
 import com.koushikdutta.async.callback.DataCallback;
 import com.koushikdutta.async.callback.ListenCallback;
@@ -639,7 +637,7 @@ class ControlConnectHandler
     /**
     * 报告事件，删除文件。
     */
-    private void notifyEvent(String eventCode)
+    private void notifyEvent(final String eventCode)
     {   
         if (eventListener!=null) // 有事件监听器。
         {
