@@ -572,7 +572,7 @@ class ControlConnectHandler
         } //else if (command.equals("SIZE")) // 文件尺寸
         else if (command.equals("DELE")) // 删除文件
         {
-            String data51=            content.substring(5);
+            String data51= content.substring(5);
 
             data51=data51.trim(); // 去掉末尾换行
 
@@ -582,9 +582,12 @@ class ControlConnectHandler
                     
             wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
-            Log.d(TAG, "DELE: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
+//             Log.d(TAG, "DELE: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
 
-            File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
+            FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
+            File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
+
+//             File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
 
 //             陈欣
             
