@@ -582,11 +582,15 @@ class ControlConnectHandler
                     
             wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
-            Log.d(TAG, "processSizeCommand: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
-                    
+            Log.d(TAG, "DELE: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
+
             File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
 
-            photoDirecotry.delete();
+//             陈欣
+            
+            boolean deleteResult= photoDirecotry.delete();
+            
+            Log.d(TAG, "delete result: " + deleteResult); // Debug.
             
             notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
             
