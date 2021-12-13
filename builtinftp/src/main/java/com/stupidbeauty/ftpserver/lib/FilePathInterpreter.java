@@ -28,9 +28,6 @@ public class FilePathInterpreter
 
     if (photoDirecotry.exists()) // 文件存在
     {
-//             long fileSize= photoDirecotry.length(); //文件尺寸。 陈欣
-//
-//             replyString="213 " + fileSize + " \n"; // 文件尺寸。
     } //if (photoDirecotry.exists()) // 文件存在
     else // 文件不 存在
     {
@@ -39,8 +36,6 @@ public class FilePathInterpreter
         wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
 
         photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
-
-//             replyString="550 No directory traversal allowed in SIZE param\n"; // File does not exist.
     } //else // 文件不 存在
 
     return photoDirecotry;

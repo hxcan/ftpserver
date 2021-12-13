@@ -582,12 +582,43 @@ class ControlConnectHandler
                     
             wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
-//             Log.d(TAG, "DELE: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
-
             FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
             File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
 
-//             File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
+//             陈欣
+            
+            boolean deleteResult= photoDirecotry.delete();
+            
+            Log.d(TAG, "delete result: " + deleteResult); // Debug.
+            
+            notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
+            
+            String replyString="250 \n"; // 回复内容。
+
+            Log.d(TAG, "reply string: " + replyString); //Debug.
+
+            Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() {
+                @Override
+                public void onCompleted(Exception ex) {
+                    if (ex != null) throw new RuntimeException(ex);
+                    System.out.println("[Server] Successfully wrote message");
+                }
+            });
+        } //else if (command.equals("DELE")) // 删除文件
+        else if (command.equals("RMD")) // 删除目录
+        {
+            String data51= content.substring(4);
+
+            data51=data51.trim(); // 去掉末尾换行
+
+            // 删除文件。陈欣
+
+            String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
+                    
+            wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
+                    
+            FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
+            File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
 
 //             陈欣
             
