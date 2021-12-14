@@ -100,7 +100,7 @@ public class FtpServer
             if(ex != null) 
             {
                 if ( ex instanceof BindException )
-                {  
+                {
                     if (errorListener!=null)
                     {
                         errorListener.onError(Constants.ErrorCode.ADDRESS_ALREADY_IN_USE); // Report error. Chen xin.

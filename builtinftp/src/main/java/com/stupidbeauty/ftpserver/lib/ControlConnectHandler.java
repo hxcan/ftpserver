@@ -1,5 +1,6 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import java.io.IOException;
 import com.koushikdutta.async.*;
 import java.net.InetSocketAddress;
 import com.koushikdutta.async.callback.ConnectCallback;
@@ -856,10 +857,34 @@ class ControlConnectHandler
             }
         });
 
-        socket.setEndCallback(new CompletedCallback() {
+        socket.setEndCallback(new CompletedCallback() 
+        {
             @Override
-            public void onCompleted(Exception ex) {
-                if (ex != null) throw new RuntimeException(ex);
+            public void onCompleted(Exception ex) 
+            {
+//                 if (ex != null) throw new RuntimeException(ex);
+                
+            if(ex != null) 
+            {
+                if ( ex instanceof IOException ) // java.lang.RuntimeException: java.io.IOException: Software caused connection abort
+                {
+                  ex.printStackTrace();
+//                     if (errorListener!=null)
+//                     {
+//                         errorListener.onError(Constants.ErrorCode.ADDRESS_ALREADY_IN_USE); // Report error. Chen xin.
+//                     }
+//                     else // No error listener
+//                     {
+//                         throw new RuntimeException(ex);
+//                     } //else // No error listener
+                }
+                else // Other exceptions
+                {
+                    throw new RuntimeException(ex);
+                }
+            }
+
+                
                 System.out.println("[Server] data Successfully end connection");
             }
         });
