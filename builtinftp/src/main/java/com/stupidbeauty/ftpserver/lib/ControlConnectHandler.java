@@ -1,5 +1,6 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import java.util.Locale;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.LocalDateTime;
@@ -293,7 +294,7 @@ class ControlConnectHandler
 
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM");
 
-                        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMM");
+                        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMM").withLocale(Locale.US);
 
             String dateString="30";
                             
