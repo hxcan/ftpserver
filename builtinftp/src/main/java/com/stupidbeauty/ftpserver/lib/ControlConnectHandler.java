@@ -1,5 +1,8 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.LocalDateTime;
 import java.io.IOException;
 import com.koushikdutta.async.*;
 import java.net.InetSocketAddress;
@@ -280,13 +283,17 @@ class ControlConnectHandler
 
             String fileName=path.getName(); // 获取文件名。
 
-            Date date=new Date(path.lastModified());  
+//             Date date=new Date(path.lastModified());  
+            LocalDateTime date =
+    LocalDateTime.ofInstant(Instant.ofEpochMilli(path.lastModified()), ZoneId.systemDefault());
                             
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 //   String time= date.format(formatter);
             String time="8:00";
 
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM");
+
+                        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMM");
 
             String dateString="30";
                             
@@ -302,6 +309,10 @@ class ControlConnectHandler
             String permission=getPermissionForFile(path); // 权限。
 
             String month="Jan"; // 月份 。
+            
+            
+            month=date.format(monthFormatter); // 序列化月份。
+            
             String currentLine = permission + " " + linkNumber + " " + user + " " + group + " " + fileSize + " " + month + " " + dateString + " " + time + " " + fileName + "\n" ; // 构造当前行。
             
             if (fileName.equals(nameOfFile)  || (nameOfFile.isEmpty())) // 名字匹配。
