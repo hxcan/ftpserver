@@ -284,7 +284,15 @@ class ControlConnectHandler
 
             String fileName=path.getName(); // 获取文件名。
 
-//             Date date=new Date(path.lastModified());  
+            Date dateCompareYear=new Date(path.lastModified());  
+            Date dateNow=new Date();
+            boolean sameYear=false; // 是不是相同年份。
+            
+            if (dateCompareYear.getYear() == dateNow.getYear()) // 年份相等
+            {
+              sameYear=true; // 是相同年份。
+            } // if (dateCompareYear.getYear() == dateNow.getYear()) // 年份相等
+            
             LocalDateTime date =
     LocalDateTime.ofInstant(Instant.ofEpochMilli(path.lastModified()), ZoneId.systemDefault());
                             
@@ -293,8 +301,12 @@ class ControlConnectHandler
             String time="8:00";
 
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM");
+            
+                        DateTimeFormatter yearFormatter = DateTimeFormatter.ofPattern("yyyy").withLocale(Locale.US);
 
-                        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMM").withLocale(Locale.US);
+                        String year=date.format(yearFormatter);  // 年份字符串。
+
+            DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMM").withLocale(Locale.US);
 
             String dateString="30";
                             
@@ -311,10 +323,19 @@ class ControlConnectHandler
 
             String month="Jan"; // 月份 。
             
-            
             month=date.format(monthFormatter); // 序列化月份。
             
-            String currentLine = permission + " " + linkNumber + " " + user + " " + group + " " + fileSize + " " + month + " " + dateString + " " + time + " " + fileName + "\n" ; // 构造当前行。
+            String timeOrYear=time; // 时间或年份。
+            
+            if (sameYear) // 相同的年份。
+            {
+            } // if (sameYear) // 相同的年份。
+            else // 不是相同的年份。
+            {
+              timeOrYear=year; // 年份。
+            } // else // 不是相同的年份。
+            
+            String currentLine = permission + " " + linkNumber + " " + user + " " + group + " " + fileSize + " " + month + " " + dateString + " " + timeOrYear + " " + fileName + "\n" ; // 构造当前行。
             
             if (fileName.equals(nameOfFile)  || (nameOfFile.isEmpty())) // 名字匹配。
             {
