@@ -299,6 +299,8 @@ class ControlConnectHandler
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 //   String time= date.format(formatter);
             String time="8:00";
+            
+            time=date.format(formatter); // 获取时间字符串。
 
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM");
             
@@ -308,7 +310,11 @@ class ControlConnectHandler
 
             DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMM").withLocale(Locale.US);
 
+                        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("dd").withLocale(Locale.US);
+
             String dateString="30";
+            
+            dateString=date.format(dayFormatter); // 获取日期。
                             
             long fileSize=path.length(); // 文件尺寸。
                             
