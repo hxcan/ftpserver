@@ -38,6 +38,7 @@ class ControlConnectHandler
     private Context context; //!< 执行时使用的上下文。
     private AsyncSocket data_socket; //!< 当前的数据连接。
     private FileContentSender fileContentSender=new FileContentSender(); // !< 文件内容发送器。
+    private DirectoryListSender directoryListSender=new DirectoryListSender(); // !< 目录列表发送器。
     private byte[] dataSocketPendingByteArray=null; //!< 数据套接字数据内容 排队。
     private String currentWorkingDirectory="/"; //!< 当前工作目录
     private int data_port=1544; //!< 数据连接端口。
@@ -58,6 +59,7 @@ class ControlConnectHandler
         Log.d(TAG, "setRootDirectory, rootDirectory: " + rootDirectory); // Debug.
         
         fileContentSender.setRootDirectory(rootDirectory); // 设置根目录。
+        directoryListSender.setRootDirectory(rootDirectory); // 设置根目录。
     }
 
     /**
@@ -156,6 +158,16 @@ class ControlConnectHandler
         fileContentSender.setDataSocket(data_socket); // 设置数据连接套接字。
         fileContentSender.sendFileContent(data51, currentWorkingDirectory); // 让文件内容发送器来发送。
     } //private void sendFileContent(String data51, String currentWorkingDirectory)
+    
+    /**
+    * 发送目录列表数据。
+    */
+    private void sendListContentBySender(String fileName, String currentWorkingDirectory) 
+    {
+        directoryListSender.setControlConnectHandler(this); // 设置控制连接处理器。
+        directoryListSender.setDataSocket(data_socket); // 设置数据连接套接字。
+        directoryListSender.sendDirectoryList(fileName, currentWorkingDirectory); // 让目录列表发送器来发送。
+    } // private void sendListContentBySender(String fileName, String currentWorkingDirectory)
 
     /**
     * 告知上传完成。
@@ -190,7 +202,7 @@ class ControlConnectHandler
     /**
      * 告知已经发送目录数据。
      */
-    private void notifyLsCompleted()
+    public void notifyLsCompleted()
     {
 //        send_data "216 \n"
 
@@ -229,7 +241,7 @@ class ControlConnectHandler
 
         String output = getDirectoryContentList(wholeDirecotoryPath, parameter); // Get the whole directory list.
         
-        Log.d(TAG, "output: " + output); // Debug
+//         Log.d(TAG, "output: " + output); // Debug
         
         if (data_socket!=null) // 数据连接存在
         {
@@ -754,7 +766,8 @@ class ControlConnectHandler
                 } //public void onCompleted(Exception ex) {
             });
 
-            sendListContent(content, currentWorkingDirectory); // 发送目录列表数据。
+//             sendListContent(content, currentWorkingDirectory); // 发送目录列表数据。
+      sendListContentBySender(content, currentWorkingDirectory); // 发送目录列表数据。
     } //private void processListCommand(String content)
 
     /**
@@ -799,6 +812,7 @@ class ControlConnectHandler
         {
             this.data_socket=socket; // Remember the data connection.
             fileContentSender.setDataSocket(socket); // 设置数据连接套接字。
+            directoryListSender.setDataSocket(socket); // 设置数据连接套接字。
 
 //         Util.writeAll(socket, "Hello Server".getBytes(), new CompletedCallback() {
 //             @Override
@@ -849,7 +863,8 @@ class ControlConnectHandler
     private void handleDataAccept(final AsyncSocket socket)
     {
         this.data_socket=socket;
-                    fileContentSender.setDataSocket(socket); // 设置数据连接套接字。
+        fileContentSender.setDataSocket(socket); // 设置数据连接套接字。
+        directoryListSender.setDataSocket(socket); // 设置数据连接套接字。
 
         Log.d(TAG, "handleDataAccept, [Server] data New Connection " + socket.toString());
         
@@ -886,6 +901,7 @@ class ControlConnectHandler
                 
                 data_socket=null;
                 fileContentSender.setDataSocket(data_socket); // 将数据连接清空
+                directoryListSender.setDataSocket(data_socket); // 将数据连接清空。
                 
                 if (isUploading) // 是处于上传状态。
                 {
