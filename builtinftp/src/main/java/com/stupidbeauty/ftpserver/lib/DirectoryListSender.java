@@ -299,7 +299,7 @@ public class DirectoryListSender
         
         subDirectoryName=parameter; // 记录可能的子目录名字。
 
-        String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+parameter; // 构造完整路径。
+        String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+"/"+parameter; // 构造完整路径。
                     
         wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
