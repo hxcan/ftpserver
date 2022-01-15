@@ -966,7 +966,9 @@ class ControlConnectHandler
                 String[] lines=content.split("\r\n"); // 分割成一行行的命令。
                 
                 int lineAmount=lines.length; // 获取行数
-                
+
+                                Log.d(TAG, "[Server] line amount: " + lineAmount); // Debug
+
                 for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
                 {
                   String currentLine=lines[lineCounter]; // 获取当前命令。
