@@ -152,11 +152,16 @@ public class DirectoryListSender
             Util.writeAll(data_socket, (currentLine + "\n").getBytes(), new CompletedCallback() {
             @Override
             public void onCompleted(Exception ex) {
-                if (ex != null) throw new RuntimeException(ex);
+                if (ex != null) // 有异常
+                {
+//                 break;
+                throw new RuntimeException(ex);
+                }
+
                 System.out.println("[Server] data Successfully wrote message");
                 
-                notifyLsCompleted(); // 告知已经发送目录数据。
-                fileToSend=null; // 将要发送的文件对象清空。
+//                 notifyLsCompleted(); // 告知已经发送目录数据。
+//                 fileToSend=null; // 将要发送的文件对象清空。
 
             }
         });
@@ -171,6 +176,8 @@ public class DirectoryListSender
                 System.out.println("[Server] data Successfully wrote message");
                 
                 notifyLsCompleted(); // 告知已经发送目录数据。
+                                fileToSend=null; // 将要发送的文件对象清空。
+
             }
         });
 
