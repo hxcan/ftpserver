@@ -16,11 +16,11 @@ public class FilePathInterpreter
 
   public File getFile(File rootDirectory, String currentWorkingDirectory, String data51) //照片目录。
   {
-    String wholeDirecotoryPath = rootDirectory.getPath() + currentWorkingDirectory + data51; // 构造完整路径。
+    String wholeDirecotoryPath = rootDirectory.getPath() + currentWorkingDirectory + "/" + data51; // 构造完整路径。
 
     wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
 
-    Log.d(TAG, "processSizeCommand: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
+    Log.d(TAG, "getFile: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
 
     File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
 
