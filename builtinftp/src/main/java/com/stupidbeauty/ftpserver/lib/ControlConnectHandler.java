@@ -962,13 +962,23 @@ class ControlConnectHandler
             public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) {
                 String content = new String(bb.getAllByteArray());
                 Log.d(TAG, "[Server] Received Message " + content); // Debug
-
-                String command = content.split(" ")[0]; // Get the command.
-
+                
+                String[] lines=content.split("\r\n"); // 分割成一行行的命令。
+                
+                int lineAmount=lines.length; // 获取行数
+                
+                for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
+                {
+                  String currentLine=lines[lineCounter]; // 获取当前命令。
+                  
+                String command = currentLine.split(" ")[0]; // Get the command.
 
                 command=command.trim();
 
                 processCommand(command, content); // 处理命令。
+                  
+                } // for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
+
             }
         });
 
