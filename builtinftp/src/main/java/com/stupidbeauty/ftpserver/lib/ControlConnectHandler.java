@@ -977,8 +977,7 @@ class ControlConnectHandler
 
                 command=command.trim();
 
-                processCommand(command, content); // 处理命令。
-                  
+                processCommand(command, currentLine); // 处理命令。
                 } // for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
 
             }
