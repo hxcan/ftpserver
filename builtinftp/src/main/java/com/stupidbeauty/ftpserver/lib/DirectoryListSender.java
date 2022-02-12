@@ -66,28 +66,20 @@ public class DirectoryListSender
         } // if (dataSocketPendingByteArray!=null)
     } //public void setDataSocket(AsyncSocket socket)
     
-        /**
-    *  获取目录的完整列表。
+    /**
+    * 构造针对这个文件的一行输出。
     */
-    private String getDirectoryContentList(File photoDirecotry, String nameOfFile)
+    private String construct1LineListFile(File photoDirecotry) 
     {
-        nameOfFile=nameOfFile.trim(); // 去除空白字符。陈欣
+      File path=photoDirecotry;
     
-        String result=""; // 结果。
-//         File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
-            
-        File[]   paths = photoDirecotry.listFiles();
-         
-         // for each pathname in pathname array
-        for(File path:paths) 
-        {
-            // -rw-r--r-- 1 nobody nobody     35179727 Oct 16 07:31 VID_20201015_181816.mp4
+      // -rw-r--r-- 1 nobody nobody     35179727 Oct 16 07:31 VID_20201015_181816.mp4
 
-            String fileName=path.getName(); // 获取文件名。
+      String fileName=path.getName(); // 获取文件名。
 
-            Date dateCompareYear=new Date(path.lastModified());  
-            Date dateNow=new Date();
-            boolean sameYear=false; // 是不是相同年份。
+      Date dateCompareYear=new Date(path.lastModified());  
+      Date dateNow=new Date();
+      boolean sameYear=false; // 是不是相同年份。
             
             if (dateCompareYear.getYear() == dateNow.getYear()) // 年份相等
             {
@@ -143,7 +135,49 @@ public class DirectoryListSender
             } // else // 不是相同的年份。
             
             String currentLine = permission + " " + linkNumber + " " + user + " " + group + " " + fileSize + " " + month + " " + dateString + " " + timeOrYear + " " + fileName + "\n" ; // 构造当前行。
-            
+
+            return currentLine;
+    } // private String construct1LineListFile(File photoDirecotry)
+    
+        /**
+    *  获取目录的完整列表。
+    */
+    private String getDirectoryContentList(File photoDirecotry, String nameOfFile)
+    {
+        nameOfFile=nameOfFile.trim(); // 去除空白字符。陈欣
+    
+        String result=""; // 结果。
+//         File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
+        
+        if (photoDirecotry.isFile()) // 是一个文件。
+        {
+          String currentLine=construct1LineListFile(photoDirecotry); // 构造针对这个文件的一行输出。
+        
+                    Util.writeAll(data_socket, (currentLine + "\n").getBytes(), new CompletedCallback() {
+            @Override
+            public void onCompleted(Exception ex) {
+                if (ex != null) // 有异常
+                {
+                  throw new RuntimeException(ex);
+                }
+
+                System.out.println("[Server] data Successfully wrote message");
+            }
+        });
+
+
+        }
+        else // 是目录
+        {
+        File[]   paths = photoDirecotry.listFiles();
+         
+         // for each pathname in pathname array
+        for(File path:paths) 
+        {
+                  String currentLine=construct1LineListFile(path); // 构造针对这个文件的一行输出。
+
+                        String fileName=path.getName(); // 获取文件名。
+
             if (fileName.equals(nameOfFile)  || (nameOfFile.isEmpty())) // 名字匹配。
             {
 //             result=result+currentLine; // 构造结果。
@@ -152,25 +186,29 @@ public class DirectoryListSender
             Util.writeAll(data_socket, (currentLine + "\n").getBytes(), new CompletedCallback() {
             @Override
             public void onCompleted(Exception ex) {
-                if (ex != null) throw new RuntimeException(ex);
-                System.out.println("[Server] data Successfully wrote message");
-                
-                notifyLsCompleted(); // 告知已经发送目录数据。
-                fileToSend=null; // 将要发送的文件对象清空。
+                if (ex != null) // 有异常
+                {
+                  throw new RuntimeException(ex);
+                }
 
+                System.out.println("[Server] data Successfully wrote message");
             }
         });
 
             } //if (fileName.equals(nameOfFile)) // 名字匹配。
-         }
+        }
+        } // else // 是目录
+        
          
-                     Util.writeAll(data_socket, ( "\n").getBytes(), new CompletedCallback() {
+        Util.writeAll(data_socket, ( "\n").getBytes(), new CompletedCallback() {
             @Override
             public void onCompleted(Exception ex) {
                 if (ex != null) throw new RuntimeException(ex);
                 System.out.println("[Server] data Successfully wrote message");
                 
                 notifyLsCompleted(); // 告知已经发送目录数据。
+                                fileToSend=null; // 将要发送的文件对象清空。
+
             }
         });
 
@@ -292,9 +330,9 @@ public class DirectoryListSender
         
         subDirectoryName=parameter; // 记录可能的子目录名字。
 
-        String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+parameter; // 构造完整路径。
+//         String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+"/"+parameter; // 构造完整路径。
                     
-        wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
+//         wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
 //        File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
         FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.

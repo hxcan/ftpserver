@@ -893,55 +893,59 @@ class ControlConnectHandler
                 }
             });
 
-        socket.setClosedCallback(new CompletedCallback() {
-            @Override
-            public void onCompleted(Exception ex) {
-                if (ex != null) throw new RuntimeException(ex);
-                System.out.println("[Server] data Successfully closed connection");
-                
-                data_socket=null;
-                fileContentSender.setDataSocket(data_socket); // 将数据连接清空
-                directoryListSender.setDataSocket(data_socket); // 将数据连接清空。
-                
-                if (isUploading) // 是处于上传状态。
-                {
-                    notifyStorCompleted(); // 告知上传完成。
-                    
-                    isUploading=false; // 不再处于上传状态了。
-                } //if (isUploading) // 是处于上传状态。
+        socket.setClosedCallback(new CompletedCallback() 
+        {
+          @Override
+          public void onCompleted(Exception ex) 
+          {
+//             if (ex != null) throw new RuntimeException(ex);
+            
+            if(ex != null) // 有异常。陈欣。
+            {
+              if ( ex instanceof IOException ) // java.lang.RuntimeException: java.io.IOException: Software caused connection abort
+              {
+                ex.printStackTrace();
+              }
+              else // Other exceptions
+              {
+                throw new RuntimeException(ex);
+              }
             }
+            
+            System.out.println("[Server] data Successfully closed connection");
+              
+            data_socket=null;
+            fileContentSender.setDataSocket(data_socket); // 将数据连接清空
+            directoryListSender.setDataSocket(data_socket); // 将数据连接清空。
+              
+            if (isUploading) // 是处于上传状态。
+            {
+              notifyStorCompleted(); // 告知上传完成。
+                  
+              isUploading=false; // 不再处于上传状态了。
+            } //if (isUploading) // 是处于上传状态。
+          }
         });
 
         socket.setEndCallback(new CompletedCallback() 
         {
-            @Override
-            public void onCompleted(Exception ex) 
+          @Override
+          public void onCompleted(Exception ex) 
+          {
+            if(ex != null) // 有异常。陈欣。
             {
-//                 if (ex != null) throw new RuntimeException(ex);
-                
-            if(ex != null) 
-            {
-                if ( ex instanceof IOException ) // java.lang.RuntimeException: java.io.IOException: Software caused connection abort
-                {
-                  ex.printStackTrace();
-//                     if (errorListener!=null)
-//                     {
-//                         errorListener.onError(Constants.ErrorCode.ADDRESS_ALREADY_IN_USE); // Report error. Chen xin.
-//                     }
-//                     else // No error listener
-//                     {
-//                         throw new RuntimeException(ex);
-//                     } //else // No error listener
-                }
-                else // Other exceptions
-                {
-                    throw new RuntimeException(ex);
-                }
+              if ( ex instanceof IOException ) // java.lang.RuntimeException: java.io.IOException: Software caused connection abort
+              {
+                ex.printStackTrace();
+              }
+              else // Other exceptions
+              {
+                  throw new RuntimeException(ex);
+              }
             }
-
                 
-                System.out.println("[Server] data Successfully end connection");
-            }
+            System.out.println("[Server] data Successfully end connection");
+          }
         });
     } //private void handleDataAccept(final AsyncSocket socket)
 
@@ -962,13 +966,24 @@ class ControlConnectHandler
             public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) {
                 String content = new String(bb.getAllByteArray());
                 Log.d(TAG, "[Server] Received Message " + content); // Debug
+                
+                String[] lines=content.split("\r\n"); // 分割成一行行的命令。
+                
+                int lineAmount=lines.length; // 获取行数
 
-                String command = content.split(" ")[0]; // Get the command.
+                                Log.d(TAG, "[Server] line amount: " + lineAmount); // Debug
 
+                for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
+                {
+                  String currentLine=lines[lineCounter]; // 获取当前命令。
+                  
+                String command = currentLine.split(" ")[0]; // Get the command.
 
                 command=command.trim();
 
-                processCommand(command, content); // 处理命令。
+                processCommand(command, currentLine); // 处理命令。
+                } // for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
+
             }
         });
 
