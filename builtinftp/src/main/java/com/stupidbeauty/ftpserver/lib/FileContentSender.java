@@ -58,7 +58,20 @@ public class FileContentSender
           @Override
           public void onCompleted(Exception ex)
           {
-            if (ex != null) throw new RuntimeException(ex);
+//             if (ex != null) throw new RuntimeException(ex);
+            
+            if(ex != null) // 有异常。陈欣。
+            {
+              if ( ex instanceof IOException ) // java.lang.RuntimeException: java.io.IOException: Software caused connection abort
+              {
+                ex.printStackTrace();
+              }
+              else // Other exceptions
+              {
+                throw new RuntimeException(ex);
+              }
+            }
+
             System.out.println("[Server] data Successfully wrote message");
                     
             notifyFileSendCompleted(); // 告知已经发送文件内容数据。
