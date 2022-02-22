@@ -424,7 +424,7 @@ class ControlConnectHandler
      * @param command 命令关键字
      * @param content 整个消息内容。
      */
-    private void processCommand(String command, String content)
+    private void processCommand(String command, String content, boolean hasFolloingCommand)
     {
         Log.d(TAG, "command: " + command + ", content: " + content); //Debug.
 
@@ -545,47 +545,71 @@ class ControlConnectHandler
         } //else if (command.equals("PASV")) // 被动传输
         else if (command.equals("EPSV")) // 扩展被动模式
         {
-            //        elsif command=='EPSV'
-//        send_data "202 \n"
+          String replyString="202 \n"; // 回复内容。
+          
+          if (hasFolloingCommand) // 还有后续命令。
+          {
+          } // if (hasFolloingCommand) // 还有后续命令。
+          else // if (hasFolloingCommand) // 还有后续命令。
+          {
+          Log.d(TAG, "reply string: " + replyString); //Debug.
 
-            String replyString="202 \n"; // 回复内容。
+          Util.writeAll(
+            socket, replyString.getBytes(), new CompletedCallback() 
+            {
+              @Override
+              public void onCompleted(Exception ex) 
+              {
+                if (ex != null) throw new RuntimeException(ex);
+                System.out.println("[Server] Successfully wrote message");
+              }
+            }
+          );
+          
+          
+          } // else // if (hasFolloingCommand) // 还有后续命令。
 
-            Log.d(TAG, "reply string: " + replyString); //Debug.
-
-            Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() {
-                @Override
-                public void onCompleted(Exception ex) {
-                    if (ex != null) throw new RuntimeException(ex);
-                    System.out.println("[Server] Successfully wrote message");
-                }
-            });
         } //else if (command.equals("EPSV")) // 扩展被动模式
         else if (command.equals("PORT")) // 要求服务器主动连接客户端的端口
         {
-            String replyString="150 \n"; // 回复内容。正在打开数据连接
+          String replyString="150 \n"; // 回复内容。正在打开数据连接
+          
+          boolean shouldSend=true; // 是否应当发送回复。
 
-            if (allowActiveMode) // 允许主动模式
+          if (allowActiveMode) // 允许主动模式
+          {
+            openDataConnectionToClient(content); // 打开指向客户端特定端口的连接。
+
+            replyString="150 \n"; // 回复内容。正在打开数据连接
+          } //if (allowActiveMode) // 允许主动模式
+          else // 不允许主动模式。
+          {
+            replyString="202 \n"; // 回复内容。未实现。
+            
+            if (hasFolloingCommand) // 还有后续命令。
             {
-                openDataConnectionToClient(content); // 打开指向客户端特定端口的连接。
-
-                replyString="150 \n"; // 回复内容。正在打开数据连接
-            } //if (allowActiveMode) // 允许主动模式
-            else // 不允许主动模式。
+              shouldSend=false; // 不应当发送回复。
+            } // if (hasFolloingCommand) // 还有后续命令。
+            else // 没有后续命令
             {
-                replyString="202 \n"; // 回复内容。未实现。
-            } //else // 不允许主动模式。
+            } // else // 没有后续命令
+          } //else // 不允许主动模式。
 
-            Log.d(TAG, "reply string: " + replyString); //Debug.
+          if (shouldSend) // 应当发送回复。
+          {
+          Log.d(TAG, "reply string: " + replyString); //Debug.
 
-            Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() 
+          Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() 
+          {
+            @Override
+            public void onCompleted(Exception ex) 
             {
-                @Override
-                public void onCompleted(Exception ex) 
-                {
-                    if (ex != null) throw new RuntimeException(ex);
-                    Log.d(TAG, "[Server] Successfully wrote message");
-                }
-            });
+              if (ex != null) throw new RuntimeException(ex);
+              Log.d(TAG, "[Server] Successfully wrote message");
+            }
+          });
+          
+          } // if (shouldSend) // 应当发送回复。
         } //else if (command.equals("EPSV")) // Extended passive mode.
         else if (command.equals("list")) // 列出目录
         {
@@ -956,48 +980,58 @@ class ControlConnectHandler
      */
     public void handleAccept(final AsyncSocket socket)
     {
-        this.socket=socket;
-        System.out.println("[Server] New Connection " + socket.toString());
+      this.socket=socket;
+      System.out.println("[Server] New Connection " + socket.toString());
 
-        socket.setDataCallback(
-                new DataCallback()
-                {
-            @Override
-            public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) {
-                String content = new String(bb.getAllByteArray());
-                Log.d(TAG, "[Server] Received Message " + content); // Debug
+      socket.setDataCallback
+      (
+        new DataCallback()
+        {
+          @Override
+          public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) 
+          {
+            String content = new String(bb.getAllByteArray());
+            Log.d(TAG, "[Server] Received Message " + content); // Debug
                 
-                String[] lines=content.split("\r\n"); // 分割成一行行的命令。
+            String[] lines=content.split("\r\n"); // 分割成一行行的命令。
                 
-                int lineAmount=lines.length; // 获取行数
+            int lineAmount=lines.length; // 获取行数
 
-                                Log.d(TAG, "[Server] line amount: " + lineAmount); // Debug
+            Log.d(TAG, "[Server] line amount: " + lineAmount); // Debug
 
-                for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
-                {
-                  String currentLine=lines[lineCounter]; // 获取当前命令。
+            for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
+            {
+              String currentLine=lines[lineCounter]; // 获取当前命令。
                   
-                String command = currentLine.split(" ")[0]; // Get the command.
+              String command = currentLine.split(" ")[0]; // Get the command.
 
-                command=command.trim();
+              command=command.trim();
+              
+              boolean hasFolloingCommand=true; // 是否还有后续命令。
+              
+              if ((lineCounter+1)==(lineAmount)) // 是最后一条命令了。
+              {
+                hasFolloingCommand=false; // 没有后续命令。
+              }
 
-                processCommand(command, currentLine); // 处理命令。
-                } // for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
-
-            }
+              processCommand(command, currentLine, hasFolloingCommand); // 处理命令。
+            } // for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
+          }
         });
 
-        socket.setClosedCallback(new CompletedCallback() {
-            @Override
-            public void onCompleted(Exception ex) {
-                if (ex != null) {
-//                 throw new RuntimeException(ex);
-ex.printStackTrace(); // 报告错误。
-                }
-                else
-                {
-                System.out.println("[Server] Successfully closed connection");
-                }
+        socket.setClosedCallback(new CompletedCallback() 
+        {
+          @Override
+          public void onCompleted(Exception ex) 
+          {
+            if (ex != null) 
+            {
+              ex.printStackTrace(); // 报告错误。
+            }
+            else
+            {
+              System.out.println("[Server] Successfully closed connection");
+            }
                 
             }
         });
