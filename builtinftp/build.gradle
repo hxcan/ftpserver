@@ -1,35 +1,30 @@
 apply plugin: 'com.android.library'
 
-version="2021.10.4"
+version="2022.3.20"
 
 android {
-    compileSdkVersion 29
+  compileSdkVersion 29
 
-    resourcePrefix "stupidbeauty__"
+  resourcePrefix "stupidbeauty__"
 
-    defaultConfig {
-        buildToolsVersion = "30.0.3"
-        minSdkVersion 14
-        targetSdkVersion 28
-        versionCode 751
-        versionName version
+  defaultConfig {
+    buildToolsVersion = "30.0.3"
+    minSdkVersion 14
+    targetSdkVersion 28
+    versionCode 757
+    versionName version
+  }
+
+  buildTypes {
+    release {
+      minifyEnabled false
+      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
     }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-        }
-    }
+  }
 }
 
 dependencies
 {
-    compile 'com.koushikdutta.async:androidasync:2.1.7'
-    implementation 'commons-io:commons-io:2.6'
+  compile 'com.koushikdutta.async:androidasync:2.1.7'
+  implementation 'commons-io:commons-io:2.6'
 }
-
-def siteUrl='https://stupidbeauty.com/Blog/'
-group="com.stupidbeauty"
-
-Properties properties=new Properties()

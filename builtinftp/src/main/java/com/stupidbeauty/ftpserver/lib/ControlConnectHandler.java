@@ -450,16 +450,17 @@ class ControlConnectHandler
         } //else if (command.equals("PASS")) // 密码
         else if (command.equals("SYST")) // 系统信息
         {
-            //        send_data "200 UNIX Type: L8\n"
+          //        send_data "200 UNIX Type: L8\n"
 
-            Util.writeAll(socket, "215 UNIX Type: L8\\n".getBytes(), new CompletedCallback() {
-                @Override
-                public void onCompleted(Exception ex) {
-                    if (ex != null) throw new RuntimeException(ex);
-                    System.out.println("[Server] Successfully wrote message");
-                }
-            });
-
+          Util.writeAll(socket, "215 UNIX Type: L8\n".getBytes(), new CompletedCallback() 
+          {
+            @Override
+            public void onCompleted(Exception ex) 
+            {
+              if (ex != null) throw new RuntimeException(ex);
+              System.out.println("[Server] Successfully wrote message");
+            }
+          });
         } //else if (command.equals("SYST")) // 系统信息
         else if (command.equals("PWD")) // 查询当前工作目录
         {

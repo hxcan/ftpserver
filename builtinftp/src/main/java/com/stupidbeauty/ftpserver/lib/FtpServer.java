@@ -97,49 +97,28 @@ public class FtpServer
         @Override
         public void onCompleted(Exception ex) 
         {
-            if(ex != null) 
+          if(ex != null) 
+          {
+            if ( ex instanceof BindException )
             {
-                if ( ex instanceof BindException )
-                {
-                    if (errorListener!=null)
-                    {
-                        errorListener.onError(Constants.ErrorCode.ADDRESS_ALREADY_IN_USE); // Report error. Chen xin.
-                    }
-                    else // No error listener
-                    {
-                        throw new RuntimeException(ex);
-                    } //else // No error listener
-                }
-                else // Other exceptions
-                {
-                    throw new RuntimeException(ex);
-                }
+              if (errorListener!=null) // 指定的错误监听器。
+              {
+                errorListener.onError(Constants.ErrorCode.ADDRESS_ALREADY_IN_USE); // Report error. Chen xin.
+              } // if (errorListener!=null) // 指定的错误监听器。
+              else // No error listener
+              {
+                Log.d(TAG, "onCompleted, no error listener set, throwing exception."); // Debug.
+                
+                throw new RuntimeException(ex);
+              } //else // No error listener
             }
-            System.out.println("[Server] Successfully shutdown server");
+            else // Other exceptions
+            {
+              throw new RuntimeException(ex);
+            }
+          }
+          System.out.println("[Server] Successfully shutdown server");
         }
     });
-}
-    
-    
-    
-    
-    
-    
-    
-//         def processSizeCommand(data51)
-//         if File.exists?(data51)
-//             send_data("213 #{File.size(data51)} \n")
-//         else
-//             send_data("550 \n") # file not found
-//         end
-//     end
-
-
-
-    
-    
-    
-
-
-
+  }
 }
