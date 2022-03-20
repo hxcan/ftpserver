@@ -612,32 +612,32 @@ class ControlConnectHandler
           
           } // if (shouldSend) // 应当发送回复。
         } //else if (command.equals("EPSV")) // Extended passive mode.
-        else if (command.equals("list")) // 列出目录
+        else if (command.toLowerCase().equals("list")) // 列出目录 陈欣
         {
-            processListCommand(content); // 处理目录列表命令。
+          processListCommand(content); // 处理目录列表命令。
         } //else if (command.equals("list")) // 列出目录
         else if (command.equals("retr")) // 获取文件
         {
 //            陈欣
-            String data51= content.substring(5);
+          String data51= content.substring(5);
 
-            data51=data51.trim(); // 去掉末尾换行
+          data51=data51.trim(); // 去掉末尾换行
 
-            String replyString="150 start send content: " + data51 + "\n"; // 回复内容。
+          String replyString="150 start send content: " + data51 + "\n"; // 回复内容。
 
-            Log.d(TAG, "reply string: " + replyString); //Debug.
+          Log.d(TAG, "reply string: " + replyString); //Debug.
 
-            Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() 
+          Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() 
+          {
+            @Override
+            public void onCompleted(Exception ex) 
             {
-                @Override
-                public void onCompleted(Exception ex) 
-                {
-                    if (ex != null) throw new RuntimeException(ex);
-                    System.out.println("[Server] Successfully wrote message");
-                }
-            });
+              if (ex != null) throw new RuntimeException(ex);
+              System.out.println("[Server] Successfully wrote message");
+            }
+          });
 
-            sendFileContent(data51, currentWorkingDirectory); // 发送文件内容。
+          sendFileContent(data51, currentWorkingDirectory); // 发送文件内容。
         } //else if (command.equals("list")) // 列出目录
         else if (command.equals("SIZE")) // 文件尺寸
         {
