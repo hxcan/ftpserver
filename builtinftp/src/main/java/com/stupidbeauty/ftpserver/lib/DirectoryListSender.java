@@ -321,32 +321,34 @@ public class DirectoryListSender
     */
     public void sendDirectoryList(String data51, String currentWorkingDirectory) 
     {
-            String parameter=data51.substring(5).trim(); // 获取额外参数。
+      String parameter=""; // 要列出的目录。
+      
+      int directoryIndex=5; // 要找的下标。
+      
+      if (directoryIndex<=(data51.length()-1)) // 有足够的字符串长度。
+      {
+        parameter=data51.substring(directoryIndex).trim(); // 获取额外参数。
+      } // if (directoryIndex<=(data51.length()-1)) // 有足够的字符串长度。
         
-        if (parameter.equals("-la")) // 忽略
-        {
-            parameter=""; // 忽略成空白。
-        } //if (parameter.equals("-la")) // 忽略
+      if (parameter.equals("-la")) // 忽略
+      {
+        parameter=""; // 忽略成空白。
+      } //if (parameter.equals("-la")) // 忽略
         
-        subDirectoryName=parameter; // 记录可能的子目录名字。
+      subDirectoryName=parameter; // 记录可能的子目录名字。
 
-//         String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+"/"+parameter; // 构造完整路径。
-                    
-//         wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
-                    
-//        File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
-        FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-        File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, parameter); //照片目录。
+      FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
+      File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, parameter); //照片目录。
 
-        fileToSend=photoDirecotry; // 记录，要发送的文件对象。
+      fileToSend=photoDirecotry; // 记录，要发送的文件对象。
         
-        if (data_socket!=null) // 数据连接存在。
-        {
-            startSendFileContentForLarge(); // 开始发送文件内容。
-        } //if (data_socket!=null) // 数据连接存在。
+      if (data_socket!=null) // 数据连接存在。
+      {
+        startSendFileContentForLarge(); // 开始发送文件内容。
+      } //if (data_socket!=null) // 数据连接存在。
     } //private void sendFileContent(String data51, String currentWorkingDirectory)
     
-        private void notifyLsCompleted()
+    private void notifyLsCompleted()
     {
     controlConnectHandler.notifyLsCompleted();
 //        send_data "216 \n"

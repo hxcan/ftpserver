@@ -164,9 +164,9 @@ class ControlConnectHandler
     */
     private void sendListContentBySender(String fileName, String currentWorkingDirectory) 
     {
-        directoryListSender.setControlConnectHandler(this); // 设置控制连接处理器。
-        directoryListSender.setDataSocket(data_socket); // 设置数据连接套接字。
-        directoryListSender.sendDirectoryList(fileName, currentWorkingDirectory); // 让目录列表发送器来发送。
+      directoryListSender.setControlConnectHandler(this); // 设置控制连接处理器。
+      directoryListSender.setDataSocket(data_socket); // 设置数据连接套接字。
+      directoryListSender.sendDirectoryList(fileName, currentWorkingDirectory); // 让目录列表发送器来发送。
     } // private void sendListContentBySender(String fileName, String currentWorkingDirectory)
 
     /**
@@ -778,18 +778,20 @@ class ControlConnectHandler
     */
     private void processListCommand(String content) 
     {
-        //陈欣
-        String replyString="150 Opening BINARY mode data connection for file list, ChenXin\n"; // 回复内容。
+      //陈欣
+      String replyString="150 Opening BINARY mode data connection for file list, ChenXin\n"; // 回复内容。
 
-        Log.d(TAG, "reply string: " + replyString); //Debug.
+      Log.d(TAG, "reply string: " + replyString); //Debug.
 
-        Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() {
-                @Override
-                public void onCompleted(Exception ex) {
-                    if (ex != null) throw new RuntimeException(ex);
-                    System.out.println("[Server] Successfully wrote message");
-                } //public void onCompleted(Exception ex) {
-            });
+      Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() 
+      {
+        @Override
+        public void onCompleted(Exception ex) 
+        {
+          if (ex != null) throw new RuntimeException(ex);
+          System.out.println("[Server] Successfully wrote message");
+        } //public void onCompleted(Exception ex) {
+      });
 
 //             sendListContent(content, currentWorkingDirectory); // 发送目录列表数据。
       sendListContentBySender(content, currentWorkingDirectory); // 发送目录列表数据。
