@@ -139,81 +139,113 @@ public class DirectoryListSender
             return currentLine;
     } // private String construct1LineListFile(File photoDirecotry)
     
-        /**
-    *  获取目录的完整列表。
+    /**
+      *  获取目录的完整列表。
     */
     private String getDirectoryContentList(File photoDirecotry, String nameOfFile)
     {
-        nameOfFile=nameOfFile.trim(); // 去除空白字符。陈欣
+      nameOfFile=nameOfFile.trim(); // 去除空白字符。陈欣
     
-        String result=""; // 结果。
+      String result=""; // 结果。
 //         File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
         
-        if (photoDirecotry.isFile()) // 是一个文件。
-        {
-          String currentLine=construct1LineListFile(photoDirecotry); // 构造针对这个文件的一行输出。
+      if (photoDirecotry.isFile()) // 是一个文件。
+      {
+        String currentLine=construct1LineListFile(photoDirecotry); // 构造针对这个文件的一行输出。
         
-                    Util.writeAll(data_socket, (currentLine + "\n").getBytes(), new CompletedCallback() {
-            @Override
-            public void onCompleted(Exception ex) {
-                if (ex != null) // 有异常
-                {
-                  throw new RuntimeException(ex);
-                }
-
-                System.out.println("[Server] data Successfully wrote message");
-            }
-        });
-
-
-        }
-        else // 是目录
+        Util.writeAll(data_socket, (currentLine + "\n").getBytes(), new CompletedCallback() 
         {
+          @Override
+          public void onCompleted(Exception ex) 
+          {
+            if (ex != null) // 有异常
+            {
+              throw new RuntimeException(ex);
+            }
+
+            System.out.println("[Server] data Successfully wrote message");
+          }
+        });
+      }
+      else // 是目录
+      {
         File[]   paths = photoDirecotry.listFiles();
          
          // for each pathname in pathname array
         for(File path:paths) 
         {
-                  String currentLine=construct1LineListFile(path); // 构造针对这个文件的一行输出。
+          String currentLine=construct1LineListFile(path); // 构造针对这个文件的一行输出。
 
-                        String fileName=path.getName(); // 获取文件名。
+          String fileName=path.getName(); // 获取文件名。
 
-            if (fileName.equals(nameOfFile)  || (nameOfFile.isEmpty())) // 名字匹配。
-            {
+          if (fileName.equals(nameOfFile)  || (nameOfFile.isEmpty())) // 名字匹配。
+          {
 //             result=result+currentLine; // 构造结果。
 //                 陈欣。
 
-            Util.writeAll(data_socket, (currentLine + "\n").getBytes(), new CompletedCallback() {
-            @Override
-            public void onCompleted(Exception ex) {
+            Util.writeAll(data_socket, (currentLine + "\n").getBytes(), new CompletedCallback() 
+            {
+              @Override
+              public void onCompleted(Exception ex) 
+              {
                 if (ex != null) // 有异常
                 {
                   throw new RuntimeException(ex);
                 }
 
                 System.out.println("[Server] data Successfully wrote message");
-            }
-        });
-
-            } //if (fileName.equals(nameOfFile)) // 名字匹配。
+              }
+            });
+          } //if (fileName.equals(nameOfFile)) // 名字匹配。
         }
-        } // else // 是目录
-        
+      } // else // 是目录
          
-        Util.writeAll(data_socket, ( "\n").getBytes(), new CompletedCallback() {
-            @Override
-            public void onCompleted(Exception ex) {
-                if (ex != null) throw new RuntimeException(ex);
-                System.out.println("[Server] data Successfully wrote message");
-                
-                notifyLsCompleted(); // 告知已经发送目录数据。
-                                fileToSend=null; // 将要发送的文件对象清空。
+      // 写最后的一行，用于终止：
+//       Util.writeAll(data_socket, ("\n").getBytes(), new CompletedCallback() 
+//       {
+//         @Override
+//         public void onCompleted(Exception ex) 
+//         {
+//           if (ex != null) throw new RuntimeException(ex);
+//           System.out.println("[Server] data Successfully wrote message");
+//                 
+//           notifyLsCompleted(); // 告知已经发送目录数据。
+//           fileToSend=null; // 将要发送的文件对象清空。
+//         }
+//       });
 
-            }
+      // 终止连接：
+      data_socket.setClosedCallback(
+        new CompletedCallback() 
+        {
+          @Override
+          public void onCompleted(Exception ex) 
+          {
+            if (ex != null) throw new RuntimeException(ex);
+            System.out.println("[Server] data Successfully wrote message");
+                  
+            notifyLsCompleted(); // 告知已经发送目录数据。
+            fileToSend=null; // 将要发送的文件对象清空。
+          }
         });
+        
+      data_socket.end(); // End connection.
+      
+//       Util.end(data_socket, ("\n").getBytes(), new CompletedCallback() 
+//       {
+//         @Override
+//         public void onCompleted(Exception ex) 
+//         {
+//           if (ex != null) throw new RuntimeException(ex);
+//           System.out.println("[Server] data Successfully wrote message");
+//                 
+//           notifyLsCompleted(); // 告知已经发送目录数据。
+//           fileToSend=null; // 将要发送的文件对象清空。
+//         }
+//       });
 
 
-         return result;
+      return result;
     } //private String getDirectoryContentList(String wholeDirecotoryPath)
 
     
