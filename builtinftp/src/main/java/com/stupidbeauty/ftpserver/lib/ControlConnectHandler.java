@@ -32,6 +32,7 @@ import java.net.UnknownHostException;
 
 class ControlConnectHandler
 {
+    private BinaryStringSender binaryStringSender=new BinaryStringSender(); //!< 以二进制方式发送字符串的工具。
     private EventListener eventListener=null; //!< 事件监听器。
     private AsyncSocket socket; //!< 当前的客户端连接。
     private static final String TAG ="ControlConnectHandler"; //!<  输出调试信息时使用的标记。
@@ -114,22 +115,6 @@ class ControlConnectHandler
       });
     } //private void openDataConnectionToClient(String content)
 
-    /**
-    * 以二进制模式发送字符串内容。
-    */
-    private void sendStringInBinaryMode(String stringToSend)
-    {
-      Util.writeAll(socket, (stringToSend+"\r\n").getBytes(), new CompletedCallback() 
-      {
-        @Override
-        public void onCompleted(Exception ex) 
-        {
-          if (ex != null) throw new RuntimeException(ex);
-          System.out.println("[Server] Successfully wrote message");
-        }
-      });
-    } //private sendStringInBinaryMode(String stringToSend)
-    
     public void notifyFileNotExist() // 告知文件不存在
     {
 //         controlConnectHandler.notifyFileNotExist(); // 告知文件不存在。
@@ -138,7 +123,7 @@ class ControlConnectHandler
 // 陈欣
         Log.d(TAG, "reply string: " + replyString); //Debug.
         
-        sendStringInBinaryMode(replyString); // 发送。
+        binaryStringSender.sendStringInBinaryMode(replyString); // 发送。
     } //private void notifyFileNotExist()
 
     /**
@@ -150,7 +135,7 @@ class ControlConnectHandler
 
         Log.d(TAG, "reply string: " + replyString); //Debug.
         
-        sendStringInBinaryMode(replyString); // 发送。
+        binaryStringSender.sendStringInBinaryMode(replyString); // 发送。
     } //private void notifyFileSendCompleted()
 
     /**
@@ -182,7 +167,7 @@ class ControlConnectHandler
 
         Log.d(TAG, "reply string: " + replyString); //Debug.
 
-        sendStringInBinaryMode(replyString);
+        binaryStringSender.sendStringInBinaryMode(replyString);
     } //private void notifyStorCompleted()
     
     /**
@@ -281,7 +266,7 @@ class ControlConnectHandler
         } //if (command.equals("USER")) // 用户登录
         else if (command.equals("PASS")) // 密码
         {
-          sendStringInBinaryMode("230 Loged in."); // 回复，登录成功。
+          binaryStringSender.sendStringInBinaryMode("230 Loged in."); // 回复，登录成功。
         } //else if (command.equals("PASS")) // 密码
         else if (command.equals("SYST")) // 系统信息
         {
@@ -303,7 +288,7 @@ class ControlConnectHandler
 
           Log.d(TAG, "reply string: " + replyString); //Debug.
           
-          sendStringInBinaryMode(replyString); // 发送回复内容。
+          binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复内容。
         } //else if (command.equals("PWD")) // 查询当前工作目录
         else if (command.equals("cwd")) // 切换工作目录
         {
@@ -333,7 +318,7 @@ class ControlConnectHandler
 
           Log.d(TAG, "reply string: " + replyString); //Debug.
           
-          sendStringInBinaryMode(replyString); // 发送回复。
+          binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
         } //else if (command.equals("cwd")) // 切换工作目录
         else if (command.equals("TYPE")) // 传输类型
         {
@@ -365,7 +350,7 @@ class ControlConnectHandler
 
           Log.d(TAG, "reply string: " + replyString); //Debug.
 
-          sendStringInBinaryMode(replyString); // 回复内容。
+          binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
         } //else if (command.equals("PASV")) // 被动传输
         else if (command.equals("EPSV")) // 扩展被动模式
         {
@@ -378,7 +363,7 @@ class ControlConnectHandler
           {
             Log.d(TAG, "reply string: " + replyString); //Debug.
             
-            sendStringInBinaryMode(replyString); // 发送回复。
+            binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
           } // else // if (hasFolloingCommand) // 还有后续命令。
         } //else if (command.equals("EPSV")) // 扩展被动模式
         else if (command.equals("PORT")) // 要求服务器主动连接客户端的端口
@@ -407,7 +392,7 @@ class ControlConnectHandler
           {
             Log.d(TAG, "reply string: " + replyString); //Debug.
             
-            sendStringInBinaryMode(replyString); // 发送回复。
+            binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
           } // if (shouldSend) // 应当发送回复。
         } //else if (command.equals("EPSV")) // Extended passive mode.
         else if (command.toLowerCase().equals("list")) // 列出目录 陈欣
@@ -507,13 +492,13 @@ class ControlConnectHandler
 
           Log.d(TAG, "reply string: " + replyString); //Debug.
           
-          sendStringInBinaryMode(replyString); // 回复内容。
+          binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
         } //else if (command.equals("DELE")) // 删除文件
         else if (command.equals("stor")) // 上传文件
         {
             String replyString="150 \n"; // 回复内容。
 
-            sendStringInBinaryMode(replyString);
+            binaryStringSender.sendStringInBinaryMode(replyString);
 
             String data51=            content.substring(5);
 
@@ -527,7 +512,7 @@ class ControlConnectHandler
 
           Log.d(TAG, "reply string: " + replyString); //Debug.
           
-          sendStringInBinaryMode(replyString); // 回复。
+          binaryStringSender.sendStringInBinaryMode(replyString); // 回复。
         } //else if (command.equals("EPSV")) // Extended passive mode.
     } //private void processCommand(String command, String content)
 
@@ -766,6 +751,8 @@ class ControlConnectHandler
     public void handleAccept(final AsyncSocket socket)
     {
       this.socket=socket;
+      binaryStringSender.setSocket(socket); // 设置套接字。
+      
       System.out.println("[Server] New Connection " + socket.toString());
 
       socket.setDataCallback
@@ -839,7 +826,7 @@ class ControlConnectHandler
         //发送初始命令：
 //        send_data "220 \n"
 
-        sendStringInBinaryMode("220 StupidBeauty FtpServer"); // 发送回复内容。
+        binaryStringSender.sendStringInBinaryMode("220 StupidBeauty FtpServer"); // 发送回复内容。
     } //private void handleAccept(final AsyncSocket socket)
 
     /**

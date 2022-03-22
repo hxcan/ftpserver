@@ -39,6 +39,7 @@ public class DirectoryListSender
     private File fileToSend=null; //!< 要发送的文件。
     private String subDirectoryName=null; //!< 要列出的子目录名字。
     private static final String TAG ="DirectoryListSender"; //!<  输出调试信息时使用的标记。
+    private BinaryStringSender binaryStringSender=new BinaryStringSender(); //!< 以二进制方式发送字符串的工具。
     
     /**
     * 设置根目录。
@@ -59,6 +60,8 @@ public class DirectoryListSender
     public void setDataSocket(AsyncSocket socket) 
     {
         data_socket=socket; // 记录。
+        
+        binaryStringSender.setSocket(data_socket); // 设置套接字。
         
         if ((fileToSend!=null) && (data_socket!=null)) // 有等待发送的内容。
         {
@@ -81,143 +84,147 @@ public class DirectoryListSender
       Date dateNow=new Date();
       boolean sameYear=false; // 是不是相同年份。
             
-            if (dateCompareYear.getYear() == dateNow.getYear()) // 年份相等
-            {
-              sameYear=true; // 是相同年份。
-            } // if (dateCompareYear.getYear() == dateNow.getYear()) // 年份相等
+      if (dateCompareYear.getYear() == dateNow.getYear()) // 年份相等
+      {
+        sameYear=true; // 是相同年份。
+      } // if (dateCompareYear.getYear() == dateNow.getYear()) // 年份相等
             
-            LocalDateTime date =
+      LocalDateTime date =
     LocalDateTime.ofInstant(Instant.ofEpochMilli(path.lastModified()), ZoneId.systemDefault());
                             
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 //   String time= date.format(formatter);
-            String time="8:00";
+      String time="8:00";
             
-            time=date.format(formatter); // 获取时间字符串。
+      time=date.format(formatter); // 获取时间字符串。
 
-            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM");
+      DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM");
             
-                        DateTimeFormatter yearFormatter = DateTimeFormatter.ofPattern("yyyy").withLocale(Locale.US);
+      DateTimeFormatter yearFormatter = DateTimeFormatter.ofPattern("yyyy").withLocale(Locale.US);
 
-                        String year=date.format(yearFormatter);  // 年份字符串。
+      String year=date.format(yearFormatter);  // 年份字符串。
 
-            DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMM").withLocale(Locale.US);
+      DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMM").withLocale(Locale.US);
 
-                        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("dd").withLocale(Locale.US);
+      DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("dd").withLocale(Locale.US);
 
-            String dateString="30";
+      String dateString="30";
             
-            dateString=date.format(dayFormatter); // 获取日期。
+      dateString=date.format(dayFormatter); // 获取日期。
                             
-            long fileSize=path.length(); // 文件尺寸。
+      long fileSize=path.length(); // 文件尺寸。
                             
-            String group="cx";
+      String group="cx";
                             
-            String user = "ChenXin";
+      String user = "ChenXin";
                             
-            String linkNumber="1";
+      String linkNumber="1";
                             
 //             String permission="-rw-r--r--"; // 权限。
-            String permission=getPermissionForFile(path); // 权限。
+      String permission=getPermissionForFile(path); // 权限。
 
-            String month="Jan"; // 月份 。
+      String month="Jan"; // 月份 。
             
-            month=date.format(monthFormatter); // 序列化月份。
+      month=date.format(monthFormatter); // 序列化月份。
             
-            String timeOrYear=time; // 时间或年份。
+      String timeOrYear=time; // 时间或年份。
             
-            if (sameYear) // 相同的年份。
-            {
-            } // if (sameYear) // 相同的年份。
-            else // 不是相同的年份。
-            {
-              timeOrYear=year; // 年份。
-            } // else // 不是相同的年份。
+      if (sameYear) // 相同的年份。
+      {
+      } // if (sameYear) // 相同的年份。
+      else // 不是相同的年份。
+      {
+        timeOrYear=year; // 年份。
+      } // else // 不是相同的年份。
             
-            String currentLine = permission + " " + linkNumber + " " + user + " " + group + " " + fileSize + " " + month + " " + dateString + " " + timeOrYear + " " + fileName + "\n" ; // 构造当前行。
+      String currentLine = permission + " " + linkNumber + " " + user + " " + group + " " + fileSize + " " + month + " " + dateString + " " + timeOrYear + " " + fileName; // 构造当前行。
 
-            return currentLine;
+      return currentLine;
     } // private String construct1LineListFile(File photoDirecotry)
     
-        /**
+    /**
     *  获取目录的完整列表。
     */
     private String getDirectoryContentList(File photoDirecotry, String nameOfFile)
     {
-        nameOfFile=nameOfFile.trim(); // 去除空白字符。陈欣
+      nameOfFile=nameOfFile.trim(); // 去除空白字符。陈欣
     
-        String result=""; // 结果。
+      String result=""; // 结果。
 //         File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
         
-        if (photoDirecotry.isFile()) // 是一个文件。
-        {
-          String currentLine=construct1LineListFile(photoDirecotry); // 构造针对这个文件的一行输出。
+      if (photoDirecotry.isFile()) // 是一个文件。
+      {
+        String currentLine=construct1LineListFile(photoDirecotry); // 构造针对这个文件的一行输出。
         
-                    Util.writeAll(data_socket, (currentLine + "\n").getBytes(), new CompletedCallback() {
-            @Override
-            public void onCompleted(Exception ex) {
-                if (ex != null) // 有异常
-                {
-                  throw new RuntimeException(ex);
-                }
-
-                System.out.println("[Server] data Successfully wrote message");
-            }
-        });
-
-
-        }
-        else // 是目录
-        {
+        binaryStringSender.sendStringInBinaryMode(currentLine); // 发送回复内容。
+        
+//         Util.writeAll(data_socket, (currentLine + "\n").getBytes(), new CompletedCallback() 
+//         {
+//           @Override
+//           public void onCompleted(Exception ex) 
+//           {
+//             if (ex != null) // 有异常
+//             {
+//               throw new RuntimeException(ex);
+//             }
+// 
+//             System.out.println("[Server] data Successfully wrote message");
+//           }
+//         });
+      } // if (photoDirecotry.isFile()) // 是一个文件。
+      else // 是目录
+      {
         File[]   paths = photoDirecotry.listFiles();
          
-         // for each pathname in pathname array
+        // for each pathname in pathname array
         for(File path:paths) 
         {
-                  String currentLine=construct1LineListFile(path); // 构造针对这个文件的一行输出。
+          String currentLine=construct1LineListFile(path); // 构造针对这个文件的一行输出。
 
-                        String fileName=path.getName(); // 获取文件名。
+          String fileName=path.getName(); // 获取文件名。
 
-            if (fileName.equals(nameOfFile)  || (nameOfFile.isEmpty())) // 名字匹配。
-            {
+          if (fileName.equals(nameOfFile)  || (nameOfFile.isEmpty())) // 名字匹配。
+          {
 //             result=result+currentLine; // 构造结果。
 //                 陈欣。
 
-            Util.writeAll(data_socket, (currentLine + "\n").getBytes(), new CompletedCallback() {
-            @Override
-            public void onCompleted(Exception ex) {
-                if (ex != null) // 有异常
-                {
-                  throw new RuntimeException(ex);
-                }
+            binaryStringSender.sendStringInBinaryMode(currentLine); // 发送回复内容。
 
-                System.out.println("[Server] data Successfully wrote message");
-            }
-        });
 
-            } //if (fileName.equals(nameOfFile)) // 名字匹配。
+//             Util.writeAll(data_socket, (currentLine + "\n").getBytes(), new CompletedCallback() 
+//             {
+//               @Override
+//               public void onCompleted(Exception ex) 
+//               {
+//                 if (ex != null) // 有异常
+//                 {
+//                   throw new RuntimeException(ex);
+//                 }
+// 
+//                 System.out.println("[Server] data Successfully wrote message");
+//               }
+//             });
+          } //if (fileName.equals(nameOfFile)) // 名字匹配。
         }
-        } // else // 是目录
-        
+      } // else // 是目录
          
-        Util.writeAll(data_socket, ( "\n").getBytes(), new CompletedCallback() {
-            @Override
-            public void onCompleted(Exception ex) {
-                if (ex != null) throw new RuntimeException(ex);
-                System.out.println("[Server] data Successfully wrote message");
+      Util.writeAll(data_socket, ( "\r\n").getBytes(), new CompletedCallback() 
+      {
+        @Override
+        public void onCompleted(Exception ex) 
+        {
+          if (ex != null) throw new RuntimeException(ex);
+          System.out.println("[Server] data Successfully wrote message");
                 
-                notifyLsCompleted(); // 告知已经发送目录数据。
-                                fileToSend=null; // 将要发送的文件对象清空。
+          notifyLsCompleted(); // 告知已经发送目录数据。
+          fileToSend=null; // 将要发送的文件对象清空。
+        }
+      });
 
-            }
-        });
-
-
-         return result;
+      return result;
     } //private String getDirectoryContentList(String wholeDirecotoryPath)
 
-    
-        /**
+    /**
     * 获取文件或目录的权限。
     */
     private String  getPermissionForFile(File path)
