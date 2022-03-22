@@ -95,21 +95,23 @@ class ControlConnectHandler
     */
     private void openDataConnectionToClient(String content)
     {
-    String portString=content.split(" ")[1].trim(); // 端口字符串。
+      String portString=content.split(" ")[1].trim(); // 端口字符串。
     
-    String[] addressStringList= portString.split(","); //获取地址字符串。
+      String[] addressStringList= portString.split(","); //获取地址字符串。
     
-    String ip=addressStringList[0]+"."+addressStringList[1]+"."+addressStringList[2]+"."+addressStringList[3]; // 构造IP。陈欣
-    int port=Integer.parseInt(addressStringList[4])*256+Integer.parseInt(addressStringList[5]); // 计算出端口号。
+      String ip=addressStringList[0]+"."+addressStringList[1]+"."+addressStringList[2]+"."+addressStringList[3]; // 构造IP。陈欣
+      int port=Integer.parseInt(addressStringList[4])*256+Integer.parseInt(addressStringList[5]); // 计算出端口号。
     
-    //连接：陈欣
+      //连接：陈欣
     
-        AsyncServer.getDefault().connectSocket(new InetSocketAddress(ip, port), new ConnectCallback() {
-            @Override
-            public void onConnectCompleted(Exception ex, final AsyncSocket socket) {
-                handleConnectCompleted(ex, socket);
-            }
-        });
+      AsyncServer.getDefault().connectSocket(new InetSocketAddress(ip, port), new ConnectCallback() 
+      {
+        @Override
+        public void onConnectCompleted(Exception ex, final AsyncSocket socket) 
+        {
+          handleConnectCompleted(ex, socket);
+        }
+      });
     } //private void openDataConnectionToClient(String content)
 
     /**
@@ -117,13 +119,15 @@ class ControlConnectHandler
     */
     private void sendStringInBinaryMode(String stringToSend)
     {
-        Util.writeAll(socket, stringToSend.getBytes(), new CompletedCallback() {
-            @Override
-            public void onCompleted(Exception ex) {
-                if (ex != null) throw new RuntimeException(ex);
-                System.out.println("[Server] Successfully wrote message");
-            }
-        });
+      Util.writeAll(socket, (stringToSend+"\r\n").getBytes(), new CompletedCallback() 
+      {
+        @Override
+        public void onCompleted(Exception ex) 
+        {
+          if (ex != null) throw new RuntimeException(ex);
+          System.out.println("[Server] Successfully wrote message");
+        }
+      });
     } //private sendStringInBinaryMode(String stringToSend)
     
     public void notifyFileNotExist() // 告知文件不存在
@@ -182,31 +186,13 @@ class ControlConnectHandler
     } //private void notifyStorCompleted()
     
     /**
-    * 告知，数据连接未建立。
-    */
-    private void notifyLsFailedDataConnectionNull() 
-    {
-        String replyString="426 no data connection for file content "  + "\n"; // 回复内容。
-
-        Log.d(TAG, "reply string: " + replyString); //Debug.
-
-        Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() {
-            @Override
-            public void onCompleted(Exception ex) {
-                if (ex != null) throw new RuntimeException(ex);
-                Log.d(TAG, "notifyLsFailedDataConnectionNull, [Server] Successfully wrote message");
-            }
-        });
-    } //private void notifyLsFailedDataConnectionNull()
-
-    /**
      * 告知已经发送目录数据。
      */
     public void notifyLsCompleted()
     {
 //        send_data "216 \n"
 
-        String replyString="226 Data transmission OK. ChenXin" + "\n"; // 回复内容。
+        String replyString="226 Data transmission OK. ChenXin" + "\r\n"; // 回复内容。
 
         Log.d(TAG, "reply string: " + replyString); //Debug.
 
@@ -219,151 +205,6 @@ class ControlConnectHandler
         });
     } //private void notifyLsCompleted()
 
-    /**
-     * 发送目录列表数据。
-     * @param content The path of the directory.
-     * @param currentWorkingDirectory 当前工作目录。
-     */
-    private void sendListContent(String content, String currentWorkingDirectory)
-    {
-        String parameter=content.substring(5).trim(); // 获取额外参数。
-        
-        if (parameter.equals("-la")) // 忽略
-        {
-            parameter=""; // 忽略成空白。
-        } //if (parameter.equals("-la")) // 忽略
-
-        currentWorkingDirectory=currentWorkingDirectory.trim();
-
-        Log.d(TAG, "sendListContent, rootDirectory: " + rootDirectory); // Debug.
-        
-        String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory; // 构造完整路径。
-
-        String output = getDirectoryContentList(wholeDirecotoryPath, parameter); // Get the whole directory list.
-        
-//         Log.d(TAG, "output: " + output); // Debug
-        
-        if (data_socket!=null) // 数据连接存在
-        {
-            Util.writeAll(data_socket, (output + "\n").getBytes(), new CompletedCallback() {
-            @Override
-            public void onCompleted(Exception ex) {
-                if (ex != null) throw new RuntimeException(ex);
-                System.out.println("[Server] data Successfully wrote message");
-                
-                notifyLsCompleted(); // 告知已经发送目录数据。
-            }
-        });
-        } //if (data_socket!=null)
-        else // 数据连接不存在
-        {
-            queueForDataSocket(output); // 将回复数据排队。
-        } //else // 数据连接不存在
-    } //private void sendListContent(String content, String currentWorkingDirectory)
-
-    /**
-    * 将回复数据排队。
-    */
-    private void queueForDataSocket(String output) 
-    {
-        dataSocketPendingByteArray=output.getBytes(); // 排队。
-    } //private void queueForDataSocket(String output)
-
-    /**
-    * 将回复数据排队。
-    */
-    private void queueForDataSocket(byte[] output) 
-    {
-        dataSocketPendingByteArray=output; // 排队。
-    } //private void queueForDataSocket(String output)
-
-    /**
-    *  获取目录的完整列表。
-    */
-    private String getDirectoryContentList(String wholeDirecotoryPath, String nameOfFile)
-    {
-        nameOfFile=nameOfFile.trim(); // 去除空白字符。陈欣
-    
-        String result=""; // 结果。
-        File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
-            
-        File[]   paths = photoDirecotry.listFiles();
-         
-         // for each pathname in pathname array
-        for(File path:paths) 
-        {
-            // -rw-r--r-- 1 nobody nobody     35179727 Oct 16 07:31 VID_20201015_181816.mp4
-
-            String fileName=path.getName(); // 获取文件名。
-
-            Date dateCompareYear=new Date(path.lastModified());  
-            Date dateNow=new Date();
-            boolean sameYear=false; // 是不是相同年份。
-            
-            if (dateCompareYear.getYear() == dateNow.getYear()) // 年份相等
-            {
-              sameYear=true; // 是相同年份。
-            } // if (dateCompareYear.getYear() == dateNow.getYear()) // 年份相等
-            
-            LocalDateTime date =
-    LocalDateTime.ofInstant(Instant.ofEpochMilli(path.lastModified()), ZoneId.systemDefault());
-                            
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-//   String time= date.format(formatter);
-            String time="8:00";
-            
-            time=date.format(formatter); // 获取时间字符串。
-
-            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM");
-            
-                        DateTimeFormatter yearFormatter = DateTimeFormatter.ofPattern("yyyy").withLocale(Locale.US);
-
-                        String year=date.format(yearFormatter);  // 年份字符串。
-
-            DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMM").withLocale(Locale.US);
-
-                        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("dd").withLocale(Locale.US);
-
-            String dateString="30";
-            
-            dateString=date.format(dayFormatter); // 获取日期。
-                            
-            long fileSize=path.length(); // 文件尺寸。
-                            
-            String group="cx";
-                            
-            String user = "ChenXin";
-                            
-            String linkNumber="1";
-                            
-//             String permission="-rw-r--r--"; // 权限。
-            String permission=getPermissionForFile(path); // 权限。
-
-            String month="Jan"; // 月份 。
-            
-            month=date.format(monthFormatter); // 序列化月份。
-            
-            String timeOrYear=time; // 时间或年份。
-            
-            if (sameYear) // 相同的年份。
-            {
-            } // if (sameYear) // 相同的年份。
-            else // 不是相同的年份。
-            {
-              timeOrYear=year; // 年份。
-            } // else // 不是相同的年份。
-            
-            String currentLine = permission + " " + linkNumber + " " + user + " " + group + " " + fileSize + " " + month + " " + dateString + " " + timeOrYear + " " + fileName + "\n" ; // 构造当前行。
-            
-            if (fileName.equals(nameOfFile)  || (nameOfFile.isEmpty())) // 名字匹配。
-            {
-            result=result+currentLine; // 构造结果。
-            } //if (fileName.equals(nameOfFile)) // 名字匹配。
-         }
-
-         return result;
-    } //private String getDirectoryContentList(String wholeDirecotoryPath)
-    
     /**
     * 获取文件或目录的权限。
     */
@@ -440,13 +281,7 @@ class ControlConnectHandler
         } //if (command.equals("USER")) // 用户登录
         else if (command.equals("PASS")) // 密码
         {
-            Util.writeAll(socket, "230 Loged in.\n".getBytes(), new CompletedCallback() {
-                @Override
-                public void onCompleted(Exception ex) {
-                    if (ex != null) throw new RuntimeException(ex);
-                    System.out.println("[Server] Successfully wrote message");
-                }
-            });
+          sendStringInBinaryMode("230 Loged in."); // 回复，登录成功。
         } //else if (command.equals("PASS")) // 密码
         else if (command.equals("SYST")) // 系统信息
         {
@@ -464,53 +299,41 @@ class ControlConnectHandler
         } //else if (command.equals("SYST")) // 系统信息
         else if (command.equals("PWD")) // 查询当前工作目录
         {
-            String replyString="257 \"" + currentWorkingDirectory + "\"\n"; // 回复内容。
+          String replyString="257 \"" + currentWorkingDirectory + "\""; // 回复内容。
 
-            Log.d(TAG, "reply string: " + replyString); //Debug.
-
-            Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() {
-                @Override
-                public void onCompleted(Exception ex) {
-                    if (ex != null) throw new RuntimeException(ex);
-                    System.out.println("[Server] Successfully wrote message");
-                }
-            });
+          Log.d(TAG, "reply string: " + replyString); //Debug.
+          
+          sendStringInBinaryMode(replyString); // 发送回复内容。
         } //else if (command.equals("PWD")) // 查询当前工作目录
         else if (command.equals("cwd")) // 切换工作目录
         {
-            String targetWorkingDirectory=content.substring(4).trim(); // 获取新的工作目录。
+          String targetWorkingDirectory=content.substring(4).trim(); // 获取新的工作目录。
             
-            String wholeDirecotoryPath= rootDirectory.getPath() + targetWorkingDirectory; // 构造完整路径。
+          String wholeDirecotoryPath= rootDirectory.getPath() + targetWorkingDirectory; // 构造完整路径。
                     
-            wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
+          wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
-            Log.d(TAG, "processSizeCommand: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
+          Log.d(TAG, "processSizeCommand: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
                     
-            File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
+          File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
 
-            String replyString="" ; // 回复内容。
+          String replyString="" ; // 回复内容。
 
-            if (photoDirecotry.isDirectory()) // 是个目录
-            {
-                currentWorkingDirectory=targetWorkingDirectory;
+          if (photoDirecotry.isDirectory()) // 是个目录
+          {
+            currentWorkingDirectory=targetWorkingDirectory;
 
-                replyString="250 cwd succeed" + "\n"; // 回复内容。
-            } //if (photoDirecotry.isDirectory()) // 是个目录
-            else //不是个目录
-            {
+            replyString="250 cwd succeed" ; // 回复内容。
+          } //if (photoDirecotry.isDirectory()) // 是个目录
+          else //不是个目录
+          {
 //                 陈欣
-                replyString="550 not a directory: " + wholeDirecotoryPath + "\n"; // 回复内容。
-            }
+            replyString="550 not a directory: " + wholeDirecotoryPath ; // 回复内容。
+          }
 
-            Log.d(TAG, "reply string: " + replyString); //Debug.
-
-            Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() {
-                @Override
-                public void onCompleted(Exception ex) {
-                    if (ex != null) throw new RuntimeException(ex);
-                    System.out.println("[Server] Successfully wrote message");
-                } //public void onCompleted(Exception ex) {
-            }); //Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() {
+          Log.d(TAG, "reply string: " + replyString); //Debug.
+          
+          sendStringInBinaryMode(replyString); // 发送回复。
         } //else if (command.equals("cwd")) // 切换工作目录
         else if (command.equals("TYPE")) // 传输类型
         {
@@ -528,52 +351,39 @@ class ControlConnectHandler
         } //else if (command.equals("TYPE")) // 传输类型
         else if (command.equals("PASV")) // 被动传输
         {
-            setupDataServer(); // 初始化数据服务器。
+          setupDataServer(); // 初始化数据服务器。
         
-            WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-            String ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
+          WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+          String ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
 
-            String ip = ipAddress.replace(".", ",");
+          String ip = ipAddress.replace(".", ",");
         
-            int port256=data_port/256;
-            int portModule=data_port-port256*256;
+          int port256=data_port/256;
+          int portModule=data_port-port256*256;
 
-            String replyString="227 Entering Passive Mode ("+ip+","+port256+","+portModule+") \n"; // 回复内容。
+          String replyString="227 Entering Passive Mode ("+ip+","+port256+","+portModule+") "; // 回复内容。
 
-            Log.d(TAG, "reply string: " + replyString); //Debug.
+          Log.d(TAG, "reply string: " + replyString); //Debug.
 
-            sendStringInBinaryMode(replyString);
+          sendStringInBinaryMode(replyString); // 回复内容。
         } //else if (command.equals("PASV")) // 被动传输
         else if (command.equals("EPSV")) // 扩展被动模式
         {
-          String replyString="202 \n"; // 回复内容。
+          String replyString="202 "; // 回复内容。
           
           if (hasFolloingCommand) // 还有后续命令。
           {
           } // if (hasFolloingCommand) // 还有后续命令。
           else // if (hasFolloingCommand) // 还有后续命令。
           {
-          Log.d(TAG, "reply string: " + replyString); //Debug.
-
-          Util.writeAll(
-            socket, replyString.getBytes(), new CompletedCallback() 
-            {
-              @Override
-              public void onCompleted(Exception ex) 
-              {
-                if (ex != null) throw new RuntimeException(ex);
-                System.out.println("[Server] Successfully wrote message");
-              }
-            }
-          );
-          
-          
+            Log.d(TAG, "reply string: " + replyString); //Debug.
+            
+            sendStringInBinaryMode(replyString); // 发送回复。
           } // else // if (hasFolloingCommand) // 还有后续命令。
-
         } //else if (command.equals("EPSV")) // 扩展被动模式
         else if (command.equals("PORT")) // 要求服务器主动连接客户端的端口
         {
-          String replyString="150 \n"; // 回复内容。正在打开数据连接
+          String replyString="150 "; // 回复内容。正在打开数据连接
           
           boolean shouldSend=true; // 是否应当发送回复。
 
@@ -581,35 +391,23 @@ class ControlConnectHandler
           {
             openDataConnectionToClient(content); // 打开指向客户端特定端口的连接。
 
-            replyString="150 \n"; // 回复内容。正在打开数据连接
+            replyString="150 "; // 回复内容。正在打开数据连接
           } //if (allowActiveMode) // 允许主动模式
           else // 不允许主动模式。
           {
-            replyString="202 \n"; // 回复内容。未实现。
+            replyString="202 "; // 回复内容。未实现。
             
             if (hasFolloingCommand) // 还有后续命令。
             {
               shouldSend=false; // 不应当发送回复。
             } // if (hasFolloingCommand) // 还有后续命令。
-            else // 没有后续命令
-            {
-            } // else // 没有后续命令
           } //else // 不允许主动模式。
 
           if (shouldSend) // 应当发送回复。
           {
-          Log.d(TAG, "reply string: " + replyString); //Debug.
-
-          Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() 
-          {
-            @Override
-            public void onCompleted(Exception ex) 
-            {
-              if (ex != null) throw new RuntimeException(ex);
-              Log.d(TAG, "[Server] Successfully wrote message");
-            }
-          });
-          
+            Log.d(TAG, "reply string: " + replyString); //Debug.
+            
+            sendStringInBinaryMode(replyString); // 发送回复。
           } // if (shouldSend) // 应当发送回复。
         } //else if (command.equals("EPSV")) // Extended passive mode.
         else if (command.toLowerCase().equals("list")) // 列出目录 陈欣
@@ -684,38 +482,32 @@ class ControlConnectHandler
         } //else if (command.equals("DELE")) // 删除文件
         else if (command.equals("RMD")) // 删除目录
         {
-            String data51= content.substring(4);
+          String data51= content.substring(4);
 
-            data51=data51.trim(); // 去掉末尾换行
+          data51=data51.trim(); // 去掉末尾换行
 
-            // 删除文件。陈欣
+          // 删除文件。陈欣
 
-            String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
+          String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
                     
-            wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
+          wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
-            FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-            File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
+          FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
+          File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
 
 //             陈欣
             
-            boolean deleteResult= photoDirecotry.delete();
+          boolean deleteResult= photoDirecotry.delete();
             
-            Log.d(TAG, "delete result: " + deleteResult); // Debug.
+          Log.d(TAG, "delete result: " + deleteResult); // Debug.
             
-            notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
+          notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
             
-            String replyString="250 \n"; // 回复内容。
+          String replyString="250 Delete success "+ data51; // 回复内容。
 
-            Log.d(TAG, "reply string: " + replyString); //Debug.
-
-            Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() {
-                @Override
-                public void onCompleted(Exception ex) {
-                    if (ex != null) throw new RuntimeException(ex);
-                    System.out.println("[Server] Successfully wrote message");
-                }
-            });
+          Log.d(TAG, "reply string: " + replyString); //Debug.
+          
+          sendStringInBinaryMode(replyString); // 回复内容。
         } //else if (command.equals("DELE")) // 删除文件
         else if (command.equals("stor")) // 上传文件
         {
@@ -731,21 +523,11 @@ class ControlConnectHandler
         } //else if (command.equals("stor")) // 上传文件
         else  // 其它命令
         {
-            String replyString="150 \n"; // 回复内容。正在打开数据连接
+          String replyString="502 " + content.trim()  +  " not implemented"; // 回复内容。未实现。
 
-            replyString="502 " + content.trim()  +  " not implemented\n"; // 回复内容。未实现。
-
-            Log.d(TAG, "reply string: " + replyString); //Debug.
-
-            Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() 
-            {
-                @Override
-                public void onCompleted(Exception ex) 
-                {
-                    if (ex != null) throw new RuntimeException(ex);
-                    Log.d(TAG, "[Server] Successfully wrote message");
-                }
-            });
+          Log.d(TAG, "reply string: " + replyString); //Debug.
+          
+          sendStringInBinaryMode(replyString); // 回复。
         } //else if (command.equals("EPSV")) // Extended passive mode.
     } //private void processCommand(String command, String content)
 
@@ -869,18 +651,16 @@ class ControlConnectHandler
             }
         });
 
-        socket.setEndCallback(new CompletedCallback() {
-            @Override
-            public void onCompleted(Exception ex) {
-                if(ex != null) throw new RuntimeException(ex);
-                System.out.println("[Client] Successfully end connection");
-                
-
-            }
+        socket.setEndCallback(new CompletedCallback() 
+        {
+          @Override
+          public void onCompleted(Exception ex) 
+          {
+            if(ex != null) throw new RuntimeException(ex);
+            System.out.println("[Client] Successfully end connection");
+          }
         });
-        
-        } //else // 无异常。
-        
+      } //else // 无异常。
     }
 
         /**
@@ -889,57 +669,59 @@ class ControlConnectHandler
      */
     private void handleDataAccept(final AsyncSocket socket)
     {
-        this.data_socket=socket;
-        fileContentSender.setDataSocket(socket); // 设置数据连接套接字。
-        directoryListSender.setDataSocket(socket); // 设置数据连接套接字。
+      this.data_socket=socket;
+      fileContentSender.setDataSocket(socket); // 设置数据连接套接字。
+      directoryListSender.setDataSocket(socket); // 设置数据连接套接字。
 
-        Log.d(TAG, "handleDataAccept, [Server] data New Connection " + socket.toString());
+      Log.d(TAG, "handleDataAccept, [Server] data New Connection " + socket.toString());
         
-        if (dataSocketPendingByteArray!=null) // 有等待发送的内容。
-        {
-            Util.writeAll(data_socket, dataSocketPendingByteArray, new CompletedCallback() {
-                @Override
-                public void onCompleted(Exception ex) 
-                {
-                    if (ex != null) throw new RuntimeException(ex);
-                    System.out.println("[Server] data Successfully wrote message");
-                    
-                    notifyLsCompleted(); // 告知已经发送目录数据。
-                } //public void onCompleted(Exception ex) 
-            });
-        
-            dataSocketPendingByteArray=null; // 数据置空。
-        } // if (dataSocketPendingByteArray!=null)
-
-        socket.setDataCallback(
-            new DataCallback()
-            {
-                @Override
-                public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) {
-                    receiveDataSocket(bb);
-                }
-            });
-
-        socket.setClosedCallback(new CompletedCallback() 
+      if (dataSocketPendingByteArray!=null) // 有等待发送的内容。
+      {
+        Util.writeAll(data_socket, dataSocketPendingByteArray, new CompletedCallback() 
         {
           @Override
           public void onCompleted(Exception ex) 
           {
+            if (ex != null) throw new RuntimeException(ex);
+            System.out.println("[Server] data Successfully wrote message");
+                    
+            notifyLsCompleted(); // 告知已经发送目录数据。
+          } //public void onCompleted(Exception ex) 
+        });
+        
+        dataSocketPendingByteArray=null; // 数据置空。
+      } // if (dataSocketPendingByteArray!=null)
+
+      socket.setDataCallback(
+        new DataCallback()
+        {
+          @Override
+          public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) 
+          {
+            receiveDataSocket(bb);
+          }
+        });
+
+      socket.setClosedCallback(new CompletedCallback() 
+      {
+        @Override
+        public void onCompleted(Exception ex) 
+        {
 //             if (ex != null) throw new RuntimeException(ex);
             
-            if(ex != null) // 有异常。陈欣。
+          if(ex != null) // 有异常。陈欣。
+          {
+            if ( ex instanceof IOException ) // java.lang.RuntimeException: java.io.IOException: Software caused connection abort
             {
-              if ( ex instanceof IOException ) // java.lang.RuntimeException: java.io.IOException: Software caused connection abort
-              {
-                ex.printStackTrace();
-              }
-              else // Other exceptions
-              {
-                throw new RuntimeException(ex);
-              }
+              ex.printStackTrace();
             }
+            else // Other exceptions
+            {
+              throw new RuntimeException(ex);
+            }
+          }
             
-            System.out.println("[Server] data Successfully closed connection");
+          System.out.println("[Server] data Successfully closed connection");
               
             data_socket=null;
             fileContentSender.setDataSocket(data_socket); // 将数据连接清空
@@ -967,7 +749,7 @@ class ControlConnectHandler
               }
               else // Other exceptions
               {
-                  throw new RuntimeException(ex);
+                throw new RuntimeException(ex);
               }
             }
                 
@@ -1057,62 +839,53 @@ class ControlConnectHandler
         //发送初始命令：
 //        send_data "220 \n"
 
-        Util.writeAll(socket, "220 BuiltinFtp Server\n".getBytes(), new CompletedCallback() {
-            @Override
-            public void onCompleted(Exception ex) 
-            {
-                if (ex != null) throw new RuntimeException(ex);
-                System.out.println("[Server] Successfully wrote message");
-            } //public void onCompleted(Exception ex) 
-        });
+        sendStringInBinaryMode("220 StupidBeauty FtpServer"); // 发送回复内容。
     } //private void handleAccept(final AsyncSocket socket)
 
-            /**
+    /**
      * 启动数据传输服务器。
      */
     private void setupDataServer()
     {
-        Random random=new Random(); //随机数生成器。
+      Random random=new Random(); //随机数生成器。
 
-        int randomIndex=random.nextInt(65535-1025)+1025; //随机选择一个端口。
+      int randomIndex=random.nextInt(65535-1025)+1025; //随机选择一个端口。
 
-        data_port=randomIndex; 
+      data_port=randomIndex; 
 
 //         try // 绑定端口。
 //         {
-        AsyncServer.getDefault().listen(host, data_port, new ListenCallback() {
-            @Override
-            public void onAccepted(final AsyncSocket socket)
-            {
-                handleDataAccept(socket);
-            } //public void onAccepted(final AsyncSocket socket)
+      AsyncServer.getDefault().listen(host, data_port, new ListenCallback() 
+      {
+        @Override
+        public void onAccepted(final AsyncSocket socket)
+        {
+          handleDataAccept(socket);
+        } //public void onAccepted(final AsyncSocket socket)
 
-            @Override
-            public void onListening(AsyncServerSocket socket)
-            {
-                System.out.println("[Server] Server started listening for data connections");
-            }
+        @Override
+        public void onListening(AsyncServerSocket socket)
+        {
+          System.out.println("[Server] Server started listening for data connections");
+        }
 
-            @Override
-            public void onCompleted(Exception ex) {
-                if(ex != null) {
+        @Override
+        public void onCompleted(Exception ex) 
+        {
+          if(ex != null) 
+          {
 //                 09-07 07:57:47.473 18998 19023 W System.err: java.lang.RuntimeException: java.net.BindException: Address already in use
 
 //                 throw new RuntimeException(ex);
-ex.printStackTrace();
+            ex.printStackTrace();
 
-                    setupDataServer(); // 重新初始化。
-                }
-                else
-                {
-                System.out.println("[Server] Successfully shutdown server");
-                }
-                
-            }
-        });
-//         }
-//         catch (BindException e)
-//         {
-//         } //catch (BindException e)
+            setupDataServer(); // 重新初始化。
+          }
+          else
+          {
+            System.out.println("[Server] Successfully shutdown server");
+          }
+        }
+      });
     } //private void setupDataServer()
 }
