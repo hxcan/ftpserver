@@ -262,7 +262,7 @@ class ControlConnectHandler
           
         binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复内容。
       } //else if (command.equals("PWD")) // 查询当前工作目录
-      else if (command.equals("cwd")) // 切换工作目录
+      else if (command.equalsIgnoreCase("cwd")) // 切换工作目录
       {
         String targetWorkingDirectory=content.substring(4).trim(); // 获取新的工作目录。
             
