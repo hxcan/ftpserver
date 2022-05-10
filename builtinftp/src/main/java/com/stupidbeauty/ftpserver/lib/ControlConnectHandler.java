@@ -367,7 +367,7 @@ class ControlConnectHandler
         {
           processListCommand(content); // 处理目录列表命令。
         } //else if (command.equals("list")) // 列出目录
-        else if (command.equals("retr")) // 获取文件
+        else if (command.toLowerCase().equals("retr")) // 获取文件
         {
           String data51= content.substring(5);
 
@@ -396,8 +396,6 @@ class ControlConnectHandler
           Long restartPosition=Long.valueOf(data51);
           
           fileContentSender.setRestartPosition(restartPosition); // 设置重启位置。
-
-//           sendFileContent(data51, currentWorkingDirectory); // 发送文件内容。
         } //else if (command.equals("list")) // 列出目录
         else if (command.equals("SIZE")) // 文件尺寸
         {
