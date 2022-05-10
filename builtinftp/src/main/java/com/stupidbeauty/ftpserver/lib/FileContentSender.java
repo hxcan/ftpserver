@@ -22,9 +22,15 @@ import com.koushikdutta.async.callback.ConnectCallback;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.FileNotFoundException;
+import android.util.Log;
+import java.util.Date;    
+import java.time.format.DateTimeFormatter;
+import java.io.File;
+import com.koushikdutta.async.AsyncServerSocket;
 
 public class FileContentSender
 {
+  private static final String TAG="FileContentSender"; //!< 输出调试信息时使用的标记
   private long restSTart=0; //!< 跳过位置。
   private byte[] dataSocketPendingByteArray=null; //!< 数据套接字数据内容 排队。
   private ControlConnectHandler controlConnectHandler=null; //!< 控制连接处理器。
