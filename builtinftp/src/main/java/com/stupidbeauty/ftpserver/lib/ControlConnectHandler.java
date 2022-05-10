@@ -146,6 +146,8 @@ class ControlConnectHandler
       fileContentSender.setControlConnectHandler(this); // 设置控制连接处理器。
       fileContentSender.setDataSocket(data_socket); // 设置数据连接套接字。
       fileContentSender.sendFileContent(data51, currentWorkingDirectory); // 让文件内容发送器来发送。
+      
+      notifyEvent(EventListener.DOWNLOAD_START); // 报告事件，开始下载文件。
     } //private void sendFileContent(String data51, String currentWorkingDirectory)
     
     /**
