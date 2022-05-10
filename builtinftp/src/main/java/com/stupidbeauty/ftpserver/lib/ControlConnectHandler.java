@@ -381,7 +381,7 @@ class ControlConnectHandler
 
           sendFileContent(data51, currentWorkingDirectory); // 发送文件内容。
         } //else if (command.equals("list")) // 列出目录
-        else if (command.equals("rest")) // 设置断点续传位置。
+        else if (command.toLowerCase().equals("rest")) // 设置断点续传位置。
         {
           String data51= content.substring(5); // 跳过的长度。
 
