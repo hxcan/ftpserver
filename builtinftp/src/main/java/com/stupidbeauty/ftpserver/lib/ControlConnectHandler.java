@@ -117,10 +117,8 @@ class ControlConnectHandler
 
     public void notifyFileNotExist() // 告知文件不存在
     {
-//         controlConnectHandler.notifyFileNotExist(); // 告知文件不存在。
-//         String replyString="216 " + "\n"; // 回复内容。
       String replyString="550 File not exist"; // File does not exist.
-// 陈欣
+
       Log.d(TAG, "reply string: " + replyString); //Debug.
         
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送。
@@ -136,6 +134,8 @@ class ControlConnectHandler
       Log.d(TAG, "reply string: " + replyString); //Debug.
         
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送。
+      
+      notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
     } //private void notifyFileSendCompleted()
 
     /**
@@ -394,7 +394,7 @@ class ControlConnectHandler
 
           data51=data51.trim(); // 去掉末尾换行
 
-          // 删除文件。陈欣
+          // 删除文件
 
           String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
                     
@@ -403,8 +403,6 @@ class ControlConnectHandler
           FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
           File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
 
-//             陈欣
-            
           boolean deleteResult= photoDirecotry.delete();
             
           Log.d(TAG, "delete result: " + deleteResult); // Debug.
