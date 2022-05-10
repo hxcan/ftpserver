@@ -111,6 +111,8 @@ public class FileContentSender
               fileToSend=null; // 将要发送的文件对象清空。
             }
           });
+          
+          data_socket.close(); // 关闭连接。
         }
         catch (IOException e)
         {

@@ -150,27 +150,12 @@ public class DirectoryListSender
       nameOfFile=nameOfFile.trim(); // 去除空白字符。陈欣
     
       String result=""; // 结果。
-//         File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
         
       if (photoDirecotry.isFile()) // 是一个文件。
       {
         String currentLine=construct1LineListFile(photoDirecotry); // 构造针对这个文件的一行输出。
         
         binaryStringSender.sendStringInBinaryMode(currentLine); // 发送回复内容。
-        
-//         Util.writeAll(data_socket, (currentLine + "\n").getBytes(), new CompletedCallback() 
-//         {
-//           @Override
-//           public void onCompleted(Exception ex) 
-//           {
-//             if (ex != null) // 有异常
-//             {
-//               throw new RuntimeException(ex);
-//             }
-// 
-//             System.out.println("[Server] data Successfully wrote message");
-//           }
-//         });
       } // if (photoDirecotry.isFile()) // 是一个文件。
       else // 是目录
       {
@@ -185,25 +170,7 @@ public class DirectoryListSender
 
           if (fileName.equals(nameOfFile)  || (nameOfFile.isEmpty())) // 名字匹配。
           {
-//             result=result+currentLine; // 构造结果。
-//                 陈欣。
-
             binaryStringSender.sendStringInBinaryMode(currentLine); // 发送回复内容。
-
-
-//             Util.writeAll(data_socket, (currentLine + "\n").getBytes(), new CompletedCallback() 
-//             {
-//               @Override
-//               public void onCompleted(Exception ex) 
-//               {
-//                 if (ex != null) // 有异常
-//                 {
-//                   throw new RuntimeException(ex);
-//                 }
-// 
-//                 System.out.println("[Server] data Successfully wrote message");
-//               }
-//             });
           } //if (fileName.equals(nameOfFile)) // 名字匹配。
         }
       } // else // 是目录
@@ -248,19 +215,6 @@ public class DirectoryListSender
       if (fileToSend.exists()) // 文件存在
       {
         getDirectoryContentList(fileToSend, subDirectoryName); // Get the whole directory list.
-      
-//         Util.pump(fileToSend, data_socket, new CompletedCallback()
-//         {
-//           @Override
-//           public void onCompleted(Exception ex)
-//           {
-//             if (ex != null) throw new RuntimeException(ex);
-//             System.out.println("[Server] data Successfully wrote message");
-//                     
-//             notifyFileSendCompleted(); // 告知已经发送文件内容数据。
-//             fileToSend=null; // 将要发送的文件对象清空。
-//           }
-//         });
       } //if (fileToSend.exist()) // 文件存在
       else
       {
@@ -359,20 +313,7 @@ public class DirectoryListSender
     
     private void notifyLsCompleted()
     {
-    controlConnectHandler.notifyLsCompleted();
-//        send_data "216 \n"
-
-//         String replyString="226 Data transmission OK. ChenXin" + "\n"; // 回复内容。
-// 
-//         Log.d(TAG, "reply string: " + replyString); //Debug.
-// 
-//         Util.writeAll(socket, replyString.getBytes(), new CompletedCallback() {
-//             @Override
-//             public void onCompleted(Exception ex) {
-//                 if (ex != null) throw new RuntimeException(ex);
-//                 System.out.println("[Server] Successfully wrote message");
-//             }
-//         });
+      controlConnectHandler.notifyLsCompleted();
     } //private void notifyLsCompleted()
 
     /**
@@ -380,12 +321,12 @@ public class DirectoryListSender
     */
     private void notifyFileSendCompleted() 
     {
-        controlConnectHandler.notifyFileSendCompleted(); // 告知文件内容发送完毕。
+      controlConnectHandler.notifyFileSendCompleted(); // 告知文件内容发送完毕。
     } //private void notifyFileSendCompleted()
     
     private void notifyFileNotExist() // 告知文件不存在
     {
-        controlConnectHandler.notifyFileNotExist(); // 告知文件不存在。
+      controlConnectHandler.notifyFileNotExist(); // 告知文件不存在。
     } //private void notifyFileNotExist()
 
     /**
