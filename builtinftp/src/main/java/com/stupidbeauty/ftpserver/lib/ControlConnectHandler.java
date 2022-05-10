@@ -129,13 +129,13 @@ class ControlConnectHandler
     */
     public void notifyFileSendCompleted() 
     {
-      String replyString="216 "; // 回复内容。
+      String replyString="216 File sent. ChenXin"; // 回复内容。
 
       Log.d(TAG, "reply string: " + replyString); //Debug.
         
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送。
       
-      notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
+      notifyEvent(EventListener.DOWNLOAD_FINISH); // 报告事件，完成下载文件。
     } //private void notifyFileSendCompleted()
 
     /**

@@ -81,43 +81,35 @@ public class FileContentSender
             restSTart=0; // 跳过位置归零。
           }
           
-          
-          //         Util.pump(fileToSend, data_socket, new CompletedCallback()
-        Util.pump(is, data_socket, new CompletedCallback()
-        {
-          @Override
-          public void onCompleted(Exception ex)
+          Util.pump(is, data_socket, new CompletedCallback()
           {
-            if(ex != null) // 有异常。陈欣。
+            @Override
+            public void onCompleted(Exception ex)
             {
-              if ( ex instanceof IOException ) // java.lang.RuntimeException: java.io.IOException: Software caused connection abort
+              if(ex != null) // 有异常。陈欣。
               {
-                ex.printStackTrace();
+                if ( ex instanceof IOException ) // java.lang.RuntimeException: java.io.IOException: Software caused connection abort
+                {
+                  ex.printStackTrace();
+                }
+                else // Other exceptions
+                {
+                  throw new RuntimeException(ex);
+                }
               }
-              else // Other exceptions
-              {
-                throw new RuntimeException(ex);
-              }
-            }
 
-            System.out.println("[Server] data Successfully wrote message");
+//               System.out.println("[Server] data Successfully wrote message");
+              Log.d(TAG, "startSendFileContentForLarge, file sent."); // Debug.
                     
-            notifyFileSendCompleted(); // 告知已经发送文件内容数据。
-            fileToSend=null; // 将要发送的文件对象清空。
-          }
-        });
-
+              notifyFileSendCompleted(); // 告知已经发送文件内容数据。
+              fileToSend=null; // 将要发送的文件对象清空。
+            }
+          });
         }
         catch (IOException e)
         {
           e.printStackTrace();
         }
-//         catch (FileNotFoundException e)
-//         {
-//           e.printStackTrace();
-//         }
-        
-
       } //if (fileToSend.exist()) // 文件存在
       else
       {
@@ -166,20 +158,19 @@ public class FileContentSender
     */
     public void sendFileContent(String data51, String currentWorkingDirectory) 
     {
-        String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
+      String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
                     
-        wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
+      wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
-//        File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
-        FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-        File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
+      FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
+      File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
 
-        fileToSend=photoDirecotry; // 记录，要发送的文件对象。
+      fileToSend=photoDirecotry; // 记录，要发送的文件对象。
         
-        if (data_socket!=null) // 数据连接存在。
-        {
-            startSendFileContentForLarge(); // 开始发送文件内容。
-        } //if (data_socket!=null) // 数据连接存在。
+      if (data_socket!=null) // 数据连接存在。
+      {
+        startSendFileContentForLarge(); // 开始发送文件内容。
+      } //if (data_socket!=null) // 数据连接存在。
     } //private void sendFileContent(String data51, String currentWorkingDirectory)
     
     /**
@@ -187,12 +178,12 @@ public class FileContentSender
     */
     private void notifyFileSendCompleted() 
     {
-        controlConnectHandler.notifyFileSendCompleted(); // 告知文件内容发送完毕。
+      controlConnectHandler.notifyFileSendCompleted(); // 告知文件内容发送完毕。
     } //private void notifyFileSendCompleted()
     
     private void notifyFileNotExist() // 告知文件不存在
     {
-        controlConnectHandler.notifyFileNotExist(); // 告知文件不存在。
+      controlConnectHandler.notifyFileNotExist(); // 告知文件不存在。
     } //private void notifyFileNotExist()
 
     /**
@@ -200,7 +191,7 @@ public class FileContentSender
     */
     private void queueForDataSocket(byte[] output) 
     {
-        dataSocketPendingByteArray=output; // 排队。
+      dataSocketPendingByteArray=output; // 排队。
     } //private void queueForDataSocket(String output)
 
     /**
