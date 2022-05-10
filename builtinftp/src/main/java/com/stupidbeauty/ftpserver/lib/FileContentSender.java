@@ -19,52 +19,75 @@ import com.koushikdutta.async.callback.DataCallback;
 import com.koushikdutta.async.callback.ListenCallback;
 import org.apache.commons.io.FileUtils;
 import com.koushikdutta.async.callback.ConnectCallback;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.FileNotFoundException;
 
 public class FileContentSender
 {
-    private byte[] dataSocketPendingByteArray=null; //!< 数据套接字数据内容 排队。
-    private ControlConnectHandler controlConnectHandler=null; //!< 控制连接处理器。
-    private AsyncSocket data_socket=null; //!< 当前的数据连接。
-    private File rootDirectory=null; //!< 根目录。
-    private File fileToSend=null; //!< 要发送的文件。
+  private long restSTart=0; //!< 跳过位置。
+  private byte[] dataSocketPendingByteArray=null; //!< 数据套接字数据内容 排队。
+  private ControlConnectHandler controlConnectHandler=null; //!< 控制连接处理器。
+  private AsyncSocket data_socket=null; //!< 当前的数据连接。
+  private File rootDirectory=null; //!< 根目录。
+  private File fileToSend=null; //!< 要发送的文件。
+  
+  /**
+  * 设置重启位置。
+  */
+  public void setRestartPosition(long data51) 
+  {
+    restSTart=data51; // 记录。
+  } // public void setRestartPosition(long data51)
     
-    /**
-    * 设置根目录。
-    */
-    public void setRootDirectory(File rootDirectory)
-    {
-        this.rootDirectory=rootDirectory;
-    } //public void  setRootDirectory(File rootDirectory)
+  /**
+  * 设置根目录。
+  */
+  public void setRootDirectory(File rootDirectory)
+  {
+    this.rootDirectory=rootDirectory;
+  } //public void  setRootDirectory(File rootDirectory)
     
-    public void setControlConnectHandler(ControlConnectHandler controlConnectHandler) // 设置控制连接处理器。
-    {
-        this.controlConnectHandler=controlConnectHandler;
-    } //public void setControlConnectHandler(ControlConnectHandler controlConnectHandler)
+  public void setControlConnectHandler(ControlConnectHandler controlConnectHandler) // 设置控制连接处理器。
+  {
+    this.controlConnectHandler=controlConnectHandler;
+  } //public void setControlConnectHandler(ControlConnectHandler controlConnectHandler)
     
     /**
     * 设置数据连接套接字。
     */
     public void setDataSocket(AsyncSocket socket) 
     {
-        data_socket=socket; // 记录。
+      data_socket=socket; // 记录。
         
-        if ((fileToSend!=null) && (data_socket!=null)) // 有等待发送的内容。
-        {
-            startSendFileContentForLarge(); // 开始发送文件内容。
-        } // if (dataSocketPendingByteArray!=null)
+      if ((fileToSend!=null) && (data_socket!=null)) // 有等待发送的内容。
+      {
+        startSendFileContentForLarge(); // 开始发送文件内容。
+      } // if (dataSocketPendingByteArray!=null)
     } //public void setDataSocket(AsyncSocket socket)
     
     private void startSendFileContentForLarge()
     {
       if (fileToSend.exists()) // 文件存在
       {
-        Util.pump(fileToSend, data_socket, new CompletedCallback()
+        try
+        {
+          final InputStream is = new FileInputStream(fileToSend);
+        
+          if (restSTart>0) // 要跳过。 
+          {
+            is.skip(restSTart); // 跳过一段内容。断点续传。
+          
+            restSTart=0; // 跳过位置归零。
+          }
+          
+          
+          //         Util.pump(fileToSend, data_socket, new CompletedCallback()
+        Util.pump(is, data_socket, new CompletedCallback()
         {
           @Override
           public void onCompleted(Exception ex)
           {
-//             if (ex != null) throw new RuntimeException(ex);
-            
             if(ex != null) // 有异常。陈欣。
             {
               if ( ex instanceof IOException ) // java.lang.RuntimeException: java.io.IOException: Software caused connection abort
@@ -83,6 +106,18 @@ public class FileContentSender
             fileToSend=null; // 将要发送的文件对象清空。
           }
         });
+
+        }
+        catch (IOException e)
+        {
+          e.printStackTrace();
+        }
+//         catch (FileNotFoundException e)
+//         {
+//           e.printStackTrace();
+//         }
+        
+
       } //if (fileToSend.exist()) // 文件存在
       else
       {

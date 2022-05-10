@@ -32,27 +32,27 @@ import java.net.UnknownHostException;
 
 class ControlConnectHandler
 {
-    private BinaryStringSender binaryStringSender=new BinaryStringSender(); //!< 以二进制方式发送字符串的工具。
-    private EventListener eventListener=null; //!< 事件监听器。
-    private AsyncSocket socket; //!< 当前的客户端连接。
-    private static final String TAG ="ControlConnectHandler"; //!<  输出调试信息时使用的标记。
-    private Context context; //!< 执行时使用的上下文。
-    private AsyncSocket data_socket; //!< 当前的数据连接。
-    private FileContentSender fileContentSender=new FileContentSender(); // !< 文件内容发送器。
-    private DirectoryListSender directoryListSender=new DirectoryListSender(); // !< 目录列表发送器。
-    private byte[] dataSocketPendingByteArray=null; //!< 数据套接字数据内容 排队。
-    private String currentWorkingDirectory="/"; //!< 当前工作目录
-    private int data_port=1544; //!< 数据连接端口。
-    private boolean allowActiveMode=true; //!< 是否允许主动模式。
-    private File writingFile; //!< 当前正在写入的文件。
-    private boolean isUploading=false; //!< 是否正在上传。陈欣
-    private InetAddress host;
-    private File rootDirectory=null; //!< 根目录。
+  private BinaryStringSender binaryStringSender=new BinaryStringSender(); //!< 以二进制方式发送字符串的工具。
+  private EventListener eventListener=null; //!< 事件监听器。
+  private AsyncSocket socket; //!< 当前的客户端连接。
+  private static final String TAG ="ControlConnectHandler"; //!<  输出调试信息时使用的标记。
+  private Context context; //!< 执行时使用的上下文。
+  private AsyncSocket data_socket; //!< 当前的数据连接。
+  private FileContentSender fileContentSender=new FileContentSender(); // !< 文件内容发送器。
+  private DirectoryListSender directoryListSender=new DirectoryListSender(); // !< 目录列表发送器。
+  private byte[] dataSocketPendingByteArray=null; //!< 数据套接字数据内容 排队。
+  private String currentWorkingDirectory="/"; //!< 当前工作目录
+  private int data_port=1544; //!< 数据连接端口。
+  private boolean allowActiveMode=true; //!< 是否允许主动模式。
+  private File writingFile; //!< 当前正在写入的文件。
+  private boolean isUploading=false; //!< 是否正在上传。陈欣
+  private InetAddress host;
+  private File rootDirectory=null; //!< 根目录。
     
-    public void setEventListener(EventListener eventListener)
-    {
-      this.eventListener=eventListener;
-    } //eventListener
+  public void setEventListener(EventListener eventListener)
+  {
+    this.eventListener=eventListener;
+  } //eventListener
     
     public void setRootDirectory(File root)
     {
@@ -369,7 +369,6 @@ class ControlConnectHandler
         } //else if (command.equals("list")) // 列出目录
         else if (command.equals("retr")) // 获取文件
         {
-//            陈欣
           String data51= content.substring(5);
 
           data51=data51.trim(); // 去掉末尾换行
@@ -381,6 +380,24 @@ class ControlConnectHandler
           binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
 
           sendFileContent(data51, currentWorkingDirectory); // 发送文件内容。
+        } //else if (command.equals("list")) // 列出目录
+        else if (command.equals("rest")) // 设置断点续传位置。
+        {
+          String data51= content.substring(5); // 跳过的长度。
+
+          data51=data51.trim(); // 去掉末尾换行
+
+          String replyString="350 Restart position accepted (" + data51 + ")"; // 回复内容。
+
+          Log.d(TAG, "reply string: " + replyString); //Debug.
+          
+          binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
+          
+          Long restartPosition=Long.valueOf(data51);
+          
+          fileContentSender.setRestartPosition(restartPosition); // 设置重启位置。
+
+//           sendFileContent(data51, currentWorkingDirectory); // 发送文件内容。
         } //else if (command.equals("list")) // 列出目录
         else if (command.equals("SIZE")) // 文件尺寸
         {
