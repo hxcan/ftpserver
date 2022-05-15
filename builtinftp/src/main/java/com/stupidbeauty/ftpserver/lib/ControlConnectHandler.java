@@ -202,6 +202,53 @@ class ControlConnectHandler
         
         return permission;
     } //private String  getPermissionForFile(File path)
+    
+    /**
+    * 处理改变目录命令。
+    */
+    private void processCwdCommand(String targetWorkingDirectory) 
+    {
+      String wholeDirecotoryPath= rootDirectory.getPath() + targetWorkingDirectory; // 构造完整路径。
+                  
+      wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
+                  
+      Log.d(TAG, "processSizeCommand: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
+                  
+
+      FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
+      File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, targetWorkingDirectory); //照片目录。
+
+
+//       File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
+
+      String replyString="" ; // 回复内容。
+
+      if (photoDirecotry.isDirectory()) // 是个目录
+      {
+//         currentWorkingDirectory=targetWorkingDirectory;
+        String fullPath=photoDirecotry.getPath(); // 获取当前工作目录的完整路径。
+        String rootPath=rootDirectory.getPath(); // 获取根目录的完整路径。
+        
+//         String data51= content.substring(5);
+        
+
+        currentWorkingDirectory=fullPath.substring(rootPath.length()); // 去掉开头的根目录路径。
+        
+        Log.d(TAG, "processCwdCommand, fullPath: " + fullPath ); // Debug.
+        Log.d(TAG, "processCwdCommand, rootPath: " + rootPath ); // Debug.
+        Log.d(TAG, "processCwdCommand, currentWorkingDirectory: " + currentWorkingDirectory ); // Debug.
+
+        replyString="250 cwd succeed" ; // 回复内容。
+      } //if (photoDirecotry.isDirectory()) // 是个目录
+      else //不是个目录
+      {
+        replyString="550 not a directory: " + wholeDirecotoryPath ; // 回复内容。
+      }
+
+      Log.d(TAG, "reply string: " + replyString); //Debug.
+        
+      binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
+    } // private void processCwdCommand(String targetWorkingDirectory)
 
     /**
     * 处理尺寸查询命令。
@@ -264,179 +311,156 @@ class ControlConnectHandler
           
         binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复内容。
       } //else if (command.equals("PWD")) // 查询当前工作目录
+      else if (command.equals("TYPE")) // 传输类型
+      {
+        String replyString="200 binary type set"; // 回复内容。
+
+        Log.d(TAG, "reply string: " + replyString); //Debug.
+            
+        binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
+      } //else if (command.equals("TYPE")) // 传输类型
+      else if (command.equals("PASV")) // 被动传输
+      {
+        setupDataServer(); // 初始化数据服务器。
+        
+        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        String ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
+
+        String ip = ipAddress.replace(".", ",");
+        
+        int port256=data_port/256;
+        int portModule=data_port-port256*256;
+
+        String replyString="227 Entering Passive Mode ("+ip+","+port256+","+portModule+") "; // 回复内容。
+
+        Log.d(TAG, "reply string: " + replyString); //Debug.
+
+        binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
+      } //else if (command.equals("PASV")) // 被动传输
+      else if (command.equals("EPSV")) // 扩展被动模式
+      {
+        String replyString="202 "; // 回复内容。
+          
+        if (hasFolloingCommand) // 还有后续命令。
+        {
+        } // if (hasFolloingCommand) // 还有后续命令。
+        else // if (hasFolloingCommand) // 还有后续命令。
+        {
+          Log.d(TAG, "reply string: " + replyString); //Debug.
+            
+          binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
+        } // else // if (hasFolloingCommand) // 还有后续命令。
+      } //else if (command.equals("EPSV")) // 扩展被动模式
+      else if (command.equals("PORT")) // 要求服务器主动连接客户端的端口
+      {
+        String replyString="150 "; // 回复内容。正在打开数据连接
+          
+        boolean shouldSend=true; // 是否应当发送回复。
+
+        if (allowActiveMode) // 允许主动模式
+        {
+          openDataConnectionToClient(content); // 打开指向客户端特定端口的连接。
+
+          replyString="150 "; // 回复内容。正在打开数据连接
+        } //if (allowActiveMode) // 允许主动模式
+        else // 不允许主动模式。
+        {
+          replyString="202 "; // 回复内容。未实现。
+            
+          if (hasFolloingCommand) // 还有后续命令。
+          {
+            shouldSend=false; // 不应当发送回复。
+          } // if (hasFolloingCommand) // 还有后续命令。
+        } //else // 不允许主动模式。
+
+        if (shouldSend) // 应当发送回复。
+        {
+          Log.d(TAG, "reply string: " + replyString); //Debug.
+            
+          binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
+        } // if (shouldSend) // 应当发送回复。
+      } //else if (command.equals("EPSV")) // Extended passive mode.
+      else if (command.toLowerCase().equals("list")) // 列出目录 陈欣
+      {
+        processListCommand(content); // 处理目录列表命令。
+      } //else if (command.equals("list")) // 列出目录
+      else if (command.toLowerCase().equals("retr")) // 获取文件
+      {
+        String data51= content.substring(5);
+
+        data51=data51.trim(); // 去掉末尾换行
+
+        String replyString="150 start send content: " + data51 ; // 回复内容。
+
+        Log.d(TAG, "reply string: " + replyString); //Debug.
+          
+        binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
+
+        sendFileContent(data51, currentWorkingDirectory); // 发送文件内容。
+      } //else if (command.equals("list")) // 列出目录
+      else if (command.toLowerCase().equals("rest")) // 设置断点续传位置。
+      {
+        String data51= content.substring(5); // 跳过的长度。
+
+        data51=data51.trim(); // 去掉末尾换行
+
+        String replyString="350 Restart position accepted (" + data51 + ")"; // 回复内容。
+
+        Log.d(TAG, "reply string: " + replyString); //Debug.
+          
+        binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
+          
+        Long restartPosition=Long.valueOf(data51);
+          
+        fileContentSender.setRestartPosition(restartPosition); // 设置重启位置。
+      } //else if (command.equals("list")) // 列出目录
       else if (command.equalsIgnoreCase("cwd")) // 切换工作目录
       {
         String targetWorkingDirectory=content.substring(4).trim(); // 获取新的工作目录。
+        
+        processCwdCommand(targetWorkingDirectory); // 处理改变目录命令。
             
-        String wholeDirecotoryPath= rootDirectory.getPath() + targetWorkingDirectory; // 构造完整路径。
+      } //else if (command.equals("cwd")) // 切换工作目录
+      else if (command.equals("SIZE")) // 文件尺寸
+      {
+        String data51 = content.substring(5);
+
+        data51=data51.trim(); // 去掉末尾换行
+
+        processSizeCommand(data51); // 处理尺寸 命令。
+      } //else if (command.equals("SIZE")) // 文件尺寸
+      else if (command.equals("DELE")) // 删除文件
+      {
+        String data51= content.substring(5);
+
+        data51=data51.trim(); // 去掉末尾换行
+
+        // 删除文件
+
+        String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
                     
         wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
-        Log.d(TAG, "processSizeCommand: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
-                    
-        File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
+        FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
+        File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
 
-        String replyString="" ; // 回复内容。
-
-        if (photoDirecotry.isDirectory()) // 是个目录
-        {
-          currentWorkingDirectory=targetWorkingDirectory;
-
-            replyString="250 cwd succeed" ; // 回复内容。
-          } //if (photoDirecotry.isDirectory()) // 是个目录
-          else //不是个目录
-          {
-//                 陈欣
-            replyString="550 not a directory: " + wholeDirecotoryPath ; // 回复内容。
-          }
-
-          Log.d(TAG, "reply string: " + replyString); //Debug.
-          
-          binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
-        } //else if (command.equals("cwd")) // 切换工作目录
-        else if (command.equals("TYPE")) // 传输类型
-        {
-          String replyString="200 binary type set"; // 回复内容。
-
-          Log.d(TAG, "reply string: " + replyString); //Debug.
+        boolean deleteResult= photoDirecotry.delete();
             
-          binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
-        } //else if (command.equals("TYPE")) // 传输类型
-        else if (command.equals("PASV")) // 被动传输
-        {
-          setupDataServer(); // 初始化数据服务器。
-        
-          WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-          String ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
-
-          String ip = ipAddress.replace(".", ",");
-        
-          int port256=data_port/256;
-          int portModule=data_port-port256*256;
-
-          String replyString="227 Entering Passive Mode ("+ip+","+port256+","+portModule+") "; // 回复内容。
-
-          Log.d(TAG, "reply string: " + replyString); //Debug.
-
-          binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
-        } //else if (command.equals("PASV")) // 被动传输
-        else if (command.equals("EPSV")) // 扩展被动模式
-        {
-          String replyString="202 "; // 回复内容。
-          
-          if (hasFolloingCommand) // 还有后续命令。
-          {
-          } // if (hasFolloingCommand) // 还有后续命令。
-          else // if (hasFolloingCommand) // 还有后续命令。
-          {
-            Log.d(TAG, "reply string: " + replyString); //Debug.
+        Log.d(TAG, "delete result: " + deleteResult); // Debug.
             
-            binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
-          } // else // if (hasFolloingCommand) // 还有后续命令。
-        } //else if (command.equals("EPSV")) // 扩展被动模式
-        else if (command.equals("PORT")) // 要求服务器主动连接客户端的端口
-        {
-          String replyString="150 "; // 回复内容。正在打开数据连接
-          
-          boolean shouldSend=true; // 是否应当发送回复。
-
-          if (allowActiveMode) // 允许主动模式
-          {
-            openDataConnectionToClient(content); // 打开指向客户端特定端口的连接。
-
-            replyString="150 "; // 回复内容。正在打开数据连接
-          } //if (allowActiveMode) // 允许主动模式
-          else // 不允许主动模式。
-          {
-            replyString="202 "; // 回复内容。未实现。
+        notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
             
-            if (hasFolloingCommand) // 还有后续命令。
-            {
-              shouldSend=false; // 不应当发送回复。
-            } // if (hasFolloingCommand) // 还有后续命令。
-          } //else // 不允许主动模式。
+        String replyString="250 "; // 回复内容。
 
-          if (shouldSend) // 应当发送回复。
-          {
-            Log.d(TAG, "reply string: " + replyString); //Debug.
-            
-            binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
-          } // if (shouldSend) // 应当发送回复。
-        } //else if (command.equals("EPSV")) // Extended passive mode.
-        else if (command.toLowerCase().equals("list")) // 列出目录 陈欣
-        {
-          processListCommand(content); // 处理目录列表命令。
-        } //else if (command.equals("list")) // 列出目录
-        else if (command.toLowerCase().equals("retr")) // 获取文件
-        {
-          String data51= content.substring(5);
-
-          data51=data51.trim(); // 去掉末尾换行
-
-          String replyString="150 start send content: " + data51 ; // 回复内容。
-
-          Log.d(TAG, "reply string: " + replyString); //Debug.
+        Log.d(TAG, "reply string: " + replyString); //Debug.
           
-          binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
+        binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
+      } //else if (command.equals("DELE")) // 删除文件
+      else if (command.equals("RMD")) // 删除目录
+      {
+        String data51= content.substring(4);
 
-          sendFileContent(data51, currentWorkingDirectory); // 发送文件内容。
-        } //else if (command.equals("list")) // 列出目录
-        else if (command.toLowerCase().equals("rest")) // 设置断点续传位置。
-        {
-          String data51= content.substring(5); // 跳过的长度。
-
-          data51=data51.trim(); // 去掉末尾换行
-
-          String replyString="350 Restart position accepted (" + data51 + ")"; // 回复内容。
-
-          Log.d(TAG, "reply string: " + replyString); //Debug.
-          
-          binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
-          
-          Long restartPosition=Long.valueOf(data51);
-          
-          fileContentSender.setRestartPosition(restartPosition); // 设置重启位置。
-        } //else if (command.equals("list")) // 列出目录
-        else if (command.equals("SIZE")) // 文件尺寸
-        {
-          String data51=            content.substring(5);
-
-          data51=data51.trim(); // 去掉末尾换行
-
-          processSizeCommand(data51); // 处理尺寸 命令。
-        } //else if (command.equals("SIZE")) // 文件尺寸
-        else if (command.equals("DELE")) // 删除文件
-        {
-          String data51= content.substring(5);
-
-          data51=data51.trim(); // 去掉末尾换行
-
-          // 删除文件
-
-          String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
-                    
-          wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
-                    
-          FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-          File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
-
-          boolean deleteResult= photoDirecotry.delete();
-            
-          Log.d(TAG, "delete result: " + deleteResult); // Debug.
-            
-          notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
-            
-          String replyString="250 "; // 回复内容。
-
-          Log.d(TAG, "reply string: " + replyString); //Debug.
-          
-          binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
-        } //else if (command.equals("DELE")) // 删除文件
-        else if (command.equals("RMD")) // 删除目录
-        {
-          String data51= content.substring(4);
-
-          data51=data51.trim(); // 去掉末尾换行
+        data51=data51.trim(); // 去掉末尾换行
 
           // 删除文件。陈欣
 

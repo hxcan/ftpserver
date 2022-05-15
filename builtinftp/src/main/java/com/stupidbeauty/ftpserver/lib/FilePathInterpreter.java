@@ -31,11 +31,11 @@ public class FilePathInterpreter
     } //if (photoDirecotry.exists()) // 文件存在
     else // 文件不 存在
     {
-        wholeDirecotoryPath = rootDirectory.getPath() + data51; // 构造完整路径。
+      wholeDirecotoryPath = rootDirectory.getPath() + data51; // 构造完整路径。
 
-        wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
+      wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
 
-        photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
+      photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
     } //else // 文件不 存在
 
     return photoDirecotry;

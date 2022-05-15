@@ -32,14 +32,14 @@ import com.koushikdutta.async.callback.ConnectCallback;
 
 public class DirectoryListSender
 {
-    private byte[] dataSocketPendingByteArray=null; //!< 数据套接字数据内容 排队。
-    private ControlConnectHandler controlConnectHandler=null; //!< 控制连接处理器。
-    private AsyncSocket data_socket=null; //!< 当前的数据连接。
-    private File rootDirectory=null; //!< 根目录。
-    private File fileToSend=null; //!< 要发送的文件。
-    private String subDirectoryName=null; //!< 要列出的子目录名字。
-    private static final String TAG ="DirectoryListSender"; //!<  输出调试信息时使用的标记。
-    private BinaryStringSender binaryStringSender=new BinaryStringSender(); //!< 以二进制方式发送字符串的工具。
+  private byte[] dataSocketPendingByteArray=null; //!< 数据套接字数据内容 排队。
+  private ControlConnectHandler controlConnectHandler=null; //!< 控制连接处理器。
+  private AsyncSocket data_socket=null; //!< 当前的数据连接。
+  private File rootDirectory=null; //!< 根目录。
+  private File fileToSend=null; //!< 要发送的文件。
+  private String subDirectoryName=null; //!< 要列出的子目录名字。
+  private static final String TAG ="DirectoryListSender"; //!<  输出调试信息时使用的标记。
+  private BinaryStringSender binaryStringSender=new BinaryStringSender(); //!< 以二进制方式发送字符串的工具。
     
     /**
     * 设置根目录。
