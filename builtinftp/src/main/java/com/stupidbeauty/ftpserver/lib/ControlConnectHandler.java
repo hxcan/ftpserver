@@ -187,23 +187,6 @@ class ControlConnectHandler
     } //private void notifyLsCompleted()
 
     /**
-    * 获取文件或目录的权限。
-    */
-    private String  getPermissionForFile(File path)
-    {
-      String permission="-rw-r--r--"; // 默认权限。
-        
-      Log.d(TAG, "getPermissionForFile, path: " + path + ", is directory: " + path.isDirectory()); // Debug.
-        
-        if (path.isDirectory())
-        {
-            permission="drw-r--r--"; // 目录默认权限。
-        }
-        
-        return permission;
-    } //private String  getPermissionForFile(File path)
-    
-    /**
     * 处理改变目录命令。
     */
     private void processCwdCommand(String targetWorkingDirectory) 
@@ -233,6 +216,11 @@ class ControlConnectHandler
         
 
         currentWorkingDirectory=fullPath.substring(rootPath.length()); // 去掉开头的根目录路径。
+        
+        if (currentWorkingDirectory.isEmpty()) // 是空白的了
+        {
+          currentWorkingDirectory="/"; // 当前工作目录是根目录。
+        } // if (currentWorkingDirectory.isEmpty()) // 是空白的了
         
         Log.d(TAG, "processCwdCommand, fullPath: " + fullPath ); // Debug.
         Log.d(TAG, "processCwdCommand, rootPath: " + rootPath ); // Debug.
