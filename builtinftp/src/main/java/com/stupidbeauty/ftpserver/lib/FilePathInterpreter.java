@@ -16,7 +16,14 @@ public class FilePathInterpreter
 
   public File getFile(File rootDirectory, String currentWorkingDirectory, String data51) //照片目录。
   {
-    String wholeDirecotoryPath = rootDirectory.getPath() + currentWorkingDirectory + "/" + data51; // 构造完整路径。
+    String currentWorkingDirectoryUpdate=currentWorkingDirectory; // 更新后的当前工作目录。
+    
+    if (data51.startsWith("/")) // 绝对路径。
+    {
+      currentWorkingDirectoryUpdate="/"; // 当前工作目录更新为根目录。
+    }
+  
+    String wholeDirecotoryPath = rootDirectory.getPath() + currentWorkingDirectoryUpdate + "/" + data51; // 构造完整路径。
 
     wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
 

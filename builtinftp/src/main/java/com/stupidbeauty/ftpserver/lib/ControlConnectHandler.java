@@ -191,11 +191,11 @@ class ControlConnectHandler
     */
     private void processCwdCommand(String targetWorkingDirectory) 
     {
-      String wholeDirecotoryPath= rootDirectory.getPath() + targetWorkingDirectory; // 构造完整路径。
-                  
-      wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
-                  
-      Log.d(TAG, "processSizeCommand: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
+//       String wholeDirecotoryPath= rootDirectory.getPath() + targetWorkingDirectory; // 构造完整路径。
+//                   
+//       wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
+//                   
+//       Log.d(TAG, "processCwdCommand: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
                   
 
       FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
@@ -230,7 +230,7 @@ class ControlConnectHandler
       } //if (photoDirecotry.isDirectory()) // 是个目录
       else //不是个目录
       {
-        replyString="550 not a directory: " + wholeDirecotoryPath ; // 回复内容。
+        replyString="550 not a directory: " + targetWorkingDirectory; // 回复内容。
       }
 
       Log.d(TAG, "reply string: " + replyString); //Debug.
