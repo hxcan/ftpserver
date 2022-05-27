@@ -554,6 +554,9 @@ class ControlConnectHandler
 
       Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);  // 跳转语言和输入设备
 
+      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+
       String packageNmae=context.getPackageName();
           Log.d(TAG, "gotoFileManagerSettingsPage, package name: " + packageNmae); //Debug.
 
