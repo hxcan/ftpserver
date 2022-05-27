@@ -530,8 +530,11 @@ class ControlConnectHandler
     */
     private void checkFileManagerPermission()
     {
+      Log.d(TAG, "checkFileManagerPermission " ); //Debug.
+
       boolean isFileManager=Environment.isExternalStorageManager();
 
+      Log.d(TAG, "checkFileManagerPermission, is file manager: " + isFileManager ); //Debug.
       if (isFileManager) // Is file manager
       {
       } // if (isFileManager) // Is file manager
@@ -547,11 +550,16 @@ class ControlConnectHandler
     */
     private void gotoFileManagerSettingsPage()
     {
+          Log.d(TAG, "gotoFileManagerSettingsPage"); //Debug.
+
       Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);  // 跳转语言和输入设备
 
       String packageNmae=context.getPackageName();
+          Log.d(TAG, "gotoFileManagerSettingsPage, package name: " + packageNmae); //Debug.
 
       String url = "package:"+packageNmae;
+
+                Log.d(TAG, "gotoFileManagerSettingsPage, url: " + url); //Debug.
 
       intent.setData(Uri.parse(url));
 
