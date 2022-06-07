@@ -60,39 +60,39 @@ class ControlConnectHandler
     this.eventListener=eventListener;
   } //eventListener
     
-    public void setRootDirectory(File root)
-    {
-      rootDirectory=root;
-      Log.d(TAG, "setRootDirectory, rootDirectory: " + rootDirectory); // Debug.
+  public void setRootDirectory(File root)
+  {
+    rootDirectory=root;
+    Log.d(TAG, "setRootDirectory, rootDirectory: " + rootDirectory); // Debug.
         
-      fileContentSender.setRootDirectory(rootDirectory); // 设置根目录。
-      directoryListSender.setRootDirectory(rootDirectory); // 设置根目录。
+    fileContentSender.setRootDirectory(rootDirectory); // 设置根目录。
+    directoryListSender.setRootDirectory(rootDirectory); // 设置根目录。
+  }
+
+  /**
+  * 从数据套接字处接收数据。陈欣
+  */
+  private void receiveDataSocket( ByteBufferList bb)
+  {
+    byte[] content=bb.getAllByteArray(); // 读取全部内容。
+        
+    boolean appendTrue=true;
+
+    try
+    {
+      FileUtils.writeByteArrayToFile(writingFile, content, appendTrue); // 写入。
     }
-
-    /**
-    * 从数据套接字处接收数据。陈欣
-    */
-    private void receiveDataSocket( ByteBufferList bb)
+    catch (Exception e)
     {
-      byte[] content=bb.getAllByteArray(); // 读取全部内容。
-        
-      boolean appendTrue=true;
+      e.printStackTrace();
+    }
+  } //private void                         receiveDataSocket( ByteBufferList bb)
 
-      try
-      {
-        FileUtils.writeByteArrayToFile(writingFile, content, appendTrue); // 写入。
-      }
-      catch (Exception e)
-      {
-        e.printStackTrace();
-      }
-    } //private void                         receiveDataSocket( ByteBufferList bb)
-
-    public ControlConnectHandler(Context context, boolean allowActiveMode, InetAddress host)
-    {
-            this.context=context;
-            this.allowActiveMode=allowActiveMode;
-            this.host=host;
+  public ControlConnectHandler(Context context, boolean allowActiveMode, InetAddress host)
+  {
+    this.context=context;
+    this.allowActiveMode=allowActiveMode;
+    this.host=host;
 
             setupDataServer(); // 启动数据传输服务器。
     }
@@ -191,6 +191,55 @@ class ControlConnectHandler
 
       Log.d(TAG, "reply string: " + replyString); //Debug.
     } //private void notifyLsCompleted()
+    
+    /**
+    *  处理上传文件命令。
+    */
+    private void processStorCommand(String data51)
+    {
+    
+        String replyString="150 "; // 回复内容。
+
+        binaryStringSender.sendStringInBinaryMode(replyString);
+
+        startStor(data51, currentWorkingDirectory); // 发送文件内容。
+
+    } // private void processStorCommand(String data51)
+
+    /**
+    * 上传文件内容。
+    */
+    private void startStor(String data51, String currentWorkingDirectory) 
+    {
+//       String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
+//                     
+//       wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
+//                     
+//       Log.d(TAG, "startStor: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
+//                     
+//       File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
+
+      FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
+      File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
+
+      writingFile=photoDirecotry; // 记录文件。
+      isUploading=true; // 记录，处于上传状态。
+
+      if (photoDirecotry.exists())
+      {
+        photoDirecotry.delete();
+      }
+        
+      try //尝试构造请求对象，并且捕获可能的异常。
+      {
+        FileUtils.touch(photoDirecotry); //创建文件。
+      } //try //尝试构造请求对象，并且捕获可能的异常。
+      catch (Exception e)
+      {
+        e.printStackTrace();
+      }
+    } //private void startStor(String data51, String currentWorkingDirectory) // 上传文件内容。
+
 
     /**
     * 处理改变目录命令。
@@ -413,8 +462,15 @@ class ControlConnectHandler
         String targetWorkingDirectory=content.substring(4).trim(); // 获取新的工作目录。
         
         processCwdCommand(targetWorkingDirectory); // 处理改变目录命令。
-            
       } //else if (command.equals("cwd")) // 切换工作目录
+      else if (command.equalsIgnoreCase("stor")) // 上传文件
+      {
+        String data51= content.substring(5);
+
+        data51=data51.trim(); // 去掉末尾换行
+        
+        processStorCommand(data51); // 处理上传文件命令。
+      } //else if (command.equals("stor")) // 上传文件
       else if (command.equals("SIZE")) // 文件尺寸
       {
         String data51 = content.substring(5);
@@ -477,26 +533,14 @@ class ControlConnectHandler
           
         binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
       } //else if (command.equals("DELE")) // 删除文件
-      else if (command.equalsIgnoreCase("stor")) // 上传文件
-      {
-        String replyString="150 "; // 回复内容。
-
-        binaryStringSender.sendStringInBinaryMode(replyString);
-
-        String data51= content.substring(5);
-
-        data51=data51.trim(); // 去掉末尾换行
-
-        startStor(data51, currentWorkingDirectory); // 发送文件内容。
-      } //else if (command.equals("stor")) // 上传文件
       else  // 其它命令
       {
         String replyString="502 " + content.trim()  +  " not implemented"; // 回复内容。未实现。
 
-          Log.d(TAG, "reply string: " + replyString); //Debug.
+        Log.d(TAG, "reply string: " + replyString); //Debug.
           
-          binaryStringSender.sendStringInBinaryMode(replyString); // 回复。
-        } //else if (command.equals("EPSV")) // Extended passive mode.
+        binaryStringSender.sendStringInBinaryMode(replyString); // 回复。
+      } //else if (command.equals("EPSV")) // Extended passive mode.
     } //private void processCommand(String command, String content)
 
     /**
@@ -548,19 +592,18 @@ class ControlConnectHandler
     */
     private void gotoFileManagerSettingsPage()
     {
-          Log.d(TAG, "gotoFileManagerSettingsPage"); //Debug.
+      Log.d(TAG, "gotoFileManagerSettingsPage"); //Debug.
 
       Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);  // 跳转语言和输入设备
 
       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-
       String packageNmae=context.getPackageName();
-          Log.d(TAG, "gotoFileManagerSettingsPage, package name: " + packageNmae); //Debug.
+      Log.d(TAG, "gotoFileManagerSettingsPage, package name: " + packageNmae); //Debug.
 
       String url = "package:"+packageNmae;
 
-                Log.d(TAG, "gotoFileManagerSettingsPage, url: " + url); //Debug.
+      Log.d(TAG, "gotoFileManagerSettingsPage, url: " + url); //Debug.
 
       intent.setData(Uri.parse(url));
 
@@ -583,39 +626,6 @@ class ControlConnectHandler
 
       checkFileManagerPermission(); // CheCK THE permission of file manager.
     } //private void processListCommand(String content)
-
-    /**
-    * 上传文件内容。
-    */
-    private void startStor(String data51, String currentWorkingDirectory) 
-    {
-      String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
-                    
-      wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
-                    
-      Log.d(TAG, "startStor: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
-                    
-      File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
-            
-      writingFile=photoDirecotry; // 记录文件。
-      isUploading=true; // 记录，处于上传状态。
-
-//             陈欣
-
-      if (photoDirecotry.exists())
-      {
-        photoDirecotry.delete();
-      }
-        
-      try //尝试构造请求对象，并且捕获可能的异常。
-      {
-        FileUtils.touch(photoDirecotry); //创建文件。
-      } //try //尝试构造请求对象，并且捕获可能的异常。
-      catch (Exception e)
-      {
-        e.printStackTrace();
-      }
-    } //private void startStor(String data51, String currentWorkingDirectory) // 上传文件内容。
 
     private void handleConnectCompleted(Exception ex, final AsyncSocket socket) 
     {
