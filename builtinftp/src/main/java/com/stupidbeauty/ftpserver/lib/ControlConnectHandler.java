@@ -29,6 +29,12 @@ import android.net.wifi.WifiManager;
 import java.util.Random;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import android.net.Uri;
+import android.provider.Settings;
+import android.content.Intent;
+import android.os.Environment;
+
+
 
 class ControlConnectHandler
 {
@@ -450,44 +456,42 @@ class ControlConnectHandler
 
         data51=data51.trim(); // 去掉末尾换行
 
-          // 删除文件。陈欣
+        // 删除文件。陈欣
 
-          String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
+        String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
                     
-          wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
+        wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
-          FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-          File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
+        FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
+        File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
 
-//             陈欣
+        boolean deleteResult= photoDirecotry.delete();
             
-          boolean deleteResult= photoDirecotry.delete();
+        Log.d(TAG, "delete result: " + deleteResult); // Debug.
             
-          Log.d(TAG, "delete result: " + deleteResult); // Debug.
+        notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
             
-          notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
-            
-          String replyString="250 Delete success "+ data51; // 回复内容。
+        String replyString="250 Delete success "+ data51; // 回复内容。
 
-          Log.d(TAG, "reply string: " + replyString); //Debug.
+        Log.d(TAG, "reply string: " + replyString); //Debug.
           
-          binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
-        } //else if (command.equals("DELE")) // 删除文件
-        else if (command.equals("stor")) // 上传文件
-        {
-          String replyString="150 "; // 回复内容。
+        binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
+      } //else if (command.equals("DELE")) // 删除文件
+      else if (command.equalsIgnoreCase("stor")) // 上传文件
+      {
+        String replyString="150 "; // 回复内容。
 
-          binaryStringSender.sendStringInBinaryMode(replyString);
+        binaryStringSender.sendStringInBinaryMode(replyString);
 
-          String data51=            content.substring(5);
+        String data51= content.substring(5);
 
-          data51=data51.trim(); // 去掉末尾换行
+        data51=data51.trim(); // 去掉末尾换行
 
-          startStor(data51, currentWorkingDirectory); // 发送文件内容。
-        } //else if (command.equals("stor")) // 上传文件
-        else  // 其它命令
-        {
-          String replyString="502 " + content.trim()  +  " not implemented"; // 回复内容。未实现。
+        startStor(data51, currentWorkingDirectory); // 发送文件内容。
+      } //else if (command.equals("stor")) // 上传文件
+      else  // 其它命令
+      {
+        String replyString="502 " + content.trim()  +  " not implemented"; // 回复内容。未实现。
 
           Log.d(TAG, "reply string: " + replyString); //Debug.
           
@@ -518,6 +522,50 @@ class ControlConnectHandler
         uiHandler.post(runnable);
       } //if (eventListener!=null) // 有事件监听器。
     } //private void notifyEvent(String eventCode)
+
+    /**
+    *  CheCK THE permission of file manager.
+    */
+    private void checkFileManagerPermission()
+    {
+      Log.d(TAG, "checkFileManagerPermission " ); //Debug.
+
+      boolean isFileManager=Environment.isExternalStorageManager();
+
+      Log.d(TAG, "checkFileManagerPermission, is file manager: " + isFileManager ); //Debug.
+      if (isFileManager) // Is file manager
+      {
+      } // if (isFileManager) // Is file manager
+      else // Not file manager
+      {
+//         Chen xin
+        gotoFileManagerSettingsPage(); // Goto file manager settings page.
+      } // else // Not file manager
+    } // private void checkFileManagerPermission()
+
+    /**
+    *   Goto file manager settings page.
+    */
+    private void gotoFileManagerSettingsPage()
+    {
+          Log.d(TAG, "gotoFileManagerSettingsPage"); //Debug.
+
+      Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);  // 跳转语言和输入设备
+
+      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+
+      String packageNmae=context.getPackageName();
+          Log.d(TAG, "gotoFileManagerSettingsPage, package name: " + packageNmae); //Debug.
+
+      String url = "package:"+packageNmae;
+
+                Log.d(TAG, "gotoFileManagerSettingsPage, url: " + url); //Debug.
+
+      intent.setData(Uri.parse(url));
+
+      context.startActivity(intent);
+    } // private void gotoFileManagerSettingsPage()
     
     /**
     * 处理目录列表命令。
@@ -532,6 +580,8 @@ class ControlConnectHandler
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
 
       sendListContentBySender(content, currentWorkingDirectory); // 发送目录列表数据。
+
+      checkFileManagerPermission(); // CheCK THE permission of file manager.
     } //private void processListCommand(String content)
 
     /**

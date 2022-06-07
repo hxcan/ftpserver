@@ -160,6 +160,9 @@ public class DirectoryListSender
       else // 是目录
       {
         File[]   paths = photoDirecotry.listFiles();
+
+        Log.d(TAG, "getDirectoryContentList, path: " + photoDirecotry + ", file amount: " + paths.length); // Debug.
+
          
         // for each pathname in pathname array
         for(File path:paths) 
