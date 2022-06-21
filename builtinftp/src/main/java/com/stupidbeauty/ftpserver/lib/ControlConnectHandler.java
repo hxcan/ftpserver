@@ -34,10 +34,12 @@ import android.provider.Settings;
 import android.content.Intent;
 import android.os.Environment;
 
-
-
 class ControlConnectHandler
 {
+  private String passWord=null; //!< Pass word provided.
+  private boolean authenticated=true; //!< Is Login correct?
+  private String userName=null; //!< User name provided.
+  private UserManager userManager=null; //!< user manager.
   private BinaryStringSender binaryStringSender=new BinaryStringSender(); //!< 以二进制方式发送字符串的工具。
   private EventListener eventListener=null; //!< 事件监听器。
   private AsyncSocket socket; //!< 当前的客户端连接。
@@ -54,7 +56,15 @@ class ControlConnectHandler
   private boolean isUploading=false; //!< 是否正在上传。陈欣
   private InetAddress host;
   private File rootDirectory=null; //!< 根目录。
-    
+
+  /**
+  * SEt user manager.
+  */
+  public void setUserManager(UserManager userManager)
+  { 
+    this.userManager=userManager;
+  } // public void setUserManager(UserManager userManager)
+  
   public void setEventListener(EventListener eventListener)
   {
     this.eventListener=eventListener;
@@ -203,7 +213,6 @@ class ControlConnectHandler
         binaryStringSender.sendStringInBinaryMode(replyString);
 
         startStor(data51, currentWorkingDirectory); // 发送文件内容。
-
     } // private void processStorCommand(String data51)
 
     /**
@@ -211,14 +220,6 @@ class ControlConnectHandler
     */
     private void startStor(String data51, String currentWorkingDirectory) 
     {
-//       String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
-//                     
-//       wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
-//                     
-//       Log.d(TAG, "startStor: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
-//                     
-//       File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
-
       FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
       File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
 
@@ -239,37 +240,55 @@ class ControlConnectHandler
         e.printStackTrace();
       }
     } //private void startStor(String data51, String currentWorkingDirectory) // 上传文件内容。
+    
+    /**
+    * Process pass command.
+    */
+    private void processPassCommand(String targetWorkingDirectory) 
+    {
+      this.passWord=targetWorkingDirectory; // Remember password.
+      
+      if (userManager!=null)
+      {
+        authenticated=userManager.authenticate(userName, passWord); // Authenticate.
+      } // if (userManager!=null)
+      
+      
+      if (authenticated) // Login correct
+      {
+        binaryStringSender.sendStringInBinaryMode("230 Loged in."); // 回复，登录成功。
+      } // if (authenticated) // Login correct
+      else // Login not correct
+      {
+        binaryStringSender.sendStringInBinaryMode("430 Invalid username or password."); // 回复，登录成功。
+      }
+    } // private void processPassCommand(String targetWorkingDirectory)
 
+    /**
+    * Process user command.
+    */
+    private void processUserCommand(String userName)
+    {
+      this.userName=userName; // Remember user name.
+    
+      binaryStringSender.sendStringInBinaryMode("331 Send password"); //  发送回复。
+    } // private void processUserCommand(String userName)
 
     /**
     * 处理改变目录命令。
     */
     private void processCwdCommand(String targetWorkingDirectory) 
     {
-//       String wholeDirecotoryPath= rootDirectory.getPath() + targetWorkingDirectory; // 构造完整路径。
-//                   
-//       wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
-//                   
-//       Log.d(TAG, "processCwdCommand: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
-                  
-
       FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
       File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, targetWorkingDirectory); //照片目录。
-
-
-//       File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
 
       String replyString="" ; // 回复内容。
 
       if (photoDirecotry.isDirectory()) // 是个目录
       {
-//         currentWorkingDirectory=targetWorkingDirectory;
         String fullPath=photoDirecotry.getPath(); // 获取当前工作目录的完整路径。
         String rootPath=rootDirectory.getPath(); // 获取根目录的完整路径。
         
-//         String data51= content.substring(5);
-        
-
         currentWorkingDirectory=fullPath.substring(rootPath.length()); // 去掉开头的根目录路径。
         
         if (currentWorkingDirectory.isEmpty()) // 是空白的了
@@ -332,18 +351,8 @@ class ControlConnectHandler
     {
       Log.d(TAG, "command: " + command + ", content: " + content); //Debug.
 
-      if (command.equals("USER")) // 用户登录
+      if (command.equals("SYST")) // 系统信息
       {
-        binaryStringSender.sendStringInBinaryMode("331 Send password"); //  发送回复。
-      } //if (command.equals("USER")) // 用户登录
-      else if (command.equals("PASS")) // 密码
-      {
-        binaryStringSender.sendStringInBinaryMode("230 Loged in."); // 回复，登录成功。
-      } //else if (command.equals("PASS")) // 密码
-      else if (command.equals("SYST")) // 系统信息
-      {
-        //        send_data "200 UNIX Type: L8\n"
-        
         binaryStringSender.sendStringInBinaryMode("215 UNIX Type: L8"); //  发送回复。
       } //else if (command.equals("SYST")) // 系统信息
       else if (command.equals("PWD")) // 查询当前工作目录
@@ -457,6 +466,20 @@ class ControlConnectHandler
           
         fileContentSender.setRestartPosition(restartPosition); // 设置重启位置。
       } //else if (command.equals("list")) // 列出目录
+      else if (command.equalsIgnoreCase("USER")) // 用户登录
+      {
+        String targetWorkingDirectory=content.substring(5).trim(); // 获取新的工作目录。
+        
+        processUserCommand(targetWorkingDirectory); // Process user command.
+
+      } //if (command.equals("USER")) // 用户登录
+      else if (command.equalsIgnoreCase("PASS")) // 密码
+      {
+        String targetWorkingDirectory=content.substring(5).trim(); // 获取新的工作目录。
+        
+        processPassCommand(targetWorkingDirectory); // Process pass command.
+
+      } //else if (command.equals("PASS")) // 密码
       else if (command.equalsIgnoreCase("cwd")) // 切换工作目录
       {
         String targetWorkingDirectory=content.substring(4).trim(); // 获取新的工作目录。
