@@ -6,6 +6,16 @@ public class UserManager
 {
   private ArrayList<User> users=new ArrayList(); //!< User list.
   
+  public void addUser(String userName, String password)
+  {
+    User currentUser=new User();
+    
+    currentUser.setUserName(userName);
+    currentUser.setPassWord(password);
+    
+    users.add(currentUser);
+  } // public void addUser(String userName, String password)
+  
   public boolean authenticate(String userName, String passWord)
   {
     boolean result=false;
