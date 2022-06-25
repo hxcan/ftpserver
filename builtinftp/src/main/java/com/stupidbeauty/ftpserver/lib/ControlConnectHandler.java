@@ -645,10 +645,31 @@ class ControlConnectHandler
     */
     private void requestAndroidDataPermission()
     {
-      File androidDataFile=new File(Constants.FilePath.AndroidData); // Get the file object.
-      Uri androidDataUri=Uri.fromFile(androidDataFile); // Create Uri.
+//       @TargetApi(26)    
+//       private void requestAccessAndroidData(Activity activity)
+//       {        
+//         try 
+//         {            
+//           Uri uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fdata");            
+//           Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);            
+//           intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uri);            
+//           flag看实际业务需要可再补充            
+//           intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);            
+//           activity.startActivityForResult(intent, 6666);        
+//         } 
+//         catch (Exception e) 
+//         {            
+//           e.printStackTrace();        
+//         }    
+//       } 
+
     
-      openDirectory(androidDataUri); // Open directory.
+      File androidDataFile=new File(Constants.FilePath.AndroidData); // Get the file object.
+      
+      Uri uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fdata");            
+//       Uri androidDataUri=Uri.fromFile(androidDataFile); // Create Uri.
+    
+      openDirectory(uri); // Open directory.
     } // private void requestAndroidDataPermission()
     
     public void openDirectory(Uri uriToLoad) 
@@ -657,7 +678,8 @@ class ControlConnectHandler
       Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
 
       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
+      intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);            
+      
       // Optionally, specify a URI for the directory that should be opened in
       // the system file picker when it loads.
       intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uriToLoad);
