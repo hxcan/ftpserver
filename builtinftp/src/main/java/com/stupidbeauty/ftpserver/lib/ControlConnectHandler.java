@@ -675,7 +675,7 @@ class ControlConnectHandler
       
       File[] paths = photoDirecotry.listFiles();
       
-      if (paths.length==0) // Unable to list files
+      if (paths==null) // Unable to list files
       {
         requestAndroidDataPermission(); // Request /Android/data permisson.
       } // if (paths.length==0) // Unable to list files
