@@ -1,5 +1,6 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import 	android.provider.DocumentsContract;
 import java.util.Locale;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -310,6 +311,11 @@ class ControlConnectHandler
       Log.d(TAG, "reply string: " + replyString); //Debug.
         
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
+      
+      if (currentWorkingDirectory.equals(Constants.FilePath.AndroidData)) // It is /Android/data
+      {
+        CheckAndroidDataPermission(); // Check /Android/data permission.
+      } // if (currentWorkingDirectory.equals(Constants.FilePath.AndroidData)) // It is /Android/data
     } // private void processCwdCommand(String targetWorkingDirectory)
 
     /**
@@ -605,7 +611,7 @@ class ControlConnectHandler
       } // if (isFileManager) // Is file manager
       else // Not file manager
       {
-//         Chen xin
+        // Chen xin
         gotoFileManagerSettingsPage(); // Goto file manager settings page.
       } // else // Not file manager
     } // private void checkFileManagerPermission()
@@ -632,6 +638,47 @@ class ControlConnectHandler
 
       context.startActivity(intent);
     } // private void gotoFileManagerSettingsPage()
+    
+    /**
+    * Request /Android/data permisson.
+    */
+    private void requestAndroidDataPermission()
+    {
+      File androidDataFile=new File(Constants.FilePath.AndroidData); // Get the file object.
+      Uri androidDataUri=Uri.fromFile(androidDataFile); // Create Uri.
+    
+      openDirectory(androidDataUri); // Open directory.
+    } // private void requestAndroidDataPermission()
+    
+    public void openDirectory(Uri uriToLoad) 
+    {
+      // Choose a directory using the system's file picker.
+      Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+
+      // Optionally, specify a URI for the directory that should be opened in
+      // the system file picker when it loads.
+      intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uriToLoad);
+
+      int yourrequestcode=Constants.RequestCode.AndroidDataPermissionRequestCode;
+      
+//       context.startActivityForResult(intent, yourrequestcode);
+      context.startActivity(intent);
+    }
+    
+    /**
+    * Check /Android/data permission.
+    */
+    private void CheckAndroidDataPermission() 
+    {
+      File photoDirecotry=new File(Constants.FilePath.AndroidData); // Get the file object.
+      
+      File[] paths = photoDirecotry.listFiles();
+      
+      if (paths.length==0) // Unable to list files
+      {
+        requestAndroidDataPermission(); // Request /Android/data permisson.
+      } // if (paths.length==0) // Unable to list files
+    } // private void CheckAndroidDataPermission()
     
     /**
     * 处理目录列表命令。

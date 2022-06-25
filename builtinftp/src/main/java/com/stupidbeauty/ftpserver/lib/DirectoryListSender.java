@@ -159,10 +159,9 @@ public class DirectoryListSender
       } // if (photoDirecotry.isFile()) // 是一个文件。
       else // 是目录
       {
-        File[]   paths = photoDirecotry.listFiles();
+        File[] paths = photoDirecotry.listFiles();
 
         Log.d(TAG, "getDirectoryContentList, path: " + photoDirecotry + ", file amount: " + paths.length); // Debug.
-
          
         // for each pathname in pathname array
         for(File path:paths) 
@@ -200,16 +199,16 @@ public class DirectoryListSender
     */
     private String  getPermissionForFile(File path)
     {
-        String permission="-rw-r--r--"; // 默认权限。
+      String permission="-rw-r--r--"; // 默认权限。
         
-        Log.d(TAG, "getPermissionForFile, path: " + path + ", is directory: " + path.isDirectory()); // Debug.
+      Log.d(TAG, "getPermissionForFile, path: " + path + ", is directory: " + path.isDirectory()); // Debug.
         
-        if (path.isDirectory())
-        {
-            permission="drw-r--r--"; // 目录默认权限。
-        }
+      if (path.isDirectory())
+      {
+        permission="drw-r--r--"; // 目录默认权限。
+      }
         
-        return permission;
+      return permission;
     } //private String  getPermissionForFile(File path)
 
     private void startSendFileContentForLarge()
@@ -229,16 +228,16 @@ public class DirectoryListSender
     */
     private void startSendFileContent() 
     {
-        byte[] photoBytes=null; //数据内容。
+      byte[] photoBytes=null; //数据内容。
 
-        try //尝试构造请求对象，并且捕获可能的异常。
-        {
-            photoBytes= FileUtils.readFileToByteArray(fileToSend); //将照片文件内容全部读取。
-        } //try //尝试构造请求对象，并且捕获可能的异常。
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
+      try //尝试构造请求对象，并且捕获可能的异常。
+      {
+        photoBytes= FileUtils.readFileToByteArray(fileToSend); //将照片文件内容全部读取。
+      } //try //尝试构造请求对象，并且捕获可能的异常。
+      catch (Exception e)
+      {
+        e.printStackTrace();
+      }
 
 		if (photoBytes!=null) // 读取的文件存在
 		{
@@ -265,20 +264,19 @@ public class DirectoryListSender
     */
     public void sendFileContent(String data51, String currentWorkingDirectory) 
     {
-        String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
+      String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
                     
-        wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
+      wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
-//        File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
-        FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-        File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
+      FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
+      File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
 
-        fileToSend=photoDirecotry; // 记录，要发送的文件对象。
+      fileToSend=photoDirecotry; // 记录，要发送的文件对象。
         
-        if (data_socket!=null) // 数据连接存在。
-        {
-            startSendFileContentForLarge(); // 开始发送文件内容。
-        } //if (data_socket!=null) // 数据连接存在。
+      if (data_socket!=null) // 数据连接存在。
+      {
+        startSendFileContentForLarge(); // 开始发送文件内容。
+      } //if (data_socket!=null) // 数据连接存在。
     } //private void sendFileContent(String data51, String currentWorkingDirectory)
     
     /**
