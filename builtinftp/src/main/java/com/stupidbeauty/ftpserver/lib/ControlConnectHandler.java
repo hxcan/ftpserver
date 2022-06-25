@@ -284,10 +284,11 @@ class ControlConnectHandler
       File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, targetWorkingDirectory); //照片目录。
 
       String replyString="" ; // 回复内容。
+      String fullPath;
 
       if (photoDirecotry.isDirectory()) // 是个目录
       {
-        String fullPath=photoDirecotry.getPath(); // 获取当前工作目录的完整路径。
+        fullPath=photoDirecotry.getPath(); // 获取当前工作目录的完整路径。
         String rootPath=rootDirectory.getPath(); // 获取根目录的完整路径。
         
         currentWorkingDirectory=fullPath.substring(rootPath.length()); // 去掉开头的根目录路径。
