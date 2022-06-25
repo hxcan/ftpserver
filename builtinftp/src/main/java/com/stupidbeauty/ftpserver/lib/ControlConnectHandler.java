@@ -284,7 +284,7 @@ class ControlConnectHandler
       File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, targetWorkingDirectory); //照片目录。
 
       String replyString="" ; // 回复内容。
-      String fullPath;
+      String fullPath="";
 
       if (photoDirecotry.isDirectory()) // 是个目录
       {
