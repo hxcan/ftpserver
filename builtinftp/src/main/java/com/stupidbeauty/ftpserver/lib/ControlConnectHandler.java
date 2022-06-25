@@ -312,7 +312,7 @@ class ControlConnectHandler
         
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
       
-      if (currentWorkingDirectory.equals(Constants.FilePath.AndroidData)) // It is /Android/data
+      if (fullPath.equals(Constants.FilePath.AndroidData)) // It is /Android/data
       {
         CheckAndroidDataPermission(); // Check /Android/data permission.
       } // if (currentWorkingDirectory.equals(Constants.FilePath.AndroidData)) // It is /Android/data
