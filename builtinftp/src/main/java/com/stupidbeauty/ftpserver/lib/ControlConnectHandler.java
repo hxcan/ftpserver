@@ -656,6 +656,8 @@ class ControlConnectHandler
       // Choose a directory using the system's file picker.
       Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
 
+      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
       // Optionally, specify a URI for the directory that should be opened in
       // the system file picker when it loads.
       intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uriToLoad);
