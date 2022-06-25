@@ -161,20 +161,24 @@ public class DirectoryListSender
       {
         File[] paths = photoDirecotry.listFiles();
 
-        Log.d(TAG, "getDirectoryContentList, path: " + photoDirecotry + ", file amount: " + paths.length); // Debug.
-         
-        // for each pathname in pathname array
-        for(File path:paths) 
+        if (paths!=null) // NOt null pointer
         {
-          String currentLine=construct1LineListFile(path); // 构造针对这个文件的一行输出。
-
-          String fileName=path.getName(); // 获取文件名。
-
-          if (fileName.equals(nameOfFile)  || (nameOfFile.isEmpty())) // 名字匹配。
+          Log.d(TAG, "getDirectoryContentList, path: " + photoDirecotry + ", file amount: " + paths.length); // Debug.
+          
+          // for each pathname in pathname array
+          for(File path:paths) 
           {
-            binaryStringSender.sendStringInBinaryMode(currentLine); // 发送回复内容。
-          } //if (fileName.equals(nameOfFile)) // 名字匹配。
+            String currentLine=construct1LineListFile(path); // 构造针对这个文件的一行输出。
+
+            String fileName=path.getName(); // 获取文件名。
+
+            if (fileName.equals(nameOfFile)  || (nameOfFile.isEmpty())) // 名字匹配。
+            {
+              binaryStringSender.sendStringInBinaryMode(currentLine); // 发送回复内容。
+            } //if (fileName.equals(nameOfFile)) // 名字匹配。
+          }
         }
+        
       } // else // 是目录
          
       Util.writeAll(data_socket, ( "\r\n").getBytes(), new CompletedCallback() 
