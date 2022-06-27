@@ -1,5 +1,10 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.LocaleList;
+import android.os.PowerManager;
 import 	android.provider.DocumentsContract;
 import java.util.Locale;
 import java.time.Instant;
@@ -603,18 +608,21 @@ class ControlConnectHandler
     private void checkFileManagerPermission()
     {
       Log.d(TAG, "checkFileManagerPermission " ); //Debug.
-
-      boolean isFileManager=Environment.isExternalStorageManager();
-
-      Log.d(TAG, "checkFileManagerPermission, is file manager: " + isFileManager ); //Debug.
-      if (isFileManager) // Is file manager
+      
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) // Android 11. isExternalStorageManager
       {
-      } // if (isFileManager) // Is file manager
-      else // Not file manager
-      {
-        // Chen xin
-        gotoFileManagerSettingsPage(); // Goto file manager settings page.
-      } // else // Not file manager
+        boolean isFileManager=Environment.isExternalStorageManager();
+
+        Log.d(TAG, "checkFileManagerPermission, is file manager: " + isFileManager ); //Debug.
+        if (isFileManager) // Is file manager
+        {
+        } // if (isFileManager) // Is file manager
+        else // Not file manager
+        {
+          // Chen xin
+          gotoFileManagerSettingsPage(); // Goto file manager settings page.
+        } // else // Not file manager
+      }
     } // private void checkFileManagerPermission()
 
     /**
