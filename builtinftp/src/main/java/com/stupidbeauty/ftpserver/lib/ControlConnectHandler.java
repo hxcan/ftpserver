@@ -57,6 +57,7 @@ class ControlConnectHandler
   private byte[] dataSocketPendingByteArray=null; //!< 数据套接字数据内容 排队。
   private String currentWorkingDirectory="/"; //!< 当前工作目录
   private int data_port=1544; //!< 数据连接端口。
+  private String ip; //!< ip
   private boolean allowActiveMode=true; //!< 是否允许主动模式。
   private File writingFile; //!< 当前正在写入的文件。
   private boolean isUploading=false; //!< 是否正在上传。陈欣
@@ -102,16 +103,17 @@ class ControlConnectHandler
     {
       e.printStackTrace();
     }
-  } //private void                         receiveDataSocket( ByteBufferList bb)
+  } // private void                         receiveDataSocket( ByteBufferList bb)
 
-  public ControlConnectHandler(Context context, boolean allowActiveMode, InetAddress host)
+  public ControlConnectHandler(Context context, boolean allowActiveMode, InetAddress host, String ip)
   {
     this.context=context;
     this.allowActiveMode=allowActiveMode;
     this.host=host;
+    this.ip=ip; // Remember ip for data server.
 
-            setupDataServer(); // 启动数据传输服务器。
-    }
+    setupDataServer(); // 启动数据传输服务器。
+  }
     
     /**
     * 打开指向客户端特定端口的连接。
@@ -386,16 +388,22 @@ class ControlConnectHandler
       else if (command.equals("PASV")) // 被动传输
       {
         setupDataServer(); // 初始化数据服务器。
-        
-        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-        String ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
 
-        String ip = ipAddress.replace(".", ",");
-        
+        String ipAddress = ip;
+
+
+        if (ipAddress==null) // Have not set ip.
+        {
+          WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+          ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
+        } // else // Not set ip.
+
+        String ipString = ipAddress.replace(".", ",");
+
         int port256=data_port/256;
         int portModule=data_port-port256*256;
 
-        String replyString="227 Entering Passive Mode ("+ip+","+port256+","+portModule+") "; // 回复内容。
+        String replyString="227 Entering Passive Mode ("+ipString+","+port256+","+portModule+") "; // 回复内容。
 
         Log.d(TAG, "reply string: " + replyString); //Debug.
 
@@ -941,9 +949,6 @@ class ControlConnectHandler
           }
         });
 
-        //发送初始命令：
-//        send_data "220 \n"
-
         binaryStringSender.sendStringInBinaryMode("220 StupidBeauty FtpServer"); // 发送回复内容。
     } //private void handleAccept(final AsyncSocket socket)
 
@@ -958,8 +963,6 @@ class ControlConnectHandler
 
       data_port=randomIndex; 
 
-//         try // 绑定端口。
-//         {
       AsyncServer.getDefault().listen(host, data_port, new ListenCallback() 
       {
         @Override
@@ -979,9 +982,6 @@ class ControlConnectHandler
         {
           if(ex != null) 
           {
-//                 09-07 07:57:47.473 18998 19023 W System.err: java.lang.RuntimeException: java.net.BindException: Address already in use
-
-//                 throw new RuntimeException(ex);
             ex.printStackTrace();
 
             setupDataServer(); // 重新初始化。

@@ -31,6 +31,7 @@ public class FtpServer
   private static final String TAG="FtpServer"; //!< 输出调试信息时使用的标记
   private InetAddress host;
   private int port;
+  private String ip; //!< ip
   private boolean allowActiveMode=true; //!< 是否允许主动模式。
   private File rootDirectory=null; //!< 根目录。
     
@@ -56,17 +57,23 @@ public class FtpServer
 
   public FtpServer(String host, int port, Context context, boolean allowActiveMode, ErrorListener errorListener) 
   {
+    this(host, port, context, allowActiveMode, errorListener, null);
+  } //public FtpServer(String host, int port, Context context, boolean allowActiveMode)
+  
+  public FtpServer(String host, int port, Context context, boolean allowActiveMode, ErrorListener errorListener, String externalIp)
+  {
     this.context=context;
     this.allowActiveMode=allowActiveMode;
     this.errorListener=errorListener; // 记录错误事件监听器。
-        
+    this.ip=externalIp; // Remember the external ip.
+
     rootDirectory=context.getFilesDir(); // 默认在家目录下工作。
-        
-    try 
+
+    try
     {
       this.host = InetAddress.getByName(host);
     }
-    catch (UnknownHostException e) 
+    catch (UnknownHostException e)
     {
       throw new RuntimeException(e);
     }
@@ -75,7 +82,7 @@ public class FtpServer
 
     setup();
   } //public FtpServer(String host, int port, Context context, boolean allowActiveMode)
-  
+
   /**
   * Set user manager.
   */
@@ -91,7 +98,7 @@ public class FtpServer
       @Override
       public void onAccepted(final AsyncSocket socket)
       {
-        ControlConnectHandler handler=new ControlConnectHandler(context, allowActiveMode, host); // 创建处理器。
+        ControlConnectHandler handler=new ControlConnectHandler(context, allowActiveMode, host, ip); // 创建处理器。
         handler.handleAccept(socket);
         handler.setRootDirectory(rootDirectory); // 设置根目录。
         handler.setEventListener(eventListener); // 设置事件监听器。
