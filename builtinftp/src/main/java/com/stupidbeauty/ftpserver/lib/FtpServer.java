@@ -234,6 +234,7 @@ public class FtpServer
       } // if (newIp.equals(ip)) // Equals
       else // NOt equal
       {
+        ip=newIp; // Remember ip.
         notifyEvent(EventListener.IP_CHANGE); // 报告事件， ip changed.
       } // else // NOt equal
     } // if (autoDetectIp)
