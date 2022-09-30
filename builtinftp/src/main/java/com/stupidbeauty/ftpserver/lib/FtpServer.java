@@ -1,5 +1,55 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import java.net.NetworkInterface;
+import java.util.Enumeration;
+import java.net.SocketException;
+import android.net.LinkAddress;
+import android.net.LinkProperties;
+import java.util.Enumeration;
+import java.net.SocketException;
+import android.net.LinkAddress;
+import android.net.LinkProperties;
+import android.net.Network;
+import java.net.SocketException;
+import android.net.LinkAddress;
+import android.net.LinkProperties;
+import android.net.Network;
+import android.net.ConnectivityManager;
+import java.util.List;
+import java.util.Locale;
+// import com.stupidbeauty.builtinftp.BuiltinFtpServer;
+// import butterknife.Bind;
+// import butterknife.ButterKnife;
+import android.net.LinkAddress;
+import android.net.LinkProperties;
+import android.net.Network;
+import android.net.ConnectivityManager;
+import java.nio.ByteOrder;
+import java.nio.ByteOrder;
+import java.math.BigInteger;
+import android.net.wifi.WifiManager;
+import java.util.Random;
+import java.net.InetAddress;
+import java.math.BigInteger;
+import android.net.wifi.WifiManager;
+import java.util.Random;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import android.os.Handler;
+import android.os.Looper;
+import android.speech.SpeechRecognizer;
+import android.util.Log;
+import android.app.Application;
+import android.os.Looper;
+import android.speech.SpeechRecognizer;
+import android.util.Log;
+import android.app.Application;
+import android.content.Context;
+import android.content.IntentFilter;
+import android.content.res.AssetFileDescriptor;
+import android.inputmethodservice.InputMethodService;
+import android.inputmethodservice.Keyboard;
+import android.inputmethodservice.KeyboardView;
 import java.net.BindException;
 import android.app.Application;
 import android.content.Context;
@@ -31,9 +81,204 @@ public class FtpServer
   private static final String TAG="FtpServer"; //!< 输出调试信息时使用的标记
   private InetAddress host;
   private int port;
+  private String ip; //!< ip
   private boolean allowActiveMode=true; //!< 是否允许主动模式。
+  private boolean autoDetectIp=true; //!< Whether we should detect ip automatically.
   private File rootDirectory=null; //!< 根目录。
+  private WIFIConnectChangeReceiver wifiConnectChangeReceiver=new WIFIConnectChangeReceiver(this); //!< 无线网络改变事件接收器。
+
+  public void setIp(String externalIp)
+  {
+    this.ip=externalIp; // Remember the external ip.
+    autoDetectIp=false; // Do not detect ip automatically if set ip explicitly.
+  } //public FtpServer(String host, int port, Context context, boolean allowActiveMode)
+  
+  private String getIpAddress()
+  {
+    String ip = "";
+    boolean found=false;
+    try
+    {
+      Enumeration<NetworkInterface> enumNetworkInterfaces = NetworkInterface.getNetworkInterfaces();
+      while (enumNetworkInterfaces.hasMoreElements())
+      {
+        NetworkInterface networkInterface = enumNetworkInterfaces.nextElement();
+        Enumeration<InetAddress> enumInetAddress = networkInterface.getInetAddresses();
+        while (enumInetAddress.hasMoreElements())
+        {
+          InetAddress inetAddress = enumInetAddress.nextElement();
+
+          if (inetAddress.isSiteLocalAddress())
+          {
+            ip = inetAddress.getHostAddress();
+            Log.d(TAG, "164, getIpAddress, ipAddress: " + ip); // Debug.
+
+            if (ip.startsWith("192.168."))
+            {
+              found=true;
+              break;
+            }
+          }
+        }
+        if (found)
+        {
+          break;
+        }
+      }
+    }
+    catch (SocketException e)
+    {
+      e.printStackTrace();
+      ip += "Something Wrong! " + e.toString() + "\n";
+    }
+    return ip;
+  }
+
+  private String getByConnectivityManager()
+  {
+    ConnectivityManager conMgr = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+    Network network=conMgr.getActiveNetwork();
+    LinkProperties linkProperties=conMgr.getLinkProperties(network);
+
+    List<LinkAddress> linkAddresses= linkProperties.getLinkAddresses ();
+
+
+    InetAddress inetAddress=linkAddresses.get(0).getAddress();
+
+    String ipAddressString= inetAddress.getHostAddress();
+
+    return ipAddressString;
+  }
+
+  private String getHotspotIPAddress()
+  {
+    WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+
+//     int ipAddress = wifiManager.getDhcpInfo().serverAddress;
+    int ipAddress = wifiManager.getDhcpInfo().gateway;
+
+    Log.d(TAG, "114, getHotspotIPAddress, ipAddress: " + ipAddress); // Debug.
+
+    if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN))
+    {
+      ipAddress = Integer.reverseBytes(ipAddress);
+      Log.d(TAG, "152, getHotspotIPAddress, ipAddress: " + ipAddress); // Debug.
+    }
+
+    byte[] ipByteArray = BigInteger.valueOf(ipAddress).toByteArray();
+
+    Log.d(TAG, "157, getHotspotIPAddress, ipByteArray: " + ipByteArray.toString()); // Debug.
+
+    String ipAddressString;
+    try
+    {
+      ipAddressString = InetAddress.getByAddress(ipByteArray).getHostAddress();
+      Log.d(TAG, "163, getHotspotIPAddress, ipAddressString: " + ipAddressString); // Debug.
+    }
+    catch (UnknownHostException ex)
+    {
+      ipAddressString = "";
+      Log.d(TAG, "168, getHotspotIPAddress, ipAddressString: " + ipAddressString); // Debug.
+    }
+
+    return ipAddressString;
+  }
+
+  /**
+  * Detect the ip.
+  */
+  private String detectIp()
+  {
+    String ipAddress = null;
+
+    WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+    ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
+
+    Log.d(TAG, "109, detectIp, ipAddress: " + ipAddress); // Debug.
+
+    if (ipAddress.equals("0.0.0.0")) // hotspot
+    {
+      ipAddress= getHotspotIPAddress(); // Get hotspot ip addrss
+      Log.d(TAG, "114, detectIp, ipAddress: " + ipAddress); // Debug.
+
+      ipAddress= getByConnectivityManager(); // Get hotspot ip addrss
+      Log.d(TAG, "117, detectIp, ipAddress: " + ipAddress); // Debug.
+
+      ipAddress= getIpAddress(); // Get hotspot ip addrss
+      Log.d(TAG, "120, detectIp, ipAddress: " + ipAddress); // Debug.
+    } // if (ipAddress.equals("0.0.0.0")) // hotspot
+
+    return ipAddress;
+  } // private String detectIp()
+
+  /**
+  * 发送广播，连接状态变化。	
+  */
+  public void noticeConnectChange(String ssidName,  boolean connected, int connect_type)
+  {
+    if (autoDetectIp)
+    {
+      String newIp=detectIp(); // Detect ip.
+      
+      if (newIp.equals(ip)) // Equals
+      {
+      } // if (newIp.equals(ip)) // Equals
+      else // NOt equal
+      {
+        notifyEvent(EventListener.DOWNLOAD_FINISH); // 报告事件，完成下载文件。
+      } // else // NOt equal
+    } // if (autoDetectIp)
+  } // public void noticeConnectChange(String ssidName,  boolean connected, int connect_type)
+
+      /**
+    * 报告事件，删除文件。
+    */
+    private void notifyEvent(final String eventCode)
+    {   
+      if (eventListener!=null) // 有事件监听器。
+      {
+        Handler uiHandler = new Handler(Looper.getMainLooper());
+
+        Runnable runnable= new Runnable()
+        {
+          /**
+            * 具体执行的代码
+          */
+          public void run()
+          {
+            eventListener.onEvent(eventCode); // 报告事件。
+          } //public void run()
+        };
+
+        uiHandler.post(runnable);
+      } //if (eventListener!=null) // 有事件监听器。
+    } //private void notifyEvent(String eventCode)
+
+
+  /**
+  * Set if we should detect ip automatically.
+  */
+  public void setAutoDetectIp(boolean autoDetectIp)
+  {
+    this.autoDetectIp = autoDetectIp;
+    registerWlanChangeListener(); // Register wlan change listener.
+  } // public void setAutoDetectIp(boolean autoDetectIp)
     
+  /**
+    * 注册广播事件接收器。
+    */
+  private void registerWlanChangeListener() 
+  {
+    //注册无线网变化监听器：
+    //注册全局广播：
+    IntentFilter filterWifiChange = new IntentFilter();
+    filterWifiChange.addAction("android.net.conn.CONNECTIVITY_CHANGE"); //监听连接改变事件。
+
+//     陈欣
+    context.registerReceiver(wifiConnectChangeReceiver, filterWifiChange); //注册接收器。
+  } //private void registerBroadcastReceiver()
+
   public void setEventListener(EventListener eventListener)
   {
     this.eventListener=eventListener;
@@ -56,17 +301,25 @@ public class FtpServer
 
   public FtpServer(String host, int port, Context context, boolean allowActiveMode, ErrorListener errorListener) 
   {
+    this(host, port, context, allowActiveMode, errorListener, null);
+  } //public FtpServer(String host, int port, Context context, boolean allowActiveMode)
+  
+  public FtpServer(String host, int port, Context context, boolean allowActiveMode, ErrorListener errorListener, String externalIp)
+  {
     this.context=context;
     this.allowActiveMode=allowActiveMode;
     this.errorListener=errorListener; // 记录错误事件监听器。
-        
+    
+    this.ip=externalIp; // Remember the external ip.
+    autoDetectIp=false; // Do not detect ip automatically if set ip explicitly.
+
     rootDirectory=context.getFilesDir(); // 默认在家目录下工作。
-        
-    try 
+
+    try
     {
       this.host = InetAddress.getByName(host);
     }
-    catch (UnknownHostException e) 
+    catch (UnknownHostException e)
     {
       throw new RuntimeException(e);
     }
@@ -74,8 +327,10 @@ public class FtpServer
     this.port = port;
 
     setup();
+    
+    registerWlanChangeListener(); // Register wlan change listener.
   } //public FtpServer(String host, int port, Context context, boolean allowActiveMode)
-  
+
   /**
   * Set user manager.
   */
@@ -91,7 +346,7 @@ public class FtpServer
       @Override
       public void onAccepted(final AsyncSocket socket)
       {
-        ControlConnectHandler handler=new ControlConnectHandler(context, allowActiveMode, host); // 创建处理器。
+        ControlConnectHandler handler=new ControlConnectHandler(context, allowActiveMode, host, ip); // 创建处理器。
         handler.handleAccept(socket);
         handler.setRootDirectory(rootDirectory); // 设置根目录。
         handler.setEventListener(eventListener); // 设置事件监听器。
