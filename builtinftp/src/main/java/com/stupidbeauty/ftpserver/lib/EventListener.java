@@ -8,6 +8,5 @@ public interface EventListener
   public static final String IP_CHANGE = "com.stupidbeauty.ftpserver.lib.ip_change"; //!< Ip changed.
 
   public void onEvent(String eventCode) ; //!< Event occured.
-  public void onEvent(String eventCode, String information) ; //!< Event occured. With information
 }
 

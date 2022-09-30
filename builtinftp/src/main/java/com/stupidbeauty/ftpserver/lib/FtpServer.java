@@ -87,6 +87,14 @@ public class FtpServer
   private File rootDirectory=null; //!< 根目录。
   private WIFIConnectChangeReceiver wifiConnectChangeReceiver=new WIFIConnectChangeReceiver(this); //!< 无线网络改变事件接收器。
 
+  /**
+  * Get the actual ip.
+  */
+  public String getIp()
+  {
+    return ip;
+  } // public String getIp()
+  
   public void setIp(String externalIp)
   {
     this.ip=externalIp; // Remember the external ip.
@@ -226,34 +234,34 @@ public class FtpServer
       } // if (newIp.equals(ip)) // Equals
       else // NOt equal
       {
-        notifyEvent(EventListener.DOWNLOAD_FINISH); // 报告事件，完成下载文件。
+        notifyEvent(EventListener.IP_CHANGE); // 报告事件， ip changed.
       } // else // NOt equal
     } // if (autoDetectIp)
   } // public void noticeConnectChange(String ssidName,  boolean connected, int connect_type)
 
-      /**
-    * 报告事件，删除文件。
-    */
-    private void notifyEvent(final String eventCode)
-    {   
-      if (eventListener!=null) // 有事件监听器。
+  /**
+  * 报告事件，删除文件。
+  */
+  private void notifyEvent(final String eventCode)
+  {   
+    if (eventListener!=null) // 有事件监听器。
+    {
+      Handler uiHandler = new Handler(Looper.getMainLooper());
+
+      Runnable runnable= new Runnable()
       {
-        Handler uiHandler = new Handler(Looper.getMainLooper());
-
-        Runnable runnable= new Runnable()
+        /**
+        * 具体执行的代码
+        */
+        public void run()
         {
-          /**
-            * 具体执行的代码
-          */
-          public void run()
-          {
-            eventListener.onEvent(eventCode); // 报告事件。
-          } //public void run()
-        };
+          eventListener.onEvent(eventCode); // 报告事件。
+        } //public void run()
+      };
 
-        uiHandler.post(runnable);
-      } //if (eventListener!=null) // 有事件监听器。
-    } //private void notifyEvent(String eventCode)
+      uiHandler.post(runnable);
+    } //if (eventListener!=null) // 有事件监听器。
+  } //private void notifyEvent(String eventCode)
 
 
   /**
