@@ -148,13 +148,16 @@ public class FtpServer
 
     Network network=conMgr.getActiveNetwork();
     LinkProperties linkProperties=conMgr.getLinkProperties(network);
+    String ipAddressString= null;
 
-    List<LinkAddress> linkAddresses= linkProperties.getLinkAddresses ();
+    if (linkProperties!=null) // The link properties exist
+    {
+      List<LinkAddress> linkAddresses= linkProperties.getLinkAddresses ();
 
+      InetAddress inetAddress=linkAddresses.get(0).getAddress();
 
-    InetAddress inetAddress=linkAddresses.get(0).getAddress();
-
-    String ipAddressString= inetAddress.getHostAddress();
+      ipAddressString= inetAddress.getHostAddress();
+    } // if (linkProperties!=null) // The link properties exist
 
     return ipAddressString;
   }

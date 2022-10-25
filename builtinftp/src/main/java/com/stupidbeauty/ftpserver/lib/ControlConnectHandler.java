@@ -92,7 +92,7 @@ class ControlConnectHandler
   private void receiveDataSocket( ByteBufferList bb)
   {
     byte[] content=bb.getAllByteArray(); // 读取全部内容。
-        
+
     boolean appendTrue=true;
 
     try
