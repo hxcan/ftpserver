@@ -259,7 +259,7 @@ public class FtpServer
         */
         public void run()
         {
-          eventListener.onEvent(eventCode); // 报告事件。
+          eventListener.onEvent(eventCode, null); // 报告事件。
         } //public void run()
       };
 

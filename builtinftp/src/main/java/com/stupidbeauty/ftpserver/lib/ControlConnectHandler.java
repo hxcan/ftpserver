@@ -175,7 +175,7 @@ class ControlConnectHandler
     } //private void sendFileContent(String data51, String currentWorkingDirectory)
     
     /**
-    * 发送目录列表数据。
+    * Send directory list content.
     */
     private void sendListContentBySender(String fileName, String currentWorkingDirectory) 
     {
@@ -194,6 +194,8 @@ class ControlConnectHandler
       Log.d(TAG, "reply string: " + replyString); //Debug.
 
       binaryStringSender.sendStringInBinaryMode(replyString);
+      
+      notifyEvent(EventListener.UPLOAD_FINISH, (Object)(writingFile)); // Notify event, uplaod finished.
     } //private void notifyStorCompleted()
     
     /**
@@ -201,8 +203,6 @@ class ControlConnectHandler
      */
     public void notifyLsCompleted()
     {
-//        send_data "216 \n"
-
       String replyString="226 Data transmission OK. ChenXin"; // 回复内容。
       
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
@@ -215,12 +215,11 @@ class ControlConnectHandler
     */
     private void processStorCommand(String data51)
     {
-    
-        String replyString="150 "; // 回复内容。
+      String replyString="150 "; // 回复内容。
 
-        binaryStringSender.sendStringInBinaryMode(replyString);
+      binaryStringSender.sendStringInBinaryMode(replyString);
 
-        startStor(data51, currentWorkingDirectory); // 发送文件内容。
+      startStor(data51, currentWorkingDirectory); // 发送文件内容。
     } // private void processStorCommand(String data51)
 
     /**
@@ -587,9 +586,9 @@ class ControlConnectHandler
     } //private void processCommand(String command, String content)
 
     /**
-    * 报告事件，删除文件。
+    * Report event.
     */
-    private void notifyEvent(final String eventCode)
+    private void notifyEvent(final String eventCode, final Object extraContent)
     {   
       if (eventListener!=null) // 有事件监听器。
       {
@@ -602,12 +601,22 @@ class ControlConnectHandler
           */
           public void run()
           {
-            eventListener.onEvent(eventCode); // 报告事件。
+            eventListener.onEvent(eventCode); // report event.
+            eventListener.onEvent(eventCode, extraContent); // report event.
           } //public void run()
         };
 
         uiHandler.post(runnable);
       } //if (eventListener!=null) // 有事件监听器。
+    } //private void notifyEvent(String eventCode)
+
+    /**
+    * Report event.
+    */
+    private void notifyEvent(final String eventCode)
+    {   
+    
+      notifyEvent(eventCode, null);
     } //private void notifyEvent(String eventCode)
 
     /**
@@ -840,6 +849,8 @@ class ControlConnectHandler
           if (isUploading) // 是处于上传状态。
           {
             notifyStorCompleted(); // 告知上传完成。
+            
+            
                   
             isUploading=false; // 不再处于上传状态了。
           } //if (isUploading) // 是处于上传状态。
