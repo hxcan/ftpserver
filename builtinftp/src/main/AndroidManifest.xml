@@ -11,7 +11,6 @@
     android:largeHeap="true"
     android:allowBackup="true"
     android:supportsRtl="true"
-    android:name="com.stupidbeauty.blindbox.application.BlindBoxApplication"
     android:requestLegacyExternalStorage="true"
     >
     <uses-library android:name="org.apache.http.legacy" android:required="false"/>
