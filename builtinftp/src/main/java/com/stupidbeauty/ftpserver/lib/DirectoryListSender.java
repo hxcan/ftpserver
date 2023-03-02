@@ -1,5 +1,8 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.UserPrincipal;
 import java.util.Locale;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -90,10 +93,10 @@ public class DirectoryListSender
       } // if (dateCompareYear.getYear() == dateNow.getYear()) // 年份相等
             
       LocalDateTime date =
-    LocalDateTime.ofInstant(Instant.ofEpochMilli(path.lastModified()), ZoneId.systemDefault());
-                            
+      LocalDateTime.ofInstant(Instant.ofEpochMilli(path.lastModified()), ZoneId.systemDefault());
+
       DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-//   String time= date.format(formatter);
+
       String time="8:00";
             
       time=date.format(formatter); // 获取时间字符串。
@@ -117,6 +120,24 @@ public class DirectoryListSender
       String group="cx";
                             
       String user = "ChenXin";
+      
+      
+      
+      Path filePathObject=path.toPath(); // Get the associated nio Path object.
+      
+      try // get the owner name
+      {
+        UserPrincipal userPrincipal= Files.getOwner(filePathObject);
+        user=userPrincipal.getName(); // get the name of the user.
+      } // try // get the owner name
+      catch(IOException e)
+      {
+        Log.d(TAG, "construct1LineListFile, failed to get owner name:"); // Debug.
+        
+        e.printStackTrace();
+      } // catch(IOException e)
+       
+      
                             
       String linkNumber="1";
                             
