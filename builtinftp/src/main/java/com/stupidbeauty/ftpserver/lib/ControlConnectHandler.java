@@ -44,7 +44,7 @@ import android.provider.Settings;
 import android.content.Intent;
 import android.os.Environment;
 
-class ControlConnectHandler
+public class ControlConnectHandler
 {
   private String passWord=null; //!< Pass word provided.
   private boolean authenticated=true; //!< Is Login correct?

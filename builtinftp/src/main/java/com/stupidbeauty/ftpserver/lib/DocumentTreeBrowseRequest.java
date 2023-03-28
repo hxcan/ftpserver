@@ -41,7 +41,7 @@ import android.provider.Settings;
 import android.content.Intent;
 import android.os.Environment;
 
-class DocumentTreeBrowseRequest
+public class DocumentTreeBrowseRequest
 {
   private String passWord=null; //!< Pass word provided.
   private boolean authenticated=true; //!< Is Login correct?
@@ -134,34 +134,6 @@ class DocumentTreeBrowseRequest
     } //private void notifyFileNotExist()
 
     /**
-    * 告知已经发送文件内容数据。
-    */
-    public void notifyFileSendCompleted() 
-    {
-      String replyString="216 File sent. ChenXin"; // 回复内容。
-
-      Log.d(TAG, "reply string: " + replyString); //Debug.
-        
-      binaryStringSender.sendStringInBinaryMode(replyString); // 发送。
-      
-      notifyEvent(EventListener.DOWNLOAD_FINISH); // 报告事件，完成下载文件。
-    } //private void notifyFileSendCompleted()
-
-    /**
-    * 告知上传完成。
-    */
-    private void notifyStorCompleted() 
-    {
-      String replyString="226 Stor completed."; // 回复内容。
-
-      Log.d(TAG, "reply string: " + replyString); //Debug.
-
-      binaryStringSender.sendStringInBinaryMode(replyString);
-      
-      notifyEvent(EventListener.UPLOAD_FINISH, (Object)(writingFile)); // Notify event, uplaod finished.
-    } //private void notifyStorCompleted()
-    
-    /**
      * 告知已经发送目录数据。
      */
     public void notifyLsCompleted()
@@ -246,65 +218,17 @@ class DocumentTreeBrowseRequest
     /**
     * 处理尺寸查询命令。
     */
-    private void processSizeCommand(String data51)
+    public Intent getIntent()
     {
-      Log.d(TAG, "processSizeCommand: filesdir: " + rootDirectory.getPath()); // Debug.
-      Log.d(TAG, "processSizeCommand: workding directory: " + currentWorkingDirectory); // Debug.
-      Log.d(TAG, "processSizeCommand: data51: " + data51); // Debug.
-    
-      FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-      File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
-
-      String replyString=""; // 回复字符串。
-
-      if (photoDirecotry.exists()) // 文件存在
-      {
-        long fileSize= photoDirecotry.length(); //文件尺寸。 陈欣
-            
-        replyString="213 " + fileSize + " "; // 文件尺寸。
-      } //if (photoDirecotry.exists()) // 文件存在
-      else // 文件不 存在
-      {
-        replyString="550 No directory traversal allowed in SIZE param"; // File does not exist.
-      } //else // 文件不 存在
-
-      Log.d(TAG, "reply string: " + replyString); //Debug.
-      
-      binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
+      return intent;
     } //private void processSizeCommand(String data51)
 
     /**
     * Report event.
     */
-    private void notifyEvent(final String eventCode, final Object extraContent)
+    public int getRequestCode()
     {   
-      if (eventListener!=null) // 有事件监听器。
-      {
-        Handler uiHandler = new Handler(Looper.getMainLooper());
-
-        Runnable runnable= new Runnable()
-        {
-          /**
-            * 具体执行的代码
-          */
-          public void run()
-          {
-            eventListener.onEvent(eventCode); // report event.
-            eventListener.onEvent(eventCode, extraContent); // report event.
-          } //public void run()
-        };
-
-        uiHandler.post(runnable);
-      } //if (eventListener!=null) // 有事件监听器。
-    } //private void notifyEvent(String eventCode)
-
-    /**
-    * Report event.
-    */
-    private void notifyEvent(final String eventCode)
-    {   
-    
-      notifyEvent(eventCode, null);
+      return requestCode;
     } //private void notifyEvent(String eventCode)
 
     /**
