@@ -12,7 +12,7 @@ public class Constants
 
   public static class FilePath
   {
-    public static final String AndroidData = Environment.getExternalStorageDirectory().getPath() + "/Android/data"; //!< Address already in use. Chen xin.
+    public static final String AndroidData = Environment.getExternalStorageDirectory().getPath() + "/Android/data"; //!< /Android/data directory.
   }
   
   public static class RequestCode

@@ -11,7 +11,11 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.LocalDateTime;
 import java.io.IOException;
-import com.koushikdutta.async.*;
+import com.koushikdutta.async.AsyncServer;
+import com.koushikdutta.async.AsyncServerSocket;
+import com.koushikdutta.async.AsyncSocket;
+import com.koushikdutta.async.ByteBufferList;
+import com.koushikdutta.async.DataEmitter;
 import java.net.InetSocketAddress;
 import com.koushikdutta.async.callback.ConnectCallback;
 import android.os.Handler;
@@ -697,6 +701,9 @@ class ControlConnectHandler
       openDirectory(uri); // Open directory.
     } // private void requestAndroidDataPermission()
     
+    /**
+    * Request to open directory
+    */
     public void openDirectory(Uri uriToLoad) 
     {
       // Choose a directory using the system's file picker.
@@ -712,8 +719,16 @@ class ControlConnectHandler
       int yourrequestcode=Constants.RequestCode.AndroidDataPermissionRequestCode;
       
 //       context.startActivityForResult(intent, yourrequestcode);
-      context.startActivity(intent);
-    }
+//       context.startActivity(intent);
+      
+//       Chen xin
+      
+      DocumentTreeBrowseRequest browseRequest=new DocumentTreeBrowseRequest(); // Create the browse request.
+      browseRequest.setRequestCode(yourrequestcode);
+      browseRequest.setIntent(intent); // SEt intent.
+
+      notifyEvent(EventListener.NEED_BROWSE_DOCUMENT_TREE, (Object)(browseRequest)); // Notify event, uplaod finished.
+    } // public void openDirectory(Uri uriToLoad) 
     
     /**
     * Check /Android/data permission.
