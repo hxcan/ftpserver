@@ -1,5 +1,19 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import android.content.Context;
+import android.util.Log;
+import java.util.Date;    
+import java.time.format.DateTimeFormatter;
+import java.io.File;
+import android.net.Uri;
+import android.provider.Settings;
+import android.content.Intent;
+import android.os.Environment;
+import androidx.documentfile.provider.DocumentFile;
+import java.io.File;
+import com.koushikdutta.async.callback.CompletedCallback;
+import com.koushikdutta.async.callback.DataCallback;
+import com.koushikdutta.async.callback.ListenCallback;
 import java.io.IOException;
 import com.koushikdutta.async.*;
 import java.net.InetSocketAddress;
@@ -30,13 +44,16 @@ import com.koushikdutta.async.AsyncServerSocket;
 
 public class FileContentSender
 {
+  private FilePathInterpreter filePathInterpreter=null; //!< the file path interpreter.
   private static final String TAG="FileContentSender"; //!< 输出调试信息时使用的标记
   private long restSTart=0; //!< 跳过位置。
   private byte[] dataSocketPendingByteArray=null; //!< 数据套接字数据内容 排队。
   private ControlConnectHandler controlConnectHandler=null; //!< 控制连接处理器。
   private AsyncSocket data_socket=null; //!< 当前的数据连接。
   private File rootDirectory=null; //!< 根目录。
-  private File fileToSend=null; //!< 要发送的文件。
+//   private File fileToSend=null; //!< 要发送的文件。
+  private DocumentFile fileToSend=null; //!< 要发送的文件。
+  private Context context=null; //!< Context.
   
   /**
   * 设置重启位置。
@@ -45,7 +62,20 @@ public class FileContentSender
   {
     restSTart=data51; // 记录。
   } // public void setRestartPosition(long data51)
-    
+
+  /**
+  * Set the file path interpreter.
+  */
+  public void setFilePathInterpreter(FilePathInterpreter filePathInterpreter)
+  {
+    this.filePathInterpreter=filePathInterpreter;
+  } // public void setFilePathInterpreter(FilePathInterpreter filePathInterpreter)
+
+  public void setContext(Context context)
+  {
+    this.context=context;
+  } // fileContentSender
+  
   /**
   * 设置根目录。
   */
@@ -72,14 +102,22 @@ public class FileContentSender
       } // if (dataSocketPendingByteArray!=null)
     } //public void setDataSocket(AsyncSocket socket)
     
+    /**
+    * Start send file for large file. And also small files.
+    */
     private void startSendFileContentForLarge()
     {
       if (fileToSend.exists()) // 文件存在
       {
         try
         {
-          final InputStream is = new FileInputStream(fileToSend);
-        
+//           final InputStream is = new FileInputStream(fileToSend);
+//           final InputStream is = new FileInputStream(fileToSend);
+          Uri fileUri=fileToSend.getUri(); // Get the uri.
+          
+//           Chen xin.
+          final InputStream is  = context.getContentResolver().openInputStream(fileUri);     
+          
           if (restSTart>0) // 要跳过。 
           {
             is.skip(restSTart); // 跳过一段内容。断点续传。
@@ -126,42 +164,6 @@ public class FileContentSender
     } //private void startSendFileContentForLarge()
     
     /**
-    * 开始发送文件内容。
-    */
-    private void startSendFileContent() 
-    {
-        byte[] photoBytes=null; //数据内容。
-
-        try //尝试构造请求对象，并且捕获可能的异常。
-        {
-            photoBytes= FileUtils.readFileToByteArray(fileToSend); //将照片文件内容全部读取。
-        } //try //尝试构造请求对象，并且捕获可能的异常。
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-
-		if (photoBytes!=null) // 读取的文件存在
-		{
-            Util.writeAll(data_socket, photoBytes, new CompletedCallback() 
-            {
-                @Override
-                public void onCompleted(Exception ex) {
-                    if (ex != null) throw new RuntimeException(ex);
-                    System.out.println("[Server] data Successfully wrote message");
-                    
-                    notifyFileSendCompleted(); // 告知已经发送文件内容数据。
-                    fileToSend=null; // 将要发送的文件对象清空。
-                }
-            });
-		} //if (photoBytes!=null) // 读取的文件存在
-		else // 读取的文件不存在
-		{
-      notifyFileNotExist(); // 告知文件不存在
-		} //else // 读取的文件不存在
-    } //private void startSendFileContent()
-
-    /**
     * 发送文件内容。
     */
     public void sendFileContent(String data51, String currentWorkingDirectory) 
@@ -170,8 +172,8 @@ public class FileContentSender
                     
       wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
-      FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-      File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
+//       File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
+      DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // 照片目录。
 
       fileToSend=photoDirecotry; // 记录，要发送的文件对象。
         

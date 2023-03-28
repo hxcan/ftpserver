@@ -1,5 +1,12 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import android.os.ParcelFileDescriptor;
+import java.io.FileOutputStream;
+import androidx.documentfile.provider.DocumentFile;
+import java.io.File;
+import com.koushikdutta.async.callback.CompletedCallback;
+import com.koushikdutta.async.callback.DataCallback;
+import com.koushikdutta.async.callback.ListenCallback;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -46,6 +53,7 @@ import android.os.Environment;
 
 public class ControlConnectHandler
 {
+  private FilePathInterpreter filePathInterpreter=null; //!< the file path interpreter.
   private String passWord=null; //!< Pass word provided.
   private boolean authenticated=true; //!< Is Login correct?
   private String userName=null; //!< User name provided.
@@ -63,7 +71,10 @@ public class ControlConnectHandler
   private int data_port=1544; //!< 数据连接端口。
   private String ip; //!< ip
   private boolean allowActiveMode=true; //!< 是否允许主动模式。
-  private File writingFile; //!< 当前正在写入的文件。
+
+//   private File writingFile; //!< 当前正在写入的文件。
+  private DocumentFile writingFile; //!< 当前正在写入的文件。
+
   private boolean isUploading=false; //!< 是否正在上传。陈欣
   private InetAddress host;
   private File rootDirectory=null; //!< 根目录。
@@ -75,6 +86,19 @@ public class ControlConnectHandler
   { 
     this.userManager=userManager;
   } // public void setUserManager(UserManager userManager)
+  
+  /**
+  * Set the file path interpreter.
+  */
+  public void setFilePathInterpreter(FilePathInterpreter filePathInterpreter)
+  {
+    this.filePathInterpreter=filePathInterpreter;
+    
+    directoryListSender.setFilePathInterpreter(filePathInterpreter);
+    fileContentSender.setFilePathInterpreter(filePathInterpreter); // SEt the file path interpreter.
+    
+    this.filePathInterpreter.setContext(context); // Set context.
+  } // public void setFilePathInterpreter(FilePathInterpreter filePathInterpreter)
   
   public void setEventListener(EventListener eventListener)
   {
@@ -101,7 +125,16 @@ public class ControlConnectHandler
 
     try
     {
-      FileUtils.writeByteArrayToFile(writingFile, content, appendTrue); // 写入。
+//       FileUtils.writeByteArrayToFile(writingFile, content, appendTrue); // 写入。
+
+      Uri uri=writingFile.getUri();
+      ParcelFileDescriptor pfd = context.getContentResolver(). openFileDescriptor(uri, "wa");
+        FileOutputStream fileOutputStream = new FileOutputStream(pfd.getFileDescriptor());
+
+         fileOutputStream.write(("Overwritten at " + System.currentTimeMillis() + "\n").getBytes());
+                fileOutputStream.close();
+        pfd.close();
+
     }
     catch (Exception e)
     {
@@ -116,8 +149,11 @@ public class ControlConnectHandler
     this.host=host;
     this.ip=ip; // Remember ip for data server.
 
+    fileContentSender.setContext(context); // Set the context.
+//     filePathInterpreter
+
     setupDataServer(); // 启动数据传输服务器。
-  }
+  } // public ControlConnectHandler(Context context, boolean allowActiveMode, InetAddress host, String ip)
     
     /**
     * 打开指向客户端特定端口的连接。
@@ -231,8 +267,9 @@ public class ControlConnectHandler
     */
     private void startStor(String data51, String currentWorkingDirectory) 
     {
-      FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-      File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
+//       FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
+//       File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
+      DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // Resolve file path.
 
       writingFile=photoDirecotry; // 记录文件。
       isUploading=true; // 记录，处于上传状态。
@@ -244,7 +281,9 @@ public class ControlConnectHandler
         
       try //尝试构造请求对象，并且捕获可能的异常。
       {
-        FileUtils.touch(photoDirecotry); //创建文件。
+        DocumentFile parentDocuemntFile=filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, ""); // Resolve parent path.
+//         FileUtils.touch(photoDirecotry); //创建文件。
+        writingFile=parentDocuemntFile.createFile("", data51); // Creat eh file.
       } //try //尝试构造请求对象，并且捕获可能的异常。
       catch (Exception e)
       {
@@ -290,15 +329,26 @@ public class ControlConnectHandler
     */
     private void processCwdCommand(String targetWorkingDirectory) 
     {
-      FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-      File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, targetWorkingDirectory); //照片目录。
+//       FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
+      DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, targetWorkingDirectory); // 照片目录。
+//       File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, targetWorkingDirectory); // 照片目录。
 
       String replyString="" ; // 回复内容。
       String fullPath="";
 
       if (photoDirecotry.isDirectory()) // 是个目录
       {
-        fullPath=photoDirecotry.getPath(); // 获取当前工作目录的完整路径。
+//         fullPath=photoDirecotry.getPath(); // 获取当前工作目录的完整路径。
+        Uri directoryUri=photoDirecotry.getUri(); // Get the uri.
+        String directyoryUriPath=directoryUri.getPath(); // Get the string of the uri.
+//         String directoryPurePath=directyoryUriPath.replaceAll("file://", ""); // Replace prefix.
+//         currentVersionName=currentVersionName.replaceAll("[a-zA-Z]|\\s", "");
+
+//         File directoryFileObject=new File()
+        
+        fullPath=directyoryUriPath; // 获取当前工作目录的完整路径。
+
+        
         String rootPath=rootDirectory.getPath(); // 获取根目录的完整路径。
         
         currentWorkingDirectory=fullPath.substring(rootPath.length()); // 去掉开头的根目录路径。
@@ -338,8 +388,8 @@ public class ControlConnectHandler
       Log.d(TAG, "processSizeCommand: workding directory: " + currentWorkingDirectory); // Debug.
       Log.d(TAG, "processSizeCommand: data51: " + data51); // Debug.
     
-      FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-      File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
+//       FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
+      DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve file path.
 
       String replyString=""; // 回复字符串。
 
@@ -537,8 +587,8 @@ public class ControlConnectHandler
                     
         wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
-        FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-        File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
+//         FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
+        DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve file
 
         boolean deleteResult= photoDirecotry.delete();
             
@@ -564,8 +614,8 @@ public class ControlConnectHandler
                     
         wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
-        FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-        File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
+//         File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
+        DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve 目录。
 
         boolean deleteResult= photoDirecotry.delete();
             
@@ -741,7 +791,13 @@ public class ControlConnectHandler
       
       if (paths==null) // Unable to list files
       {
-        requestAndroidDataPermission(); // Request /Android/data permisson.
+        if (filePathInterpreter.virtualPathExists(Constants.FilePath.AndroidData)) // Does virtual path exist
+        {
+        } // if (filePathInterpreter.virtualPathExists(Constants.FilePath.AndroidData)) // Does virtual path exist
+        else // Virtual path does not exist
+        {
+          requestAndroidDataPermission(); // Request /Android/data permisson.
+        } // else // Virtual path does not exist
       } // if (paths.length==0) // Unable to list files
     } // private void CheckAndroidDataPermission()
     

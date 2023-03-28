@@ -146,44 +146,6 @@ public class DocumentTreeBrowseRequest
     } //private void notifyLsCompleted()
     
     /**
-    *  处理上传文件命令。
-    */
-    private void processStorCommand(String data51)
-    {
-      String replyString="150 "; // 回复内容。
-
-      binaryStringSender.sendStringInBinaryMode(replyString);
-
-      startStor(data51, currentWorkingDirectory); // 发送文件内容。
-    } // private void processStorCommand(String data51)
-
-    /**
-    * 上传文件内容。
-    */
-    private void startStor(String data51, String currentWorkingDirectory) 
-    {
-      FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-      File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
-
-      writingFile=photoDirecotry; // 记录文件。
-      isUploading=true; // 记录，处于上传状态。
-
-      if (photoDirecotry.exists())
-      {
-        photoDirecotry.delete();
-      }
-        
-      try //尝试构造请求对象，并且捕获可能的异常。
-      {
-        FileUtils.touch(photoDirecotry); //创建文件。
-      } //try //尝试构造请求对象，并且捕获可能的异常。
-      catch (Exception e)
-      {
-        e.printStackTrace();
-      }
-    } //private void startStor(String data51, String currentWorkingDirectory) // 上传文件内容。
-    
-    /**
     * Process pass command.
     */
     private void processPassCommand(String targetWorkingDirectory) 

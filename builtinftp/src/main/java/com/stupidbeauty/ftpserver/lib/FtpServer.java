@@ -1,5 +1,10 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
+// import com.stupidbeauty.farmingbookapp.PreferenceManagerUtil;
 import java.net.NetworkInterface;
 import java.util.Enumeration;
 import java.net.SocketException;
@@ -17,9 +22,8 @@ import android.net.Network;
 import android.net.ConnectivityManager;
 import java.util.List;
 import java.util.Locale;
-// import com.stupidbeauty.builtinftp.BuiltinFtpServer;
-// import butterknife.Bind;
-// import butterknife.ButterKnife;
+import android.content.Intent;
+import android.os.Environment;
 import android.net.LinkAddress;
 import android.net.LinkProperties;
 import android.net.Network;
@@ -74,6 +78,10 @@ import java.net.UnknownHostException;
 
 public class FtpServer 
 {
+  
+//   private FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); //!< Create the file path interpreter.
+  private FilePathInterpreter filePathInterpreter=FilePathInterpreter.migrateCreateFilePathInterpreter(); //!< Create the file path interpreter.
+
   private UserManager userManager=null; //!< user manager.
   private EventListener eventListener=null; //!< Event listener.
   private ErrorListener errorListener=null; //!< Error listener. Chen xin. 
@@ -300,7 +308,27 @@ public class FtpServer
   {
     rootDirectory=root;
   }
-        
+
+  /**
+  * Answ4er the browse docuembnt tree reqeust.
+  */
+  public void answerBrowseDocumentTreeReqeust(int requestCode, Uri uri) 
+  {
+//     ftpServer.answerBrowseDocumentTreeReqeust(requestCode, uri);
+//     Chen xin
+
+    String fullPath=Constants.FilePath.AndroidData; // /Android/data
+
+    
+
+    filePathInterpreter.mountVirtualPath(fullPath, uri); // Mount virtual path.
+    
+//     int takeFlags = intent.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+    int takeFlags = (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+    // Check for the freshest data.
+    context.getContentResolver().takePersistableUriPermission(uri, takeFlags);
+  } // public void answerBrowseDocumentTreeReqeust(int requestCode, Uri uri)
+
   public void setErrorListener(ErrorListener errorListener)    
   {
     this.errorListener = errorListener;
@@ -363,6 +391,7 @@ public class FtpServer
         handler.setRootDirectory(rootDirectory); // 设置根目录。
         handler.setEventListener(eventListener); // 设置事件监听器。
         handler.setUserManager(userManager); // set user manager.
+        handler.setFilePathInterpreter(filePathInterpreter); // Set the file path interpreter.
       }
 
       @Override

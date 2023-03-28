@@ -1,6 +1,6 @@
 apply plugin: 'com.android.library'
 
-version="2022.3.20"
+// version="2022.3.20"
 
 android {
   compileSdkVersion 30
@@ -12,7 +12,7 @@ android {
     minSdkVersion 14
     targetSdkVersion 30
     versionCode 757
-    versionName version
+//     versionName version
   }
 
   buildTypes {
@@ -27,4 +27,5 @@ dependencies
 {
   compile 'com.koushikdutta.async:androidasync:2.1.7'
   implementation 'commons-io:commons-io:2.6'
+  implementation "androidx.documentfile:documentfile:1.0.1"
 }
