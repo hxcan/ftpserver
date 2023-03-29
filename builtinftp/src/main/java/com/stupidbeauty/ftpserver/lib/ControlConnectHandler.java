@@ -760,7 +760,7 @@ public class ControlConnectHandler
       // Choose a directory using the system's file picker.
       Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
 
-      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
       intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);            
       
       // Optionally, specify a URI for the directory that should be opened in
@@ -774,7 +774,7 @@ public class ControlConnectHandler
 
       Log.d(TAG, "gotoFileManagerSettingsPage, url: " + url); //Debug.
 
-      intent.setData(Uri.parse(url));
+//       intent.setData(Uri.parse(url));
 
       int yourrequestcode=Constants.RequestCode.AndroidDataPermissionRequestCode;
       
