@@ -1,5 +1,10 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import com.stupidbeauty.codeposition.CodePosition;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.BufferedReader;
+// import com.stupidbeauty.hxlauncher.listener.BuiltinFtpServerErrorListener; 
 import android.net.Uri;
 import android.provider.Settings;
 import android.content.Intent;
@@ -97,6 +102,7 @@ public class DirectoryListSender
 //     private String construct1LineListFile(File photoDirecotry) 
     private String construct1LineListFile(DocumentFile photoDirecotry) 
     {
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + photoDirecotry); // Debug.
 //       File path=photoDirecotry;
       DocumentFile path=photoDirecotry;
     
@@ -208,16 +214,19 @@ public class DirectoryListSender
       {
 //         File[] paths = photoDirecotry.listFiles();
         DocumentFile[] paths = photoDirecotry.listFiles();
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", paths size: " + paths.length); // Debug.
 
         if (paths!=null) // NOt null pointer
         {
           Log.d(TAG, "getDirectoryContentList, path: " + photoDirecotry + ", file amount: " + paths.length); // Debug.
-          
+
           // for each pathname in pathname array
 //           for(File path:paths) 
           for(DocumentFile path:paths) 
           {
+            Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + path); // Debug.
             String currentLine=construct1LineListFile(path); // 构造针对这个文件的一行输出。
+            Log.d(TAG, CodePosition.newInstance().toString()+  ", line: " + currentLine); // Debug.
 
             String fileName=path.getName(); // 获取文件名。
 
@@ -226,8 +235,7 @@ public class DirectoryListSender
               binaryStringSender.sendStringInBinaryMode(currentLine); // 发送回复内容。
             } //if (fileName.equals(nameOfFile)) // 名字匹配。
           }
-        }
-        
+        } // if (paths!=null) // NOt null pointer
       } // else // 是目录
          
       Util.writeAll(data_socket, ( "\r\n").getBytes(), new CompletedCallback() 
@@ -269,10 +277,12 @@ public class DirectoryListSender
     {
       if (fileToSend.exists()) // 文件存在
       {
+        Log.d(TAG, CodePosition.newInstance().toString()+  "file to send: " + fileToSend ); // Debug.
         getDirectoryContentList(fileToSend, subDirectoryName); // Get the whole directory list.
       } //if (fileToSend.exist()) // 文件存在
       else
       {
+        Log.d(TAG, CodePosition.newInstance().toString()+  "not exist "); // Debug.
         notifyFileNotExist(); // 报告文件不存在。
       }
     } //private void startSendFileContentForLarge()
@@ -302,6 +312,7 @@ public class DirectoryListSender
     */
     public void sendDirectoryList(String data51, String currentWorkingDirectory) 
     {
+      Log.d(TAG, CodePosition.newInstance().toString()+  "directory to list: " + data51 + ", working directory: " + currentWorkingDirectory); // Debug.
       String parameter=""; // 要列出的目录。
       
       int directoryIndex=5; // 要找的下标。
@@ -320,6 +331,7 @@ public class DirectoryListSender
 
 //       File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, parameter); //照片目录。
       DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, parameter); // resolve 目录。
+      Log.d(TAG, CodePosition.newInstance().toString()+  "directory : " + photoDirecotry + ", working directory: " + currentWorkingDirectory); // Debug.
 
       fileToSend=photoDirecotry; // 记录，要发送的文件对象。
         

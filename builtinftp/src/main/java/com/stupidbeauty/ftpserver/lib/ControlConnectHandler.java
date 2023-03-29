@@ -1,5 +1,6 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import com.stupidbeauty.codeposition.CodePosition;
 import android.os.ParcelFileDescriptor;
 import java.io.FileOutputStream;
 import androidx.documentfile.provider.DocumentFile;
@@ -809,8 +810,9 @@ public class ControlConnectHandler
       //陈欣
       String replyString="150 Opening BINARY mode data connection for file list, ChenXin"; // 回复内容。
 
-      Log.d(TAG, "reply string: " + replyString); //Debug.
-      
+      Log.d(TAG, CodePosition.newInstance().toString()+  "reply string: " + replyString + ", list command content: " + content); // Debug.
+//       Log.d(TAG, CodePosition.newInstance().toString()+ ", installer type: "+ installerType + ", file path: " + downloadFilePath ); //Debug.
+
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
 
       sendListContentBySender(content, currentWorkingDirectory); // 发送目录列表数据。

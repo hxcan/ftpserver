@@ -28,4 +28,5 @@ dependencies
   compile 'com.koushikdutta.async:androidasync:2.1.7'
   implementation 'commons-io:commons-io:2.6'
   implementation "androidx.documentfile:documentfile:1.0.1"
+  implementation 'com.github.hxcan:CodePosition:2023.3.29'
 }
