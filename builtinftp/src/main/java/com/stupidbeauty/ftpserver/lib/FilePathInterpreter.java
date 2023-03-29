@@ -89,6 +89,14 @@ public class FilePathInterpreter
     String wholeDirecotoryPath = rootDirectory.getPath() + currentWorkingDirectoryUpdate + "/" + data51; // 构造完整路径。
 
     wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
+    
+    if (wholeDirecotoryPath.endsWith("/")) // Ends with /
+    {
+      String bbPackageString=wholeDirecotoryPath.substring(0, wholeDirecotoryPath.length()-1);
+      wholeDirecotoryPath=bbPackageString;
+
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory); // Debug.
+    } // if (wholeDirecotoryPath.endWith("/"))
 
 //     Log.d(TAG, "getFile: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
     Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory); // Debug.
