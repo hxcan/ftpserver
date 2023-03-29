@@ -277,7 +277,7 @@ public class DirectoryListSender
     {
       if (fileToSend.exists()) // 文件存在
       {
-        Log.d(TAG, CodePosition.newInstance().toString()+  "file to send: " + fileToSend ); // Debug.
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send: " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
         getDirectoryContentList(fileToSend, subDirectoryName); // Get the whole directory list.
       } //if (fileToSend.exist()) // 文件存在
       else
@@ -331,7 +331,7 @@ public class DirectoryListSender
 
 //       File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, parameter); //照片目录。
       DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, parameter); // resolve 目录。
-      Log.d(TAG, CodePosition.newInstance().toString()+  "directory : " + photoDirecotry + ", working directory: " + currentWorkingDirectory); // Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", directory : " + photoDirecotry + ", working directory: " + currentWorkingDirectory + ", directory uri: " + photoDirecotry.getUri().toString()); // Debug.
 
       fileToSend=photoDirecotry; // 记录，要发送的文件对象。
         

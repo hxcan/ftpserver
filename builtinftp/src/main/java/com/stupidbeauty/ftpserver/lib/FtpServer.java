@@ -1,5 +1,10 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import com.stupidbeauty.codeposition.CodePosition;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.BufferedReader;
+// import com.stupidbeauty.hxlauncher.listener.BuiltinFtpServerErrorListener; 
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -314,12 +319,11 @@ public class FtpServer
   */
   public void answerBrowseDocumentTreeReqeust(int requestCode, Uri uri) 
   {
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", request code: " + requestCode + ", uri to use: " + uri.toString()); // Debug.
 //     ftpServer.answerBrowseDocumentTreeReqeust(requestCode, uri);
 //     Chen xin
 
     String fullPath=Constants.FilePath.AndroidData; // /Android/data
-
-    
 
     filePathInterpreter.mountVirtualPath(fullPath, uri); // Mount virtual path.
     

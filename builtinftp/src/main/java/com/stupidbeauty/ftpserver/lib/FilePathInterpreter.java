@@ -1,5 +1,10 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import com.stupidbeauty.codeposition.CodePosition;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.BufferedReader;
+// import com.stupidbeauty.hxlauncher.listener.BuiltinFtpServerErrorListener; 
 import android.content.Context;
 import android.util.Log;
 import java.util.Date;    
@@ -50,6 +55,7 @@ public class FilePathInterpreter
   */
   public void mountVirtualPath(String fullPath, Uri uri)
   {
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", full path : " + fullPath + ", uri to use: " + uri.toString()); // Debug.
     virtualPathMap.put(fullPath, uri); // Put it into the map.
   } // public void mountVirtualPath(String fullPath, Uri uri)
 
@@ -84,7 +90,8 @@ public class FilePathInterpreter
 
     wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
 
-    Log.d(TAG, "getFile: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
+//     Log.d(TAG, "getFile: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory); // Debug.
 
     File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
 
@@ -93,7 +100,8 @@ public class FilePathInterpreter
       Uri uri=virtualPathMap.get(wholeDirecotoryPath); // Get the uri.
       
 //       Chen xin.
-      
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory + ", uri to use: " + uri.toString()); // Debug.
+
       DocumentFile documentFile=DocumentFile.fromTreeUri(context, uri);
       
       result=documentFile;
@@ -115,9 +123,9 @@ public class FilePathInterpreter
 //       result=photoDirecotry;
       result=DocumentFile.fromFile(photoDirecotry);
     } // else // Not in the virtual path map
-
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory + ", uri to use: " + result.getUri().toString()); // Debug.
 
     return result;
-  }
+  } // public DocumentFile getFile(File rootDirectory, String currentWorkingDirectory, String data51) 
 }
 
