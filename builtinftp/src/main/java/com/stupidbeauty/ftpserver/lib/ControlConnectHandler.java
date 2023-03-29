@@ -767,6 +767,15 @@ public class ControlConnectHandler
       // the system file picker when it loads.
       intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uriToLoad);
 
+      String packageNmae=context.getPackageName();
+      Log.d(TAG, "gotoFileManagerSettingsPage, package name: " + packageNmae); //Debug.
+
+      String url = "package:"+packageNmae;
+
+      Log.d(TAG, "gotoFileManagerSettingsPage, url: " + url); //Debug.
+
+      intent.setData(Uri.parse(url));
+
       int yourrequestcode=Constants.RequestCode.AndroidDataPermissionRequestCode;
       
 //       context.startActivityForResult(intent, yourrequestcode);
