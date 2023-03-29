@@ -155,20 +155,21 @@ public class DirectoryListSender
 //       Path filePathObject=path.toPath(); // Get the associated nio Path object.
       File fileObject=new File(directyoryUriPath);
       Path filePathObject=fileObject.toPath(); // Get the associated nio Path object.
-      
-      try // get the owner name
+
+      if (directoryUri.getScheme().equals("file")) // It is a native file
       {
-        UserPrincipal userPrincipal= Files.getOwner(filePathObject);
-        user=userPrincipal.getName(); // get the name of the user.
-      } // try // get the owner name
-      catch(IOException e)
-      {
-        Log.d(TAG, "construct1LineListFile, failed to get owner name:"); // Debug.
-        
-        e.printStackTrace();
-      } // catch(IOException e)
-       
-      
+        try // get the owner name
+        {
+          UserPrincipal userPrincipal= Files.getOwner(filePathObject);
+          user=userPrincipal.getName(); // get the name of the user.
+        } // try // get the owner name
+        catch(IOException e)
+        {
+          Log.d(TAG, "construct1LineListFile, failed to get owner name:"); // Debug.
+          
+          e.printStackTrace();
+        } // catch(IOException e)
+      } // if (path.getScheme().equals("file")) // It is a native file
                             
       String linkNumber="1";
                             

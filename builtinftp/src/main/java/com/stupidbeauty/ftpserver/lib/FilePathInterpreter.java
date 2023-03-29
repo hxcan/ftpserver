@@ -65,13 +65,77 @@ public class FilePathInterpreter
   } // fileContentSender
   
   /**
+  * Get the uri. of a virtual path.
+  */
+  private Uri getParentUriByVirtualPathMap(String wholeDirecotoryPath) 
+  {
+    String currentTryingPath=getParentVirtualPathByVirtualPathMap(wholeDirecotoryPath); // Get the paretn virtual path map.
+    
+    Uri result=null;
+    
+    result=virtualPathMap.get(currentTryingPath); // Get the uri.
+    //       Uri uri=virtualPathMap.get(wholeDirecotoryPath); // Get the uri.
+
+    return result;
+  } // private Uri getParentUriByVirtualPathMap(String wholeDirecotoryPath)
+  
+  /**
+  * Get the paretn virtual path map.
+  */
+  private String getParentVirtualPathByVirtualPathMap(String wholeDirecotoryPath)
+  {
+    boolean result=false;
+
+    String currentTryingPath=wholeDirecotoryPath;
+
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", curent trying Path : " + currentTryingPath + ", result: " + result); // Debug.
+
+    String theFinalPath=null; // The final path.
+    
+    while((!currentTryingPath.equals("/")) && (!result)) // Not to root
+    {
+      result=virtualPathMap.containsKey(currentTryingPath);
+      
+      if (result) // Found it
+      {
+        break;
+      } //  if (result) // Found it
+
+      File virtualFile=new File(currentTryingPath);
+      
+      File parentVirtualFile=virtualFile.getParentFile();
+      
+      currentTryingPath=parentVirtualFile.getPath();
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", curent trying Path : " + currentTryingPath + ", result: " + result); // Debug.
+    } // while(!currentTryingPath.equals("/")) // Not to root
+    
+    if (result)
+    {
+      theFinalPath=currentTryingPath;
+    }
+    
+    return theFinalPath;
+
+  } // private String getParentVirtualPathByVirtualPathMap(String wholeDirecotoryPath)
+  
+  /**
   * Does virtual path exist
   */
   public boolean virtualPathExists(String ConstantsFilePathAndroidData)
   {
-    return virtualPathMap.containsKey(ConstantsFilePathAndroidData);
+    boolean result=false;
+    
+    
+
+    String currentTryingPath=getParentVirtualPathByVirtualPathMap(ConstantsFilePathAndroidData); // Get the paretn virtual path map.
+    
+    if (currentTryingPath!=null)
+    {
+      result=true;
+    }
+
+    return result;
   } // public boolean virtualPathExists(String ConstantsFilePathAndroidData) // Does virtual path exist
-  
   
   /**
   * resolve file path.
@@ -90,13 +154,13 @@ public class FilePathInterpreter
 
     wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
     
-    if (wholeDirecotoryPath.endsWith("/")) // Ends with /
-    {
-      String bbPackageString=wholeDirecotoryPath.substring(0, wholeDirecotoryPath.length()-1);
-      wholeDirecotoryPath=bbPackageString;
-
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory); // Debug.
-    } // if (wholeDirecotoryPath.endWith("/"))
+//     if (wholeDirecotoryPath.endsWith("/")) // Ends with /
+//     {
+//       String bbPackageString=wholeDirecotoryPath.substring(0, wholeDirecotoryPath.length()-1);
+//       wholeDirecotoryPath=bbPackageString;
+// 
+//       Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory); // Debug.
+//     } // if (wholeDirecotoryPath.endWith("/"))
 
 //     Log.d(TAG, "getFile: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
     Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory); // Debug.
@@ -105,14 +169,38 @@ public class FilePathInterpreter
 
     if (virtualPathExists(wholeDirecotoryPath)) // It is in the virtual path map
     {
-      Uri uri=virtualPathMap.get(wholeDirecotoryPath); // Get the uri.
+//       Uri uri=virtualPathMap.get(wholeDirecotoryPath); // Get the uri.
+      Uri uri=  getParentUriByVirtualPathMap(wholeDirecotoryPath); // Get the uri.
+      DocumentFile documentFile=DocumentFile.fromTreeUri(context, uri);
+      
+      String parentVirtualPath=getParentVirtualPathByVirtualPathMap(wholeDirecotoryPath); // Get the paretn virtual path map.
+      
+      String trailingPath=wholeDirecotoryPath.substring(parentVirtualPath.length(), wholeDirecotoryPath.length());
+      
+      
+      String[] trialingPathSegments=trailingPath.split("/");
+      
+      DocumentFile targetdocumentFile=documentFile;
+      
+      for(String currentSegmetn: trialingPathSegments)
+      {
+        if (currentSegmetn.isEmpty())
+        {
+        }
+        else
+        {
+          targetdocumentFile=targetdocumentFile.findFile(currentSegmetn);
+        } // if (currentSegmetn.isEmpty())
+      } // //       DocumentFile documentFile=DocumentFile.fromTreeUri(context, uri);
+
       
 //       Chen xin.
       Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory + ", uri to use: " + uri.toString()); // Debug.
 
-      DocumentFile documentFile=DocumentFile.fromTreeUri(context, uri);
+//       DocumentFile documentFile=DocumentFile.fromTreeUri(context, uri);
+//       DocumentFile documentFile=DocumentFile.fromTreeUri(context, targetPathuri);
       
-      result=documentFile;
+      result=targetdocumentFile;
     } // if (virtualPathMap.contains(wholeDirecotoryPath)) // It is in the virtual path map
     else // Not in the virtual path map
     {
