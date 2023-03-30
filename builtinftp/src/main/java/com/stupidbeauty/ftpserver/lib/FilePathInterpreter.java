@@ -38,8 +38,9 @@ import java.util.HashMap;
 import android.view.View;
 import android.os.AsyncTask;
 import java.util.HashMap;
+import com.stupidbeauty.hxlauncher.asynctask.VirtualPathLoadInterface;
 
-public class FilePathInterpreter
+public class FilePathInterpreter implements VirtualPathLoadInterface
 {
   private static final String TAG="FilePathInterpreter"; // !< The tag used to output debug code.
   private HashMap<String, Uri> virtualPathMap=new HashMap<>(); //!< the map of virtual path to uri.
@@ -81,6 +82,15 @@ public class FilePathInterpreter
     translateRequestSendTask.execute(virtualPathMap, context); // 执行任务。
   } //private void saveVoicePackageNameMap()
 
+  @Override
+  /**
+  * Set the virtual path map.
+  */
+  public void  setVoicePackageNameMap (HashMap<String, Uri> voicePackageNameMap)
+  {
+    virtualPathMap=voicePackageNameMap;
+  } // public void  setVoicePackageNameMap (HashMap<String, Uri> voicePackageNameMap)
+  
   /**
   * Mount virtual path.
   */

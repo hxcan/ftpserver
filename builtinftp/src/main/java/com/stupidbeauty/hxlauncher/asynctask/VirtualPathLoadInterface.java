@@ -160,12 +160,9 @@ import static com.stupidbeauty.hxlauncher.Constants.Numbers.IgnoreVoiceResultLen
 import static com.stupidbeauty.hxlauncher.Constants.Operation.ToggleBuiltinShortcuts;
 import static com.stupidbeauty.hxlauncher.Constants.Operation.ToggleHiveLayout;
 import static com.stupidbeauty.hxlauncher.Constants.Operation.UnlinkVoiceCommand;
-// import static com.stupidbeauty.hxlauncher.HxLauncherIconType.PbShortcutIconType;
-// import static com.stupidbeauty.hxlauncher.datastore.LauncherIconType.ActivityIconType;
 import static com.stupidbeauty.hxlauncher.datastore.LauncherIconType.ShortcutIconType;
 import static com.stupidbeauty.hxlauncher.datastore.VoiceCommandSourceType.LocalVoiceCommandMap;
 import static com.stupidbeauty.hxlauncher.datastore.VoiceCommandSourceType.ServerVoiceCommandResponse;
-// import com.stupidbeauty.hxlauncher.listener.BuiltinFtpServerErrorListener; 
 import android.os.Process;
 
 public interface VirtualPathLoadInterface
