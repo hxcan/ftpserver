@@ -51,17 +51,17 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
   */
   private FilePathInterpreter()
   {
-    loadVirtualPathMap(); // Load the virtual path map.
+//     loadVirtualPathMap(); // Load the virtual path map.
   } // FilePathInterpreter
   
   /**
     * 载入 virtual path to uri 之间的映射。
     */
-  private void loadVirtualPathMap()
+  public void loadVirtualPathMap()
   {
-      LoadVoicePackageNameMapTask translateRequestSendTask =new LoadVoicePackageNameMapTask(); //创建异步任务。
+    LoadVoicePackageNameMapTask translateRequestSendTask =new LoadVoicePackageNameMapTask(); //创建异步任务。
 
-      translateRequestSendTask.execute(this, context); //执行任务。
+    translateRequestSendTask.execute(this, context); //执行任务。
   } //private void loadVoicePackageNameMap()
 
   /**

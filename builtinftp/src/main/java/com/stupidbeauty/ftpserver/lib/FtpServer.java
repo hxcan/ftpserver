@@ -371,6 +371,8 @@ public class FtpServer
     this.port = port;
 
     setup();
+
+    filePathInterpreter.loadVirtualPathMap(); // Load the virtual path map.
     
     registerWlanChangeListener(); // Register wlan change listener.
   } //public FtpServer(String host, int port, Context context, boolean allowActiveMode)
