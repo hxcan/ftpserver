@@ -372,6 +372,7 @@ public class FtpServer
 
     setup();
 
+    filePathInterpreter.setContext(context); // SEt the context.
     filePathInterpreter.loadVirtualPathMap(); // Load the virtual path map.
     
     registerWlanChangeListener(); // Register wlan change listener.
