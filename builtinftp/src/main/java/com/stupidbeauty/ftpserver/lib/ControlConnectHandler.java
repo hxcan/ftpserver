@@ -374,8 +374,10 @@ public class ControlConnectHandler
         
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
       
-      if (fullPath.equals(Constants.FilePath.AndroidData)) // It is /Android/data
+//       if (fullPath.equals(Constants.FilePath.AndroidData)) // It is /Android/data
+      if (filePathInterpreter.isSamePath (fullPath, Constants.FilePath.AndroidData)) // It is /Android/data, same path.
       {
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", full path : " + fullPath + ", other path: " + Constants.FilePath.AndroidData + ", checking /Android/data permission"); // Debug.
         CheckAndroidDataPermission(); // Check /Android/data permission.
       } // if (currentWorkingDirectory.equals(Constants.FilePath.AndroidData)) // It is /Android/data
     } // private void processCwdCommand(String targetWorkingDirectory)

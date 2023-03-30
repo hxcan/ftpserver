@@ -55,6 +55,20 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
   } // FilePathInterpreter
   
   /**
+  *  Whether the two are same path.
+  */
+  public boolean isSamePath (String fullPath, String ConstantsFilePathAndroidData)
+  {
+    File fullPathFile=new File(fullPath);
+    File constantsFilePathAndroidDataFile=new File(ConstantsFilePathAndroidData);
+    
+    boolean result= fullPathFile.getPath().equals(constantsFilePathAndroidDataFile.getPath());
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", full path : " + fullPath + ", other path: " + ConstantsFilePathAndroidData + ", result: " + result); // Debug.
+    
+    return result;
+  } // public boolean isSamePath (String fullPath, String ConstantsFilePathAndroidData)
+  
+  /**
     * 载入 virtual path to uri 之间的映射。
     */
   public void loadVirtualPathMap()
