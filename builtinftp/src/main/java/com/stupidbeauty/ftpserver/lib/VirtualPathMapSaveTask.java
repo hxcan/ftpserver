@@ -13,7 +13,7 @@ import com.upokecenter.cbor.CBORObject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import android.annotation.SuppressLint;
-import com.stupidbeauty.hxlauncher.bean.VoicePackageUrlMapData;
+// import com.stupidbeauty.hxlauncher.bean.VoicePackageUrlMapData;
 import java.util.HashMap;
 import android.view.View;
 import android.os.AsyncTask;
@@ -28,7 +28,7 @@ import android.content.Context;
 import android.content.pm.PackageItemInfo;
 import android.os.AsyncTask;
 import android.util.Log;
-import com.stupidbeauty.hxlauncher.bean.VoicePackageMapJsonItem;
+// import com.stupidbeauty.hxlauncher.bean.VoicePackageMapJsonItem;
 import com.stupidbeauty.hxlauncher.datastore.LauncherIconType;
 import java.util.Set;
 import java.util.HashSet;
@@ -91,15 +91,15 @@ public class VirtualPathMapSaveTask extends AsyncTask<Object, Void, Boolean>
 
     private byte[] constructVirtualPathMapMessageCbor(HashMap<String, Uri> subject)
     {
-      VoicePackageUrlMapData translateRequestBuilder = new VoicePackageUrlMapData(); // 创建消息构造器。
+      VirtualPathMapData translateRequestBuilder = new VirtualPathMapData(); // 创建消息构造器。
       
-      List<VoicePackageMapJsonItem> virtualPathMapList=new ArrayList<>();
+      List<VirtualPathMapItem> virtualPathMapList=new ArrayList<>();
       
       List<String> virtualPathList= new ArrayList<>(subject.keySet()); // Get the key list.
       
       for(String currentVirtualPath: virtualPathList) // Add the virtual paths one by one.
       {
-        VoicePackageMapJsonItem currentVirtualPathMapItem=new VoicePackageMapJsonItem(); // Create map item.
+        VirtualPathMapItem currentVirtualPathMapItem=new VirtualPathMapItem(); // Create map item.
         
         Uri curentUri=subject.get(currentVirtualPath); // The uri.
         Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + currentVirtualPath + ", uri: " + curentUri); // Debug.
@@ -120,6 +120,7 @@ public class VirtualPathMapSaveTask extends AsyncTask<Object, Void, Boolean>
 
 //       Log.d(TAG, "constructVoiceCommandHistDataMessageCbor, message array lngth: " + array.length); //Debug.
       Log.d(TAG, CodePosition.newInstance().toString()+  ", message array length: : " + array.length); // Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", message content: : " + cborObject.ToJSONString()); // Debug.
 
       return array;
     } //private byte[] constructVoiceCommandHistDataMessageCbor(String subject, String body, String acitivtyName, LauncherIconType iconType, String iconTitle, File photoFile)

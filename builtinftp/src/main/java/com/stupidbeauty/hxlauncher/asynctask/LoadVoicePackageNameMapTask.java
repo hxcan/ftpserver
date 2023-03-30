@@ -19,7 +19,7 @@ import com.upokecenter.cbor.CBORObject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import android.annotation.SuppressLint;
-import com.stupidbeauty.hxlauncher.bean.VoicePackageUrlMapData;
+// import com.stupidbeauty.hxlauncher.bean.VoicePackageUrlMapData;
 import android.net.Uri;
 import android.os.Debug;
 import org.apache.commons.io.FileUtils;
@@ -123,15 +123,19 @@ public class LoadVoicePackageNameMapTask extends AsyncTask<Object, Void, Object>
               jsonString = currentSubFile.ToJSONString(); // Get the json string.
               Log.d(TAG, CodePosition.newInstance().toString()+  ", curent map item: " + jsonString); // Debug.
               
+              CBORObject virtualPathObject=currentSubFile.get("virtualPath");
               
-              String currentRelationshipgetVoiceRecognizeResult=currentSubFile.get("virtualPath").AsString(); // Get virutal path.
-              String uriString=currentSubFile.get("uri").AsString(); // Get the uri.
-//               String packageName=currentSubFile.get("packageName").AsString();
-//               String informationUrl=currentSubFile.get("informationUrl").AsString(); // 获取信息页面地址。
-              Uri currentPackageItemInfo=Uri.parse(uriString); // Parse the uri.
-                    
-              Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + currentRelationshipgetVoiceRecognizeResult + ", uri: " + currentPackageItemInfo); // Debug.
-              voicePackageNameMap.put(currentRelationshipgetVoiceRecognizeResult, currentPackageItemInfo); //加入映射。
+              if (virtualPathObject!=null) // The object exists
+              {
+                String currentRelationshipgetVoiceRecognizeResult=virtualPathObject.AsString(); // Get virutal path.
+                String uriString=currentSubFile.get("uri").AsString(); // Get the uri.
+                //               String packageName=currentSubFile.get("packageName").AsString();
+                //               String informationUrl=currentSubFile.get("informationUrl").AsString(); // 获取信息页面地址。
+                Uri currentPackageItemInfo=Uri.parse(uriString); // Parse the uri.
+                      
+                Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + currentRelationshipgetVoiceRecognizeResult + ", uri: " + currentPackageItemInfo); // Debug.
+                voicePackageNameMap.put(currentRelationshipgetVoiceRecognizeResult, currentPackageItemInfo); //加入映射。
+              } // if (virtualPathObject!=null) // The object exists
             } //for (FileMessageContainer.FileMessage currentSubFile:videoStreamMessage.getSubFilesList()) //一个个子文件地比较其
 
             //     Log.d(TAG, "loadVoicePackageUrlMapCbor, packageNameApplicationNameMap list size: "+ packageNameApplicationNameMap.size()); //Debug.
