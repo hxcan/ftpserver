@@ -110,13 +110,20 @@ public class LoadVoicePackageNameMapTask extends AsyncTask<Object, Void, Object>
           {
             byte[] photoBytes= FileUtils.readFileToByteArray(photoFile); //将照片文件内容全部读取。
             Log.d(TAG, CodePosition.newInstance().toString()+  ", byte array length: " + photoBytes.length); // Debug.
+            Log.d(TAG, CodePosition.newInstance().toString()+  ", byte array content: " + photoBytes.toString()); // Debug.
             
-            CBORObject videoStreamMessage= CBORObject.DecodeFromBytes(photoBytes); //解析消息。
+            CBORObject videoStreamMessage= CBORObject.DecodeFromBytes(photoBytes); // 解析消息。
+            String jsonString = videoStreamMessage.ToJSONString(); // Get the json string.
+            Log.d(TAG, CodePosition.newInstance().toString()+  ", curent map item: " + jsonString); // Debug.
                 
             Collection<CBORObject> subFilesList=videoStreamMessage.get("voicePackageMapJsonItemList").getValues();
 
             for (CBORObject currentSubFile: subFilesList) //一个个子文件地比较其文件名。
             {
+              jsonString = currentSubFile.ToJSONString(); // Get the json string.
+              Log.d(TAG, CodePosition.newInstance().toString()+  ", curent map item: " + jsonString); // Debug.
+              
+              
               String currentRelationshipgetVoiceRecognizeResult=currentSubFile.get("virtualPath").AsString(); // Get virutal path.
               String uriString=currentSubFile.get("uri").AsString(); // Get the uri.
 //               String packageName=currentSubFile.get("packageName").AsString();
