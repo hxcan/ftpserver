@@ -14,7 +14,7 @@ import com.stupidbeauty.codeposition.CodePosition;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.BufferedReader;
-// import com.stupidbeauty.hxlauncher.listener.BuiltinFtpServerErrorListener; 
+import com.upokecenter.cbor.CBORException;
 import com.upokecenter.cbor.CBORObject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -123,31 +123,31 @@ public class LoadVoicePackageNameMapTask extends AsyncTask<Object, Void, Object>
 
             
             
-    CBORObject videoStreamMessage= CBORObject.DecodeFromBytes(photoBytes); //解析消息。
+            CBORObject videoStreamMessage= CBORObject.DecodeFromBytes(photoBytes); //解析消息。
+                
+            Collection<CBORObject> subFilesList=videoStreamMessage.get("voicePackageMapJsonItemList").getValues();
         
-    Collection<CBORObject> subFilesList=videoStreamMessage.get("voicePackageMapJsonItemList").getValues();
-        
 
 
 
 
 
 
-    for (CBORObject currentSubFile: subFilesList) //一个个子文件地比较其文件名。
-    {
-      String currentRelationshipgetVoiceRecognizeResult=currentSubFile.get("virtualPath").AsString(); // Get virutal path.
-      String uriString=currentSubFile.get("uri").AsString(); // Get the uri.
-      String packageName=currentSubFile.get("packageName").AsString();
-      String informationUrl=currentSubFile.get("informationUrl").AsString(); // 获取信息页面地址。
-      Uri currentPackageItemInfo=Uri.parse(uriString); // Parse the uri.
+            for (CBORObject currentSubFile: subFilesList) //一个个子文件地比较其文件名。
+            {
+              String currentRelationshipgetVoiceRecognizeResult=currentSubFile.get("virtualPath").AsString(); // Get virutal path.
+              String uriString=currentSubFile.get("uri").AsString(); // Get the uri.
+              String packageName=currentSubFile.get("packageName").AsString();
+              String informationUrl=currentSubFile.get("informationUrl").AsString(); // 获取信息页面地址。
+              Uri currentPackageItemInfo=Uri.parse(uriString); // Parse the uri.
+                    
+              CBORObject versionNameObject=currentSubFile.get("versionName");
             
-      CBORObject versionNameObject=currentSubFile.get("versionName");
-            
-      if (versionNameObject!=null)
-      {
-        String versionName=versionNameObject.AsString();
+              if (versionNameObject!=null)
+              {
+                String versionName=versionNameObject.AsString();
 
-      } //versionNameObject
+              } //versionNameObject
                 
 
 
@@ -155,45 +155,49 @@ public class LoadVoicePackageNameMapTask extends AsyncTask<Object, Void, Object>
 
       
       
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + currentRelationshipgetVoiceRecognizeResult + ", uri: " + currentPackageItemInfo); // Debug.
-      voicePackageNameMap.put(currentRelationshipgetVoiceRecognizeResult, currentPackageItemInfo); //加入映射。
+              Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + currentRelationshipgetVoiceRecognizeResult + ", uri: " + currentPackageItemInfo); // Debug.
+              voicePackageNameMap.put(currentRelationshipgetVoiceRecognizeResult, currentPackageItemInfo); //加入映射。
 
-    } //for (FileMessageContainer.FileMessage currentSubFile:videoStreamMessage.getSubFilesList()) //一个个子文件地比较其
+            } //for (FileMessageContainer.FileMessage currentSubFile:videoStreamMessage.getSubFilesList()) //一个个子文件地比较其
 
-//     Log.d(TAG, "loadVoicePackageUrlMapCbor, packageNameApplicationNameMap list size: "+ packageNameApplicationNameMap.size()); //Debug.
-    Log.d(TAG, CodePosition.newInstance().toString()+  ", voicePackageNameMap size: " + voicePackageNameMap.size()); // Debug.
+            //     Log.d(TAG, "loadVoicePackageUrlMapCbor, packageNameApplicationNameMap list size: "+ packageNameApplicationNameMap.size()); //Debug.
+            Log.d(TAG, CodePosition.newInstance().toString()+  ", voicePackageNameMap size: " + voicePackageNameMap.size()); // Debug.
 
             
             
             // Old:
             
-//             VoicePackageMapMessageProtos.VoicePackageMapMessage translateRequestMessage=VoicePackageMapMessageProtos.VoicePackageMapMessage.parseFrom(photoBytes); //创建一个消息对象。
-// 
-//             List<VoicePackageMapItemMessageProtos.VoicePackageMapItemMessage> relationships=translateRequestMessage.getMapList(); //获取关系列表。
-// 
-//             for(VoicePackageMapItemMessageProtos.VoicePackageMapItemMessage currentRelationship: relationships) //一个个地加入映射中。
-//             {
-//               PackageItemInfo currentPackageItemInfo=new PackageItemInfo(); //当前的包条目信息对象。
-// 
-//               currentPackageItemInfo.packageName=currentRelationship.getPackageName();
-//               currentPackageItemInfo.name=currentRelationship.getActivityName(); //记录活动名字。
-// 
-//               voicePackageNameMap.put(currentRelationship.getVoiceRecognizeResult(), currentPackageItemInfo); //加入映射。
-// 
-//               List<AndroidApplicationMessage> applicationMessages=currentRelationship.getApplicationInformationList(); //获取多映射目标列表
-// 
-//               for(AndroidApplicationMessage currentApplicationMessage: applicationMessages) //一个个地加入映射目标
-//               {
-//                 PackageItemInfo currentPackageItemInfoA=new PackageItemInfo(); //当前的包条目信息对象。
-// 
-//                 currentPackageItemInfoA.packageName=currentApplicationMessage.getPackageName();
-//                 currentPackageItemInfoA.name=currentApplicationMessage.getActivityName(); //记录活动名字。
-// 
-//                 voicePackageNameMap.put(currentRelationship.getVoiceRecognizeResult(), currentPackageItemInfoA); //加入映射。
-//               } //for(AndroidApplicationMessage currentApplicationMessage: applicationMessages) //一个个地加入映射目标
-//             } //for(TranslateRequestMessageProtos.TranslateRequestMessage currentRelationship: relationships) //一个个地加入映射中。
+            //             VoicePackageMapMessageProtos.VoicePackageMapMessage translateRequestMessage=VoicePackageMapMessageProtos.VoicePackageMapMessage.parseFrom(photoBytes); //创建一个消息对象。
+            // 
+            //             List<VoicePackageMapItemMessageProtos.VoicePackageMapItemMessage> relationships=translateRequestMessage.getMapList(); //获取关系列表。
+            // 
+            //             for(VoicePackageMapItemMessageProtos.VoicePackageMapItemMessage currentRelationship: relationships) //一个个地加入映射中。
+            //             {
+            //               PackageItemInfo currentPackageItemInfo=new PackageItemInfo(); //当前的包条目信息对象。
+            // 
+            //               currentPackageItemInfo.packageName=currentRelationship.getPackageName();
+            //               currentPackageItemInfo.name=currentRelationship.getActivityName(); //记录活动名字。
+            // 
+            //               voicePackageNameMap.put(currentRelationship.getVoiceRecognizeResult(), currentPackageItemInfo); //加入映射。
+            // 
+            //               List<AndroidApplicationMessage> applicationMessages=currentRelationship.getApplicationInformationList(); //获取多映射目标列表
+            // 
+            //               for(AndroidApplicationMessage currentApplicationMessage: applicationMessages) //一个个地加入映射目标
+            //               {
+            //                 PackageItemInfo currentPackageItemInfoA=new PackageItemInfo(); //当前的包条目信息对象。
+            // 
+            //                 currentPackageItemInfoA.packageName=currentApplicationMessage.getPackageName();
+            //                 currentPackageItemInfoA.name=currentApplicationMessage.getActivityName(); //记录活动名字。
+            // 
+            //                 voicePackageNameMap.put(currentRelationship.getVoiceRecognizeResult(), currentPackageItemInfoA); //加入映射。
+            //               } //for(AndroidApplicationMessage currentApplicationMessage: applicationMessages) //一个个地加入映射目标
+            //             } //for(TranslateRequestMessageProtos.TranslateRequestMessage currentRelationship: relationships) //一个个地加入映射中。
           }
           catch (IOException e)
+          {
+            e.printStackTrace();
+          } //catch (IOException e)
+          catch (CBORException e)
           {
             e.printStackTrace();
           } //catch (IOException e)
