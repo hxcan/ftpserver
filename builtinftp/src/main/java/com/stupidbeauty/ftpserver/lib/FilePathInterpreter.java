@@ -1,5 +1,15 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import com.stupidbeauty.hxlauncher.asynctask.LoadVoicePackageNameMapTask;
+import java.util.Timer;
+import java.util.TimerTask;
+import android.Manifest;
+import android.annotation.SuppressLint;
+import com.stupidbeauty.hxlauncher.asynctask.VoicePackageNameMapSaveTask;
+import com.stupidbeauty.hxlauncher.bean.VoiceCommandHitDataObject;
+// import com.android.volley.RequestQueue;
+// import com.google.gson.Gson;
+// import com.google.protobuf.ByteString;
 import com.stupidbeauty.codeposition.CodePosition;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
@@ -40,8 +50,19 @@ public class FilePathInterpreter
   */
   private FilePathInterpreter()
   {
+    loadVirtualPathMap(); // Load the virtual path map.
   } // FilePathInterpreter
   
+  /**
+    * 载入 virtual path to uri 之间的映射。
+    */
+  private void loadVirtualPathMap()
+  {
+      LoadVoicePackageNameMapTask translateRequestSendTask =new LoadVoicePackageNameMapTask(); //创建异步任务。
+
+      translateRequestSendTask.execute(this, context); //执行任务。
+  } //private void loadVoicePackageNameMap()
+
   /**
   * Create the file path interpreter.
   */
@@ -51,12 +72,24 @@ public class FilePathInterpreter
   } // public static FilePathInterpreter migrateCreateFilePathInterpreter()
   
   /**
+    * 保存映射。 The virtual path map.
+    */ 
+  private void saveVirtualPathMap()
+  {
+    VoicePackageNameMapSaveTask translateRequestSendTask =new VoicePackageNameMapSaveTask(); // 创建异步任务。
+
+    translateRequestSendTask.execute(virtualPathMap, context); // 执行任务。
+  } //private void saveVoicePackageNameMap()
+
+  /**
   * Mount virtual path.
   */
   public void mountVirtualPath(String fullPath, Uri uri)
   {
     Log.d(TAG, CodePosition.newInstance().toString()+  ", full path : " + fullPath + ", uri to use: " + uri.toString()); // Debug.
     virtualPathMap.put(fullPath, uri); // Put it into the map.
+    
+    saveVirtualPathMap(); // Save the virtual path map.
   } // public void mountVirtualPath(String fullPath, Uri uri)
 
   public void setContext(Context context)

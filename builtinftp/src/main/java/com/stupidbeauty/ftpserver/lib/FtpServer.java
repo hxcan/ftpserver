@@ -107,7 +107,7 @@ public class FtpServer
   {
     return ip;
   } // public String getIp()
-  
+
   public void setIp(String externalIp)
   {
     this.ip=externalIp; // Remember the external ip.

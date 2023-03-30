@@ -29,4 +29,5 @@ dependencies
   implementation 'commons-io:commons-io:2.6'
   implementation "androidx.documentfile:documentfile:1.0.1"
   implementation 'com.github.hxcan:CodePosition:2023.3.29'
+  compile 'com.upokecenter:cbor:4.4.4'
 }
