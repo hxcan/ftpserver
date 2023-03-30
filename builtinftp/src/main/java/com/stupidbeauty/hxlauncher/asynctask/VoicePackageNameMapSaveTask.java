@@ -57,13 +57,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Random;
 
-// import static com.stupidbeauty.comgooglewidevinesoftwaredrmremover.Constants.Networks.RabbitMQPassword;
-// import static com.stupidbeauty.comgooglewidevinesoftwaredrmremover.Constants.Networks.RabbitMQUserName;
-// import static com.stupidbeauty.comgooglewidevinesoftwaredrmremover.Constants.Networks.TRANSLATE_REQUEST_QUEUE_NAME;
-// import static com.stupidbeauty.hxlauncher.HxLauncherIconType.PbActivityIconType;
-// import static com.stupidbeauty.hxlauncher.HxLauncherIconType.PbShortcutIconType;
-
-
 /**
  * @author Hxcan
  * @since Mar 13, 2014
@@ -73,119 +66,53 @@ public final class VoicePackageNameMapSaveTask extends AsyncTask<Object, Void, B
   private Context context= null; //!< 上下文
 	private static final String TAG="VoicePackageNameMapSaveTask"; //!<输出调试信息时使用的标记。
 
-		@Override
-		protected Boolean doInBackground(Object... params)
+  @Override
+  protected Boolean doInBackground(Object... params)
+  {
+    //参数顺序：
+    //            private MultiMap<String, PackageItemInfo> voicePackageNameMap; //!<语音识别结果与包条目信息之间的映射关系。本设备独有的
+    //            voiceRecognizeResultString, packageName, activityName, recordSoundFilePath, iconType, iconTitle
+
+    Boolean result=false; //结果，是否成功。
+
+    //            String subject=(String)(params[0]); //获取识别结果文字内容。
+    HashMap<String, Uri> voicePackageNameMap=(HashMap<String, Uri>)(params[0]); // 获取映射对象
+    context= (Context)(params[1]); // 获取上下文
+
+
+
+    boolean addPhotoFile=false; //Whether to add photo file
+
+    Log.d(TAG,"1129, saveVoicePackageNameMap, answer value: "); //Debug.
+
+    byte[] serializedContent = constructVoiceCommandHistDataMessageCbor(voicePackageNameMap); // Construct the message byte array.
+
+    //             byte[] serializedContent=translateRequestMessage.build().toByteArray(); //序列化成字节数组。
+
+    Log.d(TAG,"1134, saveVoicePackageNameMap, answer value: content length: " + serializedContent.length); //Debug.
+
+
+    File photoFile=findVoicePackageMapFile(); //寻找语音识别与软件包映射文件。
+
+    Log.d(TAG,"143, saveVoicePackageNameMap, file path: " + photoFile.getAbsolutePath()); //Debug.
+
+    try
     {
-      //参数顺序：
-      //            private MultiMap<String, PackageItemInfo> voicePackageNameMap; //!<语音识别结果与包条目信息之间的映射关系。本设备独有的
-      //            voiceRecognizeResultString, packageName, activityName, recordSoundFilePath, iconType, iconTitle
+      FileUtils.writeByteArrayToFile(photoFile, serializedContent); //写入内容。
 
-      Boolean result=false; //结果，是否成功。
+        Log.d(TAG,"149, saveVoicePackageNameMap, file saved, length: " + photoFile.length()); //Debug.
 
-      //            String subject=(String)(params[0]); //获取识别结果文字内容。
-      HashMap<String, Uri> voicePackageNameMap=(HashMap<String, Uri>)(params[0]); // 获取映射对象
-      context= (Context)(params[1]); // 获取上下文
-
-
-
-      for(String currentVoiceRecognizeResult: voicePackageNameMap.keySet()) //一个个地保存。
+      }
+      catch (IOException e)
       {
-        Collection<PackageItemInfo> coll = (Collection<PackageItemInfo>) voicePackageNameMap.get(currentVoiceRecognizeResult);
-        //            PackageItemInfo currentPackageItemInformation=voicePackageNameMap.get(currentVoiceRecognizeResult); //
+        e.printStackTrace();
+      }
+
+      Log.d(TAG,"1144, saveVoicePackageNameMap, answer value: "); //Debug.
 
 
-
-
-
-        //            .setPackageName(currentPackageName).setActivityName(currentActivityName)
-        //            translateRequestMessageBuilder.setIconType(PbActivityIconType); //设置图标类型．
-
-        Set<String> displaynameSet=new HashSet<>(); // 显示名字集合。
-
-        for(PackageItemInfo currentPackageInformation: coll) //一个个包地添加
-        {
-                    String currentPackageName=currentPackageInformation.packageName; //获取包名。
-                    String currentActivityName=currentPackageInformation.name; //获取活动名。
-
-                    String displayname=currentPackageName + "/" + currentActivityName; // 构造显示名字。
-                    
-                    if (displaynameSet.contains(displayname)) // 已在集合中。
-                    {
-                    } //if (displaynameSet.contains(displayname)) // 已在集合中。
-                    else // 不在集合中。
-                    {
-                      displaynameSet.add(displayname); // 加入集合中。
-                    } //else // 不在集合中。
-                } //for(PackageItemInfo currentPackageInformation: coll) //一个个包地添加
-
-
-
-
-            } //for(String currentVoiceRecognizeResult: voicePackageNameMap.keySet()) //一个个地保存。
-
-            Log.d(TAG,"1091, saveVoicePackageNameMap, answer value: "); //Debug.
-
-            boolean addPhotoFile=false; //Whether to add photo file
-
-            if (addPhotoFile) //Should add photo file
-            {
-                //放入一张照片：
-                //随机选择一张照片并复制：
-                File photoFileDcim=findRandomPhotoFileDcim(); //随机寻找一个照片文件。
-
-                try //尝试构造请求对象，并且捕获可能的异常。
-                {
-                  if (photoFileDcim!=null) //找到了照片文件。
-                  {
-                    byte[] photoBytes= FileUtils.readFileToByteArray(photoFileDcim); //将照片文件内容全部读取。
-                  } //if (photoFile!=null) //找到了照片文件。
-
-                  long eventTimeStamp=System.currentTimeMillis(); //获取时间戳。
-
-                  //            String photoFileName=photoFile.getName(); //获取文件名。
-                } //try //尝试构造请求对象，并且捕获可能的异常。
-                catch (Exception e)
-                {
-                    e.printStackTrace();
-                }
-
-            } //if (addPhotoFile) //Should add photo file
-            else  //Should not add photo file
-            {
-//            translateRequestMessage.clearPictureFileContent()
-            } //else  //Should not add photo file
-
-
-            Log.d(TAG,"1129, saveVoicePackageNameMap, answer value: "); //Debug.
-
-            byte[] serializedContent = constructVoiceCommandHistDataMessageCbor(voicePackageNameMap); // Construct the message byte array.
-
-//             byte[] serializedContent=translateRequestMessage.build().toByteArray(); //序列化成字节数组。
-
-            Log.d(TAG,"1134, saveVoicePackageNameMap, answer value: content length: " + serializedContent.length); //Debug.
-
-
-            File photoFile=findVoicePackageMapFile(); //寻找语音识别与软件包映射文件。
-
-            Log.d(TAG,"143, saveVoicePackageNameMap, file path: " + photoFile.getAbsolutePath()); //Debug.
-
-            try
-            {
-                FileUtils.writeByteArrayToFile(photoFile, serializedContent); //写入内容。
-
-                Log.d(TAG,"149, saveVoicePackageNameMap, file saved, length: " + photoFile.length()); //Debug.
-
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-
-            Log.d(TAG,"1144, saveVoicePackageNameMap, answer value: "); //Debug.
-
-
-            return result;
-		}
+      return result;
+  }
 
     private byte[] constructVoiceCommandHistDataMessageCbor(HashMap<String, Uri> subject)
     {
@@ -231,38 +158,6 @@ public final class VoicePackageNameMapSaveTask extends AsyncTask<Object, Void, B
 
       boolean addPhotoFile=false; //Whether to add photo file
 
-      if (addPhotoFile) //Should add photo file
-      {
-        //随机选择一张照片并复制：
-        File photoFileDcim=findRandomPhotoFile(); //随机寻找一个照片文件。
-
-        try //尝试构造请求对象，并且捕获可能的异常。
-        {
-
-
-          byte[] photoBytes= null; //将照片文件内容全部读取。
-
-          if (photoFileDcim!=null) //找到了照片文件。
-          {
-            photoBytes= FileUtils.readFileToByteArray(photoFileDcim); //将照片文件内容全部读取。
-
-          } //if (photoFile!=null) //找到了照片文件。
-
-          long eventTimeStamp=System.currentTimeMillis(); //获取时间戳。
-
-
-
-
-        } //try //尝试构造请求对象，并且捕获可能的异常。
-        catch (Exception e)
-        {
-          e.printStackTrace();
-        }
-      } //if (addPhotoFile) //Should add photo file
-      else //Should not add photof ile
-      {
-      } //else //Should not add photof ile
-
       CBORObject cborObject= CBORObject.FromObject(translateRequestBuilder); //创建对象
 
       byte[] array=cborObject.EncodeToBytes();
@@ -275,58 +170,9 @@ public final class VoicePackageNameMapSaveTask extends AsyncTask<Object, Void, B
     } //private byte[] constructVoiceCommandHistDataMessageCbor(String subject, String body, String acitivtyName, LauncherIconType iconType, String iconTitle, File photoFile)
 
     /**
-     * 随机寻找一个照片文件。
-     * @return 随机寻找的一个照片文件。
-     */
-    private  File findRandomPhotoFileDcim()
-    {
-        File result=null;
-
-        String photoDirectoryPath= com.stupidbeauty.hxlauncher.Constants.DirPath.DCIM_SD_CARD_PATH; //照片目录路径。
-
-        File photoDirecotry= new File(photoDirectoryPath); //照片目录。
-
-        Log.d(TAG,"findRandomPhotoFile,photo directory:"+photoDirectoryPath); //Debug.
-
-        IOFileFilter fileFilter= TrueFileFilter.INSTANCE; //文件过滤器。
-
-        IOFileFilter dirFilter= TrueFileFilter.INSTANCE; //文件过滤器。
-
-        try //尝试列出文件，并且捕获可能的异常。
-        {
-
-            Collection<File> photoFiles= FileUtils.listFiles(photoDirecotry, fileFilter, dirFilter); //列出全部文件。
-
-            Random random=new Random(); //随机数生成器。
-
-//            LogHelper.d(TAG,"findRandomPhotoFile,photo amount:"+photoFiles.size()); //Debug.
-
-            if (photoFiles.size()>0) //有照片文件。
-            {
-                int randomIndex=random.nextInt(photoFiles.size()); //随机选择一个文件。
-
-                result=(File)((photoFiles.toArray())[randomIndex]); //选择指定的文件。
-
-            } //if (photoFiles.size()>0) //有照片文件。
-
-
-        } //try //尝试列出文件，并且捕获可能的异常。
-        catch (IllegalArgumentException illegalArgumentException) //参数不符合要求。
-        {
-            illegalArgumentException.printStackTrace(); //输出调用栈。
-        } //catch (IllegalArgumentException illegalArgumentException) //参数不符合要求。
-
-
-
-
-        return result;
-    } //private  File findRandomPhotoFile()
-
-    /**
      * 寻找语音识别与软件包映射文件。
      * @return 语音识别与软件包映射文件。
      */
-    @SuppressWarnings("StatementWithEmptyBody")
     private  File findVoicePackageMapFile()
     {
         File result=null;
@@ -369,56 +215,6 @@ public final class VoicePackageNameMapSaveTask extends AsyncTask<Object, Void, B
 
         return result;
     } //private  File findRandomPhotoFile()
-
-
-    /**
-     * 随机寻找一个照片文件。
-     * @return 随机寻找的一个照片文件。
-     */
-    private  File findRandomPhotoFile()
-    {
-        File result=null;
-
-        String photoDirectoryPath= com.stupidbeauty.hxlauncher.Constants.DirPath.DCIM_SD_CARD_PATH; //照片目录路径。
-
-        File photoDirecotry= new File(photoDirectoryPath); //照片目录。
-
-        Log.d(TAG,"findRandomPhotoFile,photo directory:"+photoDirectoryPath); //Debug.
-
-        IOFileFilter fileFilter= TrueFileFilter.INSTANCE; //文件过滤器。
-
-        IOFileFilter dirFilter= TrueFileFilter.INSTANCE; //文件过滤器。
-
-        try //尝试列出文件，并且捕获可能的异常。
-        {
-
-            Collection<File> photoFiles= FileUtils.listFiles(photoDirecotry, fileFilter, dirFilter); //列出全部文件。
-
-            Random random=new Random(); //随机数生成器。
-
-            Log.d(TAG,"findRandomPhotoFile,photo amount:"+photoFiles.size()); //Debug.
-
-            if (photoFiles.size()>0) //有照片文件。
-            {
-                int randomIndex=random.nextInt(photoFiles.size()); //随机选择一个文件。
-
-                result=(File)((photoFiles.toArray())[randomIndex]); //选择指定的文件。
-
-            } //if (photoFiles.size()>0) //有照片文件。
-
-
-        } //try //尝试列出文件，并且捕获可能的异常。
-        catch (IllegalArgumentException illegalArgumentException) //参数不符合要求。
-        {
-            illegalArgumentException.printStackTrace(); //输出调用栈。
-        } //catch (IllegalArgumentException illegalArgumentException) //参数不符合要求。
-
-
-
-
-        return result;
-    } //private  File findRandomPhotoFile()
-
 
 
     /**
