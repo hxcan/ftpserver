@@ -5,7 +5,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import android.Manifest;
 import android.annotation.SuppressLint;
-import com.stupidbeauty.hxlauncher.asynctask.VoicePackageNameMapSaveTask;
+// import com.stupidbeauty.hxlauncher.asynctask.VoicePackageNameMapSaveTask;
 import com.stupidbeauty.hxlauncher.bean.VoiceCommandHitDataObject;
 // import com.android.volley.RequestQueue;
 // import com.google.gson.Gson;
@@ -91,7 +91,7 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
     */ 
   private void saveVirtualPathMap()
   {
-    VoicePackageNameMapSaveTask translateRequestSendTask =new VoicePackageNameMapSaveTask(); // 创建异步任务。
+    VirtualPathMapSaveTask translateRequestSendTask =new VirtualPathMapSaveTask(); // 创建异步任务。
 
     translateRequestSendTask.execute(virtualPathMap, context); // 执行任务。
   } //private void saveVoicePackageNameMap()

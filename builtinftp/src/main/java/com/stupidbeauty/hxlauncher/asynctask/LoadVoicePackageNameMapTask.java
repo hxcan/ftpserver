@@ -21,10 +21,7 @@ import java.io.File;
 import android.annotation.SuppressLint;
 import com.stupidbeauty.hxlauncher.bean.VoicePackageUrlMapData;
 import android.net.Uri;
-// import com.stupidbeauty.hxlauncher.manager.ActiveUserReportManager;
 import android.os.Debug;
-// import com.stupidbeauty.hxlauncher.asynctask.LoadBuiltinVoicePackageNameMapTask;
-// import com.stupidbeauty.hxlauncher.asynctask.BuildActivityLabelPackageItemInfoMapTask;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
@@ -41,7 +38,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import android.view.View;
 import android.os.AsyncTask;
-// import com.stupidbeauty.hxlauncher.LauncherActivity;
 import java.util.HashMap;
 import com.stupidbeauty.hxlauncher.bean.ApplicationNamePair;
 import java.util.List;
@@ -50,14 +46,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ShortcutInfo;
 import android.graphics.drawable.AnimationDrawable;
-// import org.apache.commons.collections4.SetValuedMap;
 import android.util.Pair;
-// import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-// import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
-// import com.andexert.library.RippleView;
-// import com.stupidbeauty.hxlauncher.AndroidApplicationMessage;
-// import com.stupidbeauty.hxlauncher.VoicePackageMapItemMessageProtos;
-// import com.stupidbeauty.hxlauncher.VoicePackageMapMessageProtos;
 
 public class LoadVoicePackageNameMapTask extends AsyncTask<Object, Void, Object>
 {
@@ -120,44 +109,22 @@ public class LoadVoicePackageNameMapTask extends AsyncTask<Object, Void, Object>
           try
           {
             byte[] photoBytes= FileUtils.readFileToByteArray(photoFile); //将照片文件内容全部读取。
-
-            
+            Log.d(TAG, CodePosition.newInstance().toString()+  ", byte array length: " + photoBytes.length); // Debug.
             
             CBORObject videoStreamMessage= CBORObject.DecodeFromBytes(photoBytes); //解析消息。
                 
             Collection<CBORObject> subFilesList=videoStreamMessage.get("voicePackageMapJsonItemList").getValues();
-        
-
-
-
-
-
 
             for (CBORObject currentSubFile: subFilesList) //一个个子文件地比较其文件名。
             {
               String currentRelationshipgetVoiceRecognizeResult=currentSubFile.get("virtualPath").AsString(); // Get virutal path.
               String uriString=currentSubFile.get("uri").AsString(); // Get the uri.
-              String packageName=currentSubFile.get("packageName").AsString();
-              String informationUrl=currentSubFile.get("informationUrl").AsString(); // 获取信息页面地址。
+//               String packageName=currentSubFile.get("packageName").AsString();
+//               String informationUrl=currentSubFile.get("informationUrl").AsString(); // 获取信息页面地址。
               Uri currentPackageItemInfo=Uri.parse(uriString); // Parse the uri.
                     
-              CBORObject versionNameObject=currentSubFile.get("versionName");
-            
-              if (versionNameObject!=null)
-              {
-                String versionName=versionNameObject.AsString();
-
-              } //versionNameObject
-                
-
-
-
-
-      
-      
               Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + currentRelationshipgetVoiceRecognizeResult + ", uri: " + currentPackageItemInfo); // Debug.
               voicePackageNameMap.put(currentRelationshipgetVoiceRecognizeResult, currentPackageItemInfo); //加入映射。
-
             } //for (FileMessageContainer.FileMessage currentSubFile:videoStreamMessage.getSubFilesList()) //一个个子文件地比较其
 
             //     Log.d(TAG, "loadVoicePackageUrlMapCbor, packageNameApplicationNameMap list size: "+ packageNameApplicationNameMap.size()); //Debug.
