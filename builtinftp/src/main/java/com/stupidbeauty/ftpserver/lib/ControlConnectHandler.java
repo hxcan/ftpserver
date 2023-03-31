@@ -11,7 +11,7 @@ import com.koushikdutta.async.callback.ListenCallback;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.LocaleList;
-import android.os.PowerManager;
+// import android.os.PowerManager;
 import 	android.provider.DocumentsContract;
 import java.util.Locale;
 import java.time.ZoneId;
@@ -30,7 +30,7 @@ import android.speech.SpeechRecognizer;
 import android.util.Log;
 import android.app.Application;
 import android.content.Context;
-import android.util.Log;
+// import android.util.Log;
 import java.util.Date;    
 import java.time.format.DateTimeFormatter;
 import java.io.File;
@@ -340,14 +340,14 @@ public class ControlConnectHandler
       if (photoDirecotry.isDirectory()) // 是个目录
       {
 //         fullPath=photoDirecotry.getPath(); // 获取当前工作目录的完整路径。
-        Uri directoryUri=photoDirecotry.getUri(); // Get the uri.
-        String directyoryUriPath=directoryUri.getPath(); // Get the string of the uri.
+//         Uri directoryUri=photoDirecotry.getUri(); // Get the uri.
+//         String directyoryUriPath=directoryUri.getPath(); // Get the string of the uri.
 //         String directoryPurePath=directyoryUriPath.replaceAll("file://", ""); // Replace prefix.
 //         currentVersionName=currentVersionName.replaceAll("[a-zA-Z]|\\s", "");
 
 //         File directoryFileObject=new File()
         
-        fullPath=directyoryUriPath; // 获取当前工作目录的完整路径。
+//         fullPath=directyoryUriPath; // 获取当前工作目录的完整路径。
 
         
         String rootPath=rootDirectory.getPath(); // 获取根目录的完整路径。
@@ -359,7 +359,7 @@ public class ControlConnectHandler
           currentWorkingDirectory="/"; // 当前工作目录是根目录。
         } // if (currentWorkingDirectory.isEmpty()) // 是空白的了
         
-        Log.d(TAG, "processCwdCommand, fullPath: " + fullPath ); // Debug.
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", fullPath: " + fullPath ); // Debug.
         Log.d(TAG, "processCwdCommand, rootPath: " + rootPath ); // Debug.
         Log.d(TAG, "processCwdCommand, currentWorkingDirectory: " + currentWorkingDirectory ); // Debug.
 
@@ -461,7 +461,7 @@ public class ControlConnectHandler
 
         String replyString="227 Entering Passive Mode ("+ipString+","+port256+","+portModule+") "; // 回复内容。
 
-        Log.d(TAG, "reply string: " + replyString); //Debug.
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString); // Debug.
 
         binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
       } // else if (command.equals("PASV")) // 被动传输
@@ -601,7 +601,7 @@ public class ControlConnectHandler
             
         String replyString="250 "; // 回复内容。
 
-        Log.d(TAG, "reply string: " + replyString); //Debug.
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString); // Debug.
           
         binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
       } //else if (command.equals("DELE")) // 删除文件
@@ -809,7 +809,7 @@ public class ControlConnectHandler
       //陈欣
       String replyString="150 Opening BINARY mode data connection for file list, ChenXin"; // 回复内容。
 
-      Log.d(TAG, CodePosition.newInstance().toString()+  "reply string: " + replyString + ", list command content: " + content); // Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString + ", list command content: " + content); // Debug.
 //       Log.d(TAG, CodePosition.newInstance().toString()+ ", installer type: "+ installerType + ", file path: " + downloadFilePath ); //Debug.
 
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
@@ -836,8 +836,6 @@ public class ControlConnectHandler
 //             public void onCompleted(Exception ex) {
 //                 if (ex != null) throw new RuntimeException(ex);
 //                 System.out.println("[Client] Successfully wrote message");
-//             }
-//         });
 
         socket.setDataCallback(new DataCallback() {
             @Override
@@ -866,7 +864,7 @@ public class ControlConnectHandler
           public void onCompleted(Exception ex) 
           {
             if(ex != null) throw new RuntimeException(ex);
-            System.out.println("[Client] Successfully end connection");
+//             System.out.println("[Client] Successfully end connection");
           } // public void onCompleted(Exception ex) 
         }); // socket.setEndCallback(new CompletedCallback() 
       } //else // 无异常。
@@ -892,7 +890,7 @@ public class ControlConnectHandler
           {
             receiveDataSocket(bb);
           }
-        });
+        }); // socket.setDataCallback(
 
       socket.setClosedCallback(new CompletedCallback() 
       {
@@ -1073,7 +1071,7 @@ public class ControlConnectHandler
           {
             System.out.println("[Server] Successfully shutdown server");
           }
-        }
+        } // public void onCompleted(Exception ex) 
       });
     } //private void setupDataServer()
 }
