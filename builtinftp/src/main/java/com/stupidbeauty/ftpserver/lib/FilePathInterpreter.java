@@ -152,6 +152,7 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
     while((!currentTryingPath.equals("/")) && (!result)) // Not to root
     {
       result=virtualPathMap.containsKey(currentTryingPath);
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", curent trying Path : " + currentTryingPath + ", result: " + result); // Debug.
       
       if (result) // Found it
       {
@@ -175,11 +176,12 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
       Log.d(TAG, CodePosition.newInstance().toString()+  ", curent trying Path : " + currentTryingPath + ", result: " + result); // Debug.
     } // while(!currentTryingPath.equals("/")) // Not to root
     
-    if (result)
+    if (result) // Found virtual path
     {
       theFinalPath=currentTryingPath;
-    }
-    
+    } // if (result) // Found virtual path
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", the final Path : " + theFinalPath + ", result: " + result); // Debug.
+
     return theFinalPath;
   } // private String getParentVirtualPathByVirtualPathMap(String wholeDirecotoryPath)
   
