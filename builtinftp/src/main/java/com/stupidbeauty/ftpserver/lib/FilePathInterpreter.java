@@ -7,14 +7,10 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 // import com.stupidbeauty.hxlauncher.asynctask.VoicePackageNameMapSaveTask;
 // import com.stupidbeauty.hxlauncher.bean.VoiceCommandHitDataObject;
-// import com.android.volley.RequestQueue;
-// import com.google.gson.Gson;
-// import com.google.protobuf.ByteString;
 import com.stupidbeauty.codeposition.CodePosition;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.BufferedReader;
-// import com.stupidbeauty.hxlauncher.listener.BuiltinFtpServerErrorListener; 
 import android.content.Context;
 import android.util.Log;
 import java.util.Date;    
@@ -27,7 +23,7 @@ import android.os.HandlerThread;
 import androidx.documentfile.provider.DocumentFile;
 import java.io.File;
 import com.koushikdutta.async.callback.CompletedCallback;
-import com.koushikdutta.async.callback.DataCallback;
+// import com.koushikdutta.async.callback.DataCallback;
 import com.koushikdutta.async.callback.ListenCallback;
 import com.koushikdutta.async.Util;
 import android.util.Log;
@@ -192,8 +188,6 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
   {
     boolean result=false;
     
-    
-
     String currentTryingPath=getParentVirtualPathByVirtualPathMap(ConstantsFilePathAndroidData); // Get the paretn virtual path map.
     
     if (currentTryingPath!=null)
@@ -205,11 +199,10 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
   } // public boolean virtualPathExists(String ConstantsFilePathAndroidData) // Does virtual path exist
   
   /**
-  * resolve file path.
+  * resolve 完整路径。
   */
-  public DocumentFile getFile(File rootDirectory, String currentWorkingDirectory, String data51) 
+  public String resolveWholeDirectoryPath( File rootDirectory, String currentWorkingDirectory, String data51) 
   {
-    DocumentFile result=null; // Result;
     String currentWorkingDirectoryUpdate=currentWorkingDirectory; // 更新后的当前工作目录。
     
     if (data51.startsWith("/")) // 绝对路径。
@@ -220,30 +213,39 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
     String wholeDirecotoryPath = rootDirectory.getPath() + currentWorkingDirectoryUpdate + "/" + data51; // 构造完整路径。
 
     wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
-    
-//     if (wholeDirecotoryPath.endsWith("/")) // Ends with /
-//     {
-//       String bbPackageString=wholeDirecotoryPath.substring(0, wholeDirecotoryPath.length()-1);
-//       wholeDirecotoryPath=bbPackageString;
-// 
-//       Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory); // Debug.
-//     } // if (wholeDirecotoryPath.endWith("/"))
 
-//     Log.d(TAG, "getFile: wholeDirecotoryPath: " + wholeDirecotoryPath); // Debug.
+    return wholeDirecotoryPath;
+  } // public String resolveWholeDirectoryPath( File rootDirectory, String currentWorkingDirectory, String data51)
+  
+  /**
+  * resolve file path.
+  */
+  public DocumentFile getFile(File rootDirectory, String currentWorkingDirectory, String data51) 
+  {
+    DocumentFile result=null; // Result;
+    
+    String wholeDirecotoryPath = resolveWholeDirectoryPath( rootDirectory, currentWorkingDirectory, data51); // resolve 完整路径。
+
     Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory); // Debug.
 
     File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
 
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ", check virtual exists"); // Debug.
     if (virtualPathExists(wholeDirecotoryPath)) // It is in the virtual path map
     {
 //       Uri uri=virtualPathMap.get(wholeDirecotoryPath); // Get the uri.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  virtual path exists"); // Debug.
       Uri uri=  getParentUriByVirtualPathMap(wholeDirecotoryPath); // Get the uri.
       DocumentFile documentFile=DocumentFile.fromTreeUri(context, uri);
       
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  parent document file: " + documentFile); // Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  parent uri: " + uri); // Debug.
       String parentVirtualPath=getParentVirtualPathByVirtualPathMap(wholeDirecotoryPath); // Get the paretn virtual path map.
       
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  parent virtual path: " + parentVirtualPath); // Debug.
       String trailingPath=wholeDirecotoryPath.substring(parentVirtualPath.length(), wholeDirecotoryPath.length());
       
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath); // Debug.
       
       String[] trialingPathSegments=trailingPath.split("/");
       
@@ -263,6 +265,7 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
       
 //       Chen xin.
       Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory + ", uri to use: " + uri.toString()); // Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory + ", uri to use: " + uri.toString()  + ", target documetn file: " + targetdocumentFile); // Debug.
 
 //       DocumentFile documentFile=DocumentFile.fromTreeUri(context, uri);
 //       DocumentFile documentFile=DocumentFile.fromTreeUri(context, targetPathuri);
@@ -273,7 +276,7 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
     {
       if (photoDirecotry.exists()) // 文件存在
       {
-      } //if (photoDirecotry.exists()) // 文件存在
+      } // if (photoDirecotry.exists()) // 文件存在
       else // 文件不 存在
       {
         //       wholeDirecotoryPath = rootDirectory.getPath() + data51; // 构造完整路径。

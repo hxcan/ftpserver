@@ -10,12 +10,10 @@ import com.koushikdutta.async.callback.DataCallback;
 import com.koushikdutta.async.callback.ListenCallback;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.LocaleList;
 import android.os.PowerManager;
 import 	android.provider.DocumentsContract;
 import java.util.Locale;
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.LocalDateTime;
 import java.io.IOException;
@@ -52,6 +50,9 @@ import android.provider.Settings;
 import android.content.Intent;
 import android.os.Environment;
 
+/**
+* The handler of control connection.
+*/
 public class ControlConnectHandler
 {
   private FilePathInterpreter filePathInterpreter=null; //!< the file path interpreter.
@@ -81,7 +82,7 @@ public class ControlConnectHandler
   private File rootDirectory=null; //!< 根目录。
 
   /**
-  * SEt user manager.
+  * Set the user manager.
   */
   public void setUserManager(UserManager userManager)
   { 
@@ -176,7 +177,7 @@ public class ControlConnectHandler
         public void onConnectCompleted(Exception ex, final AsyncSocket socket) 
         {
           handleConnectCompleted(ex, socket);
-        }
+        } // public void onConnectCompleted(Exception ex, final AsyncSocket socket) 
       });
     } //private void openDataConnectionToClient(String content)
 
@@ -268,8 +269,6 @@ public class ControlConnectHandler
     */
     private void startStor(String data51, String currentWorkingDirectory) 
     {
-//       FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-//       File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
       DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // Resolve file path.
 
       writingFile=photoDirecotry; // 记录文件。
@@ -335,7 +334,8 @@ public class ControlConnectHandler
 //       File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, targetWorkingDirectory); // 照片目录。
 
       String replyString="" ; // 回复内容。
-      String fullPath="";
+//       String fullPath="";
+      String fullPath=filePathInterpreter.resolveWholeDirectoryPath( rootDirectory, currentWorkingDirectory, targetWorkingDirectory); // resolve 完整路径。
 
       if (photoDirecotry.isDirectory()) // 是个目录
       {
@@ -370,7 +370,7 @@ public class ControlConnectHandler
         replyString="550 not a directory: " + targetWorkingDirectory; // 回复内容。
       }
 
-      Log.d(TAG, "reply string: " + replyString); //Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString); //Debug.
         
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
       
@@ -464,7 +464,7 @@ public class ControlConnectHandler
         Log.d(TAG, "reply string: " + replyString); //Debug.
 
         binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
-      } //else if (command.equals("PASV")) // 被动传输
+      } // else if (command.equals("PASV")) // 被动传输
       else if (command.equals("EPSV")) // 扩展被动模式
       {
         String replyString="202 "; // 回复内容。
@@ -548,7 +548,7 @@ public class ControlConnectHandler
         
         processUserCommand(targetWorkingDirectory); // Process user command.
 
-      } //if (command.equals("USER")) // 用户登录
+      } // if (command.equals("USER")) // 用户登录
       else if (command.equalsIgnoreCase("PASS")) // 密码
       {
         String targetWorkingDirectory=content.substring(5).trim(); // 获取新的工作目录。
@@ -640,7 +640,7 @@ public class ControlConnectHandler
           
         binaryStringSender.sendStringInBinaryMode(replyString); // 回复。
       } //else if (command.equals("EPSV")) // Extended passive mode.
-    } //private void processCommand(String command, String content)
+    } // private void processCommand(String command, String content)
 
     /**
     * Report event.
@@ -665,7 +665,7 @@ public class ControlConnectHandler
 
         uiHandler.post(runnable);
       } //if (eventListener!=null) // 有事件监听器。
-    } //private void notifyEvent(String eventCode)
+    } // private void notifyEvent(String eventCode)
 
     /**
     * Report event.
@@ -677,7 +677,7 @@ public class ControlConnectHandler
     } //private void notifyEvent(String eventCode)
 
     /**
-    *  CheCK THE permission of file manager.
+    *  Check the permission of file manager.
     */
     private void checkFileManagerPermission()
     {
@@ -733,18 +733,6 @@ public class ControlConnectHandler
 //         try 
 //         {            
 //           Uri uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fdata");            
-//           Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);            
-//           intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uri);            
-//           flag看实际业务需要可再补充            
-//           intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);            
-//           activity.startActivityForResult(intent, 6666);        
-//         } 
-//         catch (Exception e) 
-//         {            
-//           e.printStackTrace();        
-//         }    
-//       } 
-
     
       File androidDataFile=new File(Constants.FilePath.AndroidData); // Get the file object.
       
@@ -861,13 +849,14 @@ public class ControlConnectHandler
 
         socket.setClosedCallback(new CompletedCallback() {
             @Override
-            public void onCompleted(Exception ex) {
-                if(ex != null) throw new RuntimeException(ex);
-                System.out.println("[Client] Successfully closed connection");
+            public void onCompleted(Exception ex) 
+            {
+              if(ex != null) throw new RuntimeException(ex);
+              System.out.println("[Client] Successfully closed connection");
                 
-                data_socket=null;
+              data_socket=null;
                 
-                notifyStorCompleted(); // 告知上传完成。
+              notifyStorCompleted(); // 告知上传完成。
             }
         });
 
@@ -878,8 +867,8 @@ public class ControlConnectHandler
           {
             if(ex != null) throw new RuntimeException(ex);
             System.out.println("[Client] Successfully end connection");
-          }
-        });
+          } // public void onCompleted(Exception ex) 
+        }); // socket.setEndCallback(new CompletedCallback() 
       } //else // 无异常。
     }
 
@@ -1004,7 +993,7 @@ public class ControlConnectHandler
               if ((lineCounter+1)==(lineAmount)) // 是最后一条命令了。
               {
                 hasFolloingCommand=false; // 没有后续命令。
-              }
+              } // if ((lineCounter+1)==(lineAmount)) // 是最后一条命令了。
 
               processCommand(command, currentLine, hasFolloingCommand); // 处理命令。
             } // for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
@@ -1034,14 +1023,13 @@ public class ControlConnectHandler
           {
             if (ex != null) // 有异常出现
             {
-//                 throw new RuntimeException(ex);
               ex.printStackTrace(); // 报告。
             }
             else // 无异常
             {
               Log.d(TAG, "ftpmodule [Server] Successfully end connection");
             } //else // 无异常
-          }
+          } // public void onCompleted(Exception ex) 
         });
 
         binaryStringSender.sendStringInBinaryMode("220 StupidBeauty FtpServer"); // 发送回复内容。

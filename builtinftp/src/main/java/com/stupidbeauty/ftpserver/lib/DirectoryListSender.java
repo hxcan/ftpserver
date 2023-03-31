@@ -259,17 +259,14 @@ public class DirectoryListSender
     /**
     * 获取文件或目录的权限。
     */
-//     private String  getPermissionForFile(File path)
     private String  getPermissionForFile(DocumentFile path)
     {
       String permission="-rw-r--r--"; // 默认权限。
         
-      Log.d(TAG, "getPermissionForFile, path: " + path + ", is directory: " + path.isDirectory()); // Debug.
-        
-      if (path.isDirectory())
+      if (path.isDirectory()) // It is a directory
       {
         permission="drw-r--r--"; // 目录默认权限。
-      }
+      } // if (path.isDirectory()) // It is a directory
         
       return permission;
     } //private String  getPermissionForFile(File path)
