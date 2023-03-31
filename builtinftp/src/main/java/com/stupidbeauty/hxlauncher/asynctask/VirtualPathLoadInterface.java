@@ -84,14 +84,14 @@ import android.widget.Toast;
 // import com.stupidbeauty.hxlauncher.activity.ApplicationInformationActivity;
 // import com.stupidbeauty.hxlauncher.adapter.FlipAnimationAdapter;
 // import com.stupidbeauty.hxlauncher.asynctask.VoicePackageNameMapSaveTask;
-import com.stupidbeauty.hxlauncher.bean.VoiceCommandHitDataObject;
-import com.stupidbeauty.hxlauncher.bean.ApplicationNameInternationalizationData;
-import com.stupidbeauty.hxlauncher.bean.ApplicationNamePair;
-import com.stupidbeauty.hxlauncher.bean.HxShortcutInfo;
+// import com.stupidbeauty.hxlauncher.bean.VoiceCommandHitDataObject;
+// import com.stupidbeauty.hxlauncher.bean.ApplicationNameInternationalizationData;
+// import com.stupidbeauty.hxlauncher.bean.ApplicationNamePair;
+// import com.stupidbeauty.hxlauncher.bean.HxShortcutInfo;
 import com.stupidbeauty.hxlauncher.callback.LauncherAppsCallback;
-import com.stupidbeauty.hxlauncher.datastore.LauncherIconType;
-import com.stupidbeauty.hxlauncher.datastore.RuntimeInformationStore;
-import com.stupidbeauty.hxlauncher.datastore.VoiceCommandSourceType;
+// import com.stupidbeauty.hxlauncher.datastore.LauncherIconType;
+// import com.stupidbeauty.hxlauncher.datastore.RuntimeInformationStore;
+// import com.stupidbeauty.hxlauncher.datastore.VoiceCommandSourceType;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -111,7 +111,7 @@ import java.util.Stack;
 
 import com.stupidbeauty.hxlauncher.interfaces.LocalServerListLoadListener;
 
-import com.stupidbeauty.hxlauncher.bean.ApplicationListData;
+// import com.stupidbeauty.hxlauncher.bean.ApplicationListData;
 // import com.iflytek.cloud.SpeechRecognizer;
 // import com.stupidbeauty.victoriafresh.VFile;
 // import com.stupidbeauty.hxlauncher.rpc.CloudRequestorZzaqwb;
@@ -136,9 +136,9 @@ import static com.stupidbeauty.hxlauncher.Constants.Numbers.IgnoreVoiceResultLen
 import static com.stupidbeauty.hxlauncher.Constants.Operation.ToggleBuiltinShortcuts;
 import static com.stupidbeauty.hxlauncher.Constants.Operation.ToggleHiveLayout;
 import static com.stupidbeauty.hxlauncher.Constants.Operation.UnlinkVoiceCommand;
-import static com.stupidbeauty.hxlauncher.datastore.LauncherIconType.ShortcutIconType;
-import static com.stupidbeauty.hxlauncher.datastore.VoiceCommandSourceType.LocalVoiceCommandMap;
-import static com.stupidbeauty.hxlauncher.datastore.VoiceCommandSourceType.ServerVoiceCommandResponse;
+// import static com.stupidbeauty.hxlauncher.datastore.LauncherIconType.ShortcutIconType;
+// import static com.stupidbeauty.hxlauncher.datastore.VoiceCommandSourceType.LocalVoiceCommandMap;
+// import static com.stupidbeauty.hxlauncher.datastore.VoiceCommandSourceType.ServerVoiceCommandResponse;
 import android.os.Process;
 
 public interface VirtualPathLoadInterface

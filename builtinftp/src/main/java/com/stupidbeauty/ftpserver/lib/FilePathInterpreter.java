@@ -6,7 +6,7 @@ import java.util.TimerTask;
 import android.Manifest;
 import android.annotation.SuppressLint;
 // import com.stupidbeauty.hxlauncher.asynctask.VoicePackageNameMapSaveTask;
-import com.stupidbeauty.hxlauncher.bean.VoiceCommandHitDataObject;
+// import com.stupidbeauty.hxlauncher.bean.VoiceCommandHitDataObject;
 // import com.android.volley.RequestQueue;
 // import com.google.gson.Gson;
 // import com.google.protobuf.ByteString;

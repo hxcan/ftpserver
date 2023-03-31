@@ -39,7 +39,7 @@ import java.util.HashMap;
 import android.view.View;
 import android.os.AsyncTask;
 import java.util.HashMap;
-import com.stupidbeauty.hxlauncher.bean.ApplicationNamePair;
+// import com.stupidbeauty.hxlauncher.bean.ApplicationNamePair;
 import java.util.List;
 import android.content.pm.PackageItemInfo;
 import android.content.pm.PackageManager;
