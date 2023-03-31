@@ -163,6 +163,15 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
       File parentVirtualFile=virtualFile.getParentFile();
       
       currentTryingPath=parentVirtualFile.getPath();
+      
+      if (currentTryingPath.endsWith("/")) // Ends iwth /
+      {
+      } // if (currentTryingPath.endsWith("/")) // Ends iwth /
+      else // NOt end with /
+      {
+//         currentTryingPath.append("/"); // Append /
+        currentTryingPath=currentTryingPath+"/"; // Append /
+      } // else // NOt end with /
       Log.d(TAG, CodePosition.newInstance().toString()+  ", curent trying Path : " + currentTryingPath + ", result: " + result); // Debug.
     } // while(!currentTryingPath.equals("/")) // Not to root
     
@@ -172,7 +181,6 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
     }
     
     return theFinalPath;
-
   } // private String getParentVirtualPathByVirtualPathMap(String wholeDirecotoryPath)
   
   /**
