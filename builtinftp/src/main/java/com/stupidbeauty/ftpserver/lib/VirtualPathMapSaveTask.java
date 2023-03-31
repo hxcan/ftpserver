@@ -105,7 +105,7 @@ public class VirtualPathMapSaveTask extends AsyncTask<Object, Void, Boolean>
         Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + currentVirtualPath + ", uri: " + curentUri); // Debug.
 
         currentVirtualPathMapItem.setVirtualPath(currentVirtualPath); // SEt virtual path.
-        currentVirtualPathMapItem.setUri(curentUri); // SEt Uri.
+        currentVirtualPathMapItem.setUri(curentUri.toString()); // SEt Uri.
       
         virtualPathMapList.add(currentVirtualPathMapItem); // Add the item.
       } // for(String currentVirtualPath: virtualPathList) // Add the virtual paths one by one.

@@ -19,7 +19,6 @@ import com.upokecenter.cbor.CBORObject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import android.annotation.SuppressLint;
-// import com.stupidbeauty.hxlauncher.bean.VoicePackageUrlMapData;
 import android.net.Uri;
 import android.os.Debug;
 import org.apache.commons.io.FileUtils;
@@ -58,7 +57,7 @@ public class LoadVoicePackageNameMapTask extends AsyncTask<Object, Void, Object>
 	private VirtualPathLoadInterface launcherActivity=null; //!< The interface of virtual path load result.
 	
     /**
-     * 寻找语音识别与软件包映射文件。
+     * 寻找 Virtual path 映射文件。
      * @return 语音识别与软件包映射文件。
      */
     private  File findVoicePackageMapFile()
@@ -88,7 +87,7 @@ public class LoadVoicePackageNameMapTask extends AsyncTask<Object, Void, Object>
             e.printStackTrace();
           }
         } //else //文件不存在。
-      } //else //该目录存在。
+      } // else //该目录存在。
 
         return result;
     } //private  File findRandomPhotoFile()
@@ -110,7 +109,7 @@ public class LoadVoicePackageNameMapTask extends AsyncTask<Object, Void, Object>
           {
             byte[] photoBytes= FileUtils.readFileToByteArray(photoFile); //将照片文件内容全部读取。
             Log.d(TAG, CodePosition.newInstance().toString()+  ", byte array length: " + photoBytes.length); // Debug.
-            Log.d(TAG, CodePosition.newInstance().toString()+  ", byte array content: " + photoBytes.toString()); // Debug.
+//             Log.d(TAG, CodePosition.newInstance().toString()+  ", byte array content: " + photoBytes.toString()); // Debug.
             
             CBORObject videoStreamMessage= CBORObject.DecodeFromBytes(photoBytes); // 解析消息。
             String jsonString = videoStreamMessage.ToJSONString(); // Get the json string.
@@ -129,7 +128,7 @@ public class LoadVoicePackageNameMapTask extends AsyncTask<Object, Void, Object>
               {
                 String currentRelationshipgetVoiceRecognizeResult=virtualPathObject.AsString(); // Get virutal path.
                 String uriString=currentSubFile.get("uri").AsString(); // Get the uri.
-                //               String packageName=currentSubFile.get("packageName").AsString();
+
                 //               String informationUrl=currentSubFile.get("informationUrl").AsString(); // 获取信息页面地址。
                 Uri currentPackageItemInfo=Uri.parse(uriString); // Parse the uri.
                       

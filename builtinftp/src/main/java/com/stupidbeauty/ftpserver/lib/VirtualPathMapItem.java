@@ -8,7 +8,7 @@ import java.io.BufferedReader;
 
 public class VirtualPathMapItem
 {
-  private Uri uri; //!< The uri.
+  private String uri; //!< The uri.
   private String virtualPath; //!< Virtual path.
   
   public String getVirtualPath()
@@ -16,7 +16,7 @@ public class VirtualPathMapItem
     return virtualPath;
   }
   
-  public Uri getUri()
+  public String getUri()
   {
     return uri;
   } 
@@ -26,7 +26,7 @@ public class VirtualPathMapItem
     this.virtualPath=virtualPath;
   }
   
-  public void setUri(Uri uri)
+  public void setUri(String uri)
   {
     this.uri=uri;
   }
