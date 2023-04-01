@@ -694,9 +694,10 @@ public class ControlConnectHandler
         else // Not file manager
         {
           // Chen xin
-          gotoFileManagerSettingsPage(); // Goto file manager settings page.
+//           gotoFileManagerSettingsPage(); // Goto file manager settings page.
+          notifyEvent(EventListener.NEED_EXTERNAL_STORAGE_MANAGER_PERMISSION, null); // Notify event, need external storage manager permission.
         } // else // Not file manager
-      }
+      } // if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) // Android 11. isExternalStorageManager
     } // private void checkFileManagerPermission()
 
     /**
