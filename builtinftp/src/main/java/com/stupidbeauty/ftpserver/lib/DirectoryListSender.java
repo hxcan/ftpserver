@@ -223,7 +223,7 @@ public class DirectoryListSender
           
           if (paths.length==0) // No conet listed
           {
-            controlConnectHandler.checkFileManagerPermission(); // Check file manager permission.
+            controlConnectHandler.checkFileManagerPermission(Constants.Permission.Read, null); // Check file manager permission.
           } // if (paths.length==0) // No conet listed
           else // Listed Successfully
           {

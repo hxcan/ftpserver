@@ -411,6 +411,44 @@ public class ControlConnectHandler
       
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
     } //private void processSizeCommand(String data51)
+    
+    /**
+    *  Process the dele command
+    */
+    private void processDeleCommand(String data51)
+    {
+      // 删除文件
+
+      String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
+                  
+      wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
+                  
+      //         FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
+      DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve file
+
+      boolean deleteResult= photoDirecotry.delete();
+          
+      Log.d(TAG, "delete result: " + deleteResult); // Debug.
+      
+      String replyString="250 "; // 回复内容。
+
+      if (deleteResult) // Delete success
+      {
+        notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
+        replyString="250 "; // 回复内容。
+      } // if (deleteResult) // Delete success
+      else // Delete fail
+      {
+        replyString="550 File delete failed"; // File delete failed.
+//         replyString="250 "; // 回复内容。
+
+        checkFileManagerPermission(Constants.Permission.Write, photoDirecotry); // Check permission of write.
+      } // else // Delete fail
+
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString); // Debug.
+        
+      binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
+    } // private void processDeleCommand(String data51)
 
     /**
      * 处理命令。
@@ -583,27 +621,9 @@ public class ControlConnectHandler
         String data51= content.substring(5);
 
         data51=data51.trim(); // 去掉末尾换行
+        
+        processDeleCommand(data51); // Procee the dele command
 
-        // 删除文件
-
-        String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
-                    
-        wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
-                    
-//         FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-        DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve file
-
-        boolean deleteResult= photoDirecotry.delete();
-            
-        Log.d(TAG, "delete result: " + deleteResult); // Debug.
-            
-        notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
-            
-        String replyString="250 "; // 回复内容。
-
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString); // Debug.
-          
-        binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
       } //else if (command.equals("DELE")) // 删除文件
       else if (command.equals("RMD")) // 删除目录
       {
@@ -679,7 +699,7 @@ public class ControlConnectHandler
     /**
     *  Check the permission of file manager.
     */
-    public void checkFileManagerPermission()
+    public void checkFileManagerPermission(int permissinTypeCode, DocumentFile targetFile)
     {
       Log.d(TAG, "checkFileManagerPermission " ); //Debug.
       
@@ -693,22 +713,37 @@ public class ControlConnectHandler
         } // if (isFileManager) // Is file manager
         else // Not file manager
         {
-          File photoDirecotry=Environment.getExternalStorageDirectory(); // Get the file object.
-          //           public static final String AndroidData = Environment.getExternalStorageDirectory().getPath() + "/Android/data/"; //!< /Android/data directory.
-
-          File[] paths = photoDirecotry.listFiles();
-      
-          if (paths==null) // Unable to list files
+          if (permissinTypeCode==Constants.Permission.Read) // Read permission
           {
-            notifyEvent(EventListener.NEED_EXTERNAL_STORAGE_MANAGER_PERMISSION, null); // Notify event, need external storage manager permission.
-            //         if (filePathInterpreter.virtualPathExists(Constants.FilePath.AndroidData)) // Does virtual path exist
-            //         {
-            //         } // if (filePathInterpreter.virtualPathExists(Constants.FilePath.AndroidData)) // Does virtual path exist
-            //         else // Virtual path does not exist
-            //         {
-            //           requestAndroidDataPermission(); // Request /Android/data permisson.
-            //         } // else // Virtual path does not exist
-          } // if (paths.length==0) // Unable to list files
+            File photoDirecotry=Environment.getExternalStorageDirectory(); // Get the file object.
+            //           public static final String AndroidData = Environment.getExternalStorageDirectory().getPath() + "/Android/data/"; //!< /Android/data directory.
+
+            File[] paths = photoDirecotry.listFiles();
+        
+            if (paths==null) // Unable to list files
+            {
+              notifyEvent(EventListener.NEED_EXTERNAL_STORAGE_MANAGER_PERMISSION, null); // Notify event, need external storage manager permission.
+              //         if (filePathInterpreter.virtualPathExists(Constants.FilePath.AndroidData)) // Does virtual path exist
+              //         {
+              //         } // if (filePathInterpreter.virtualPathExists(Constants.FilePath.AndroidData)) // Does virtual path exist
+              //         else // Virtual path does not exist
+              //         {
+              //           requestAndroidDataPermission(); // Request /Android/data permisson.
+              //         } // else // Virtual path does not exist
+            } // if (paths.length==0) // Unable to list files
+          } // if (permissinTypeCode==Constants.Permission.Read) // Read permission
+          else // Write permisison
+          {
+            boolean canDelete=targetFile.canWrite(); // Test whether we can dlete it.
+            
+            if (canDelete) // Can delete
+            {
+            } // if (canDelete) // Can delete
+            else // Cannot delete
+            {
+              notifyEvent(EventListener.NEED_EXTERNAL_STORAGE_MANAGER_PERMISSION, null); // Notify event, need external storage manager permission.
+            } // else // Cannot delete
+          } // else // Write permisison
 
         
           // Chen xin
