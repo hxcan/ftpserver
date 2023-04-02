@@ -679,7 +679,7 @@ public class ControlConnectHandler
     /**
     *  Check the permission of file manager.
     */
-    private void checkFileManagerPermission()
+    public void checkFileManagerPermission()
     {
       Log.d(TAG, "checkFileManagerPermission " ); //Debug.
       
@@ -693,9 +693,27 @@ public class ControlConnectHandler
         } // if (isFileManager) // Is file manager
         else // Not file manager
         {
+          File photoDirecotry=Environment.getExternalStorageDirectory(); // Get the file object.
+          //           public static final String AndroidData = Environment.getExternalStorageDirectory().getPath() + "/Android/data/"; //!< /Android/data directory.
+
+          File[] paths = photoDirecotry.listFiles();
+      
+          if (paths==null) // Unable to list files
+          {
+            notifyEvent(EventListener.NEED_EXTERNAL_STORAGE_MANAGER_PERMISSION, null); // Notify event, need external storage manager permission.
+            //         if (filePathInterpreter.virtualPathExists(Constants.FilePath.AndroidData)) // Does virtual path exist
+            //         {
+            //         } // if (filePathInterpreter.virtualPathExists(Constants.FilePath.AndroidData)) // Does virtual path exist
+            //         else // Virtual path does not exist
+            //         {
+            //           requestAndroidDataPermission(); // Request /Android/data permisson.
+            //         } // else // Virtual path does not exist
+          } // if (paths.length==0) // Unable to list files
+
+        
           // Chen xin
-//           gotoFileManagerSettingsPage(); // Goto file manager settings page.
-          notifyEvent(EventListener.NEED_EXTERNAL_STORAGE_MANAGER_PERMISSION, null); // Notify event, need external storage manager permission.
+          //           gotoFileManagerSettingsPage(); // Goto file manager settings page.
+          //           notifyEvent(EventListener.NEED_EXTERNAL_STORAGE_MANAGER_PERMISSION, null); // Notify event, need external storage manager permission.
         } // else // Not file manager
       } // if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) // Android 11. isExternalStorageManager
     } // private void checkFileManagerPermission()
@@ -817,7 +835,7 @@ public class ControlConnectHandler
 
       sendListContentBySender(content, currentWorkingDirectory); // 发送目录列表数据。
 
-      checkFileManagerPermission(); // CheCK THE permission of file manager.
+//       checkFileManagerPermission(); // CheCK THE permission of file manager.
     } //private void processListCommand(String content)
 
     private void handleConnectCompleted(Exception ex, final AsyncSocket socket) 

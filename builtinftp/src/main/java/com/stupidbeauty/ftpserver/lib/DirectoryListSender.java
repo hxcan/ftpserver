@@ -217,25 +217,32 @@ public class DirectoryListSender
         DocumentFile[] paths = photoDirecotry.listFiles();
         Log.d(TAG, CodePosition.newInstance().toString()+  ", paths size: " + paths.length); // Debug.
 
-        if (paths!=null) // NOt null pointer
+//         if (paths!=null) // NOt null pointer
         {
           Log.d(TAG, "getDirectoryContentList, path: " + photoDirecotry + ", file amount: " + paths.length); // Debug.
-
-          // for each pathname in pathname array
-//           for(File path:paths) 
-          for(DocumentFile path:paths) 
+          
+          if (paths.length==0) // No conet listed
           {
-            Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + path); // Debug.
-            String currentLine=construct1LineListFile(path); // 构造针对这个文件的一行输出。
-            Log.d(TAG, CodePosition.newInstance().toString()+  ", line: " + currentLine); // Debug.
-
-            String fileName=path.getName(); // 获取文件名。
-
-            if (fileName.equals(nameOfFile)  || (nameOfFile.isEmpty())) // 名字匹配。
+            controlConnectHandler.checkFileManagerPermission(); // Check file manager permission.
+          } // if (paths.length==0) // No conet listed
+          else // Listed Successfully
+          {
+            // for each pathname in pathname array
+            //           for(File path:paths) 
+            for(DocumentFile path:paths) // reply files one by one
             {
-              binaryStringSender.sendStringInBinaryMode(currentLine); // 发送回复内容。
-            } //if (fileName.equals(nameOfFile)) // 名字匹配。
-          }
+              Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + path); // Debug.
+              String currentLine=construct1LineListFile(path); // 构造针对这个文件的一行输出。
+              Log.d(TAG, CodePosition.newInstance().toString()+  ", line: " + currentLine); // Debug.
+
+              String fileName=path.getName(); // 获取文件名。
+
+              if (fileName.equals(nameOfFile)  || (nameOfFile.isEmpty())) // 名字匹配。
+              {
+                binaryStringSender.sendStringInBinaryMode(currentLine); // 发送回复内容。
+              } //if (fileName.equals(nameOfFile)) // 名字匹配。
+            } // for(DocumentFile path:paths) // reply files one by one
+          } // else // Listed Successfully
         } // if (paths!=null) // NOt null pointer
       } // else // 是目录
          
