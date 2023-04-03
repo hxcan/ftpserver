@@ -289,7 +289,7 @@ public class ControlConnectHandler
       {
         e.printStackTrace();
       }
-    } //private void startStor(String data51, String currentWorkingDirectory) // 上传文件内容。
+    } // private void startStor(String data51, String currentWorkingDirectory) // 上传文件内容。
     
     /**
     * Process pass command.
