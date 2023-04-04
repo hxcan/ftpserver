@@ -104,23 +104,10 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
-
-// import butterknife.Bind;
-// import butterknife.ButterKnife;
-// import butterknife.OnClick;
-
 import com.stupidbeauty.hxlauncher.interfaces.LocalServerListLoadListener;
-
-// import com.stupidbeauty.hxlauncher.bean.ApplicationListData;
-// import com.iflytek.cloud.SpeechRecognizer;
-// import com.stupidbeauty.victoriafresh.VFile;
-// import com.stupidbeauty.hxlauncher.rpc.CloudRequestorZzaqwb;
-
-// import org.apache.commons.collections4.MultiMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
-
 import static android.content.Intent.ACTION_PACKAGE_CHANGED;
 import static android.content.Intent.ACTION_PACKAGE_REPLACED;
 import static android.content.Intent.EXTRA_COMPONENT_NAME;
@@ -129,16 +116,13 @@ import static android.content.pm.LauncherApps.ShortcutQuery.FLAG_MATCH_DYNAMIC;
 import static android.content.pm.LauncherApps.ShortcutQuery.FLAG_MATCH_MANIFEST;
 import static android.content.pm.LauncherApps.ShortcutQuery.FLAG_MATCH_PINNED;
 import static android.content.pm.LauncherApps.ShortcutQuery.FLAG_MATCH_PINNED_BY_ANY_LAUNCHER;
-import static com.stupidbeauty.hxlauncher.Constants.Actions.LegacyInstallShortcut;
-import static com.stupidbeauty.hxlauncher.Constants.LanImeAction.InputtingForPackage;
-import static com.stupidbeauty.hxlauncher.Constants.LanImeAction.PackageNameOfInputting;
-import static com.stupidbeauty.hxlauncher.Constants.Numbers.IgnoreVoiceResultLength;
-import static com.stupidbeauty.hxlauncher.Constants.Operation.ToggleBuiltinShortcuts;
-import static com.stupidbeauty.hxlauncher.Constants.Operation.ToggleHiveLayout;
-import static com.stupidbeauty.hxlauncher.Constants.Operation.UnlinkVoiceCommand;
-// import static com.stupidbeauty.hxlauncher.datastore.LauncherIconType.ShortcutIconType;
-// import static com.stupidbeauty.hxlauncher.datastore.VoiceCommandSourceType.LocalVoiceCommandMap;
-// import static com.stupidbeauty.hxlauncher.datastore.VoiceCommandSourceType.ServerVoiceCommandResponse;
+// import static com.stupidbeauty.hxlauncher.Constants.Actions.LegacyInstallShortcut;
+// import static com.stupidbeauty.hxlauncher.Constants.LanImeAction.InputtingForPackage;
+// import static com.stupidbeauty.hxlauncher.Constants.LanImeAction.PackageNameOfInputting;
+// import static com.stupidbeauty.hxlauncher.Constants.Numbers.IgnoreVoiceResultLength;
+// import static com.stupidbeauty.hxlauncher.Constants.Operation.ToggleBuiltinShortcuts;
+// import static com.stupidbeauty.hxlauncher.Constants.Operation.ToggleHiveLayout;
+// import static com.stupidbeauty.hxlauncher.Constants.Operation.UnlinkVoiceCommand;
 import android.os.Process;
 
 public interface VirtualPathLoadInterface
