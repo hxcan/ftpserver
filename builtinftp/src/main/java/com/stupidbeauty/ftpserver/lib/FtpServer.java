@@ -315,6 +315,25 @@ public class FtpServer
   }
 
   /**
+  * Mount virtual path.
+  */
+  public void mountVirtualPath(String path , Uri uri)
+  {
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + path + ", uri to use: " + uri.toString()); // Debug.
+//     ftpServer.answerBrowseDocumentTreeReqeust(requestCode, uri);
+//     Chen xin
+
+    String fullPath=Constants.FilePath.ExternalRoot + path; // Construct full path.
+
+    filePathInterpreter.mountVirtualPath(fullPath, uri); // Mount virtual path.
+    
+//     int takeFlags = intent.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+    int takeFlags = (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+    // Check for the freshest data.
+    context.getContentResolver().takePersistableUriPermission(uri, takeFlags);
+  } // public void mountVirtualPath(String path , Uri uri)
+  
+  /**
   * Answ4er the browse docuembnt tree reqeust.
   */
   public void answerBrowseDocumentTreeReqeust(int requestCode, Uri uri) 

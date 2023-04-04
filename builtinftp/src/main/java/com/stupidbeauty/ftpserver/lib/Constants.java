@@ -13,6 +13,7 @@ public class Constants
   public static class FilePath
   {
     public static final String AndroidData = Environment.getExternalStorageDirectory().getPath() + "/Android/data/"; //!< /Android/data directory.
+    public static final String ExternalRoot = Environment.getExternalStorageDirectory().getPath() ; //!< External root directory.
   }
   
   public static class RequestCode
