@@ -12,12 +12,19 @@ public class Constants
 
   public static class FilePath
   {
-    public static final String AndroidData = Environment.getExternalStorageDirectory().getPath() + "/Android/data"; //!< Address already in use. Chen xin.
+    public static final String AndroidData = Environment.getExternalStorageDirectory().getPath() + "/Android/data/"; //!< /Android/data directory.
+    public static final String ExternalRoot = Environment.getExternalStorageDirectory().getPath() ; //!< External root directory.
   }
   
   public static class RequestCode
   {
     public static final Integer AndroidDataPermissionRequestCode= 100345; //!< Request code of /Android/data permission.
   }
+  
+  public static class Permission
+  {
+    public static final Integer Write = 194238; //!< Permison of write.
+    public static final Integer Read = 202152; //!< Permission of read.
+  } // public static class Permission
 }
 

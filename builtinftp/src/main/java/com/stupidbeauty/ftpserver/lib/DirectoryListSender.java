@@ -1,5 +1,19 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import com.stupidbeauty.codeposition.CodePosition;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.BufferedReader;
+// import com.stupidbeauty.hxlauncher.listener.BuiltinFtpServerErrorListener; 
+import android.net.Uri;
+import android.provider.Settings;
+import android.content.Intent;
+import android.os.Environment;
+import androidx.documentfile.provider.DocumentFile;
+import java.io.File;
+import com.koushikdutta.async.callback.CompletedCallback;
+import com.koushikdutta.async.callback.DataCallback;
+import com.koushikdutta.async.callback.ListenCallback;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.UserPrincipal;
@@ -35,15 +49,25 @@ import com.koushikdutta.async.callback.ConnectCallback;
 
 public class DirectoryListSender
 {
+  private FilePathInterpreter filePathInterpreter=null; //!< the file path interpreter.
   private byte[] dataSocketPendingByteArray=null; //!< 数据套接字数据内容 排队。
   private ControlConnectHandler controlConnectHandler=null; //!< 控制连接处理器。
   private AsyncSocket data_socket=null; //!< 当前的数据连接。
   private File rootDirectory=null; //!< 根目录。
-  private File fileToSend=null; //!< 要发送的文件。
+//   private File fileToSend=null; //!< 要发送的文件。
+  private DocumentFile fileToSend=null; //!< 要发送的文件。
   private String subDirectoryName=null; //!< 要列出的子目录名字。
   private static final String TAG ="DirectoryListSender"; //!<  输出调试信息时使用的标记。
   private BinaryStringSender binaryStringSender=new BinaryStringSender(); //!< 以二进制方式发送字符串的工具。
     
+  /**
+  * Set the file path interpreter.
+  */
+  public void setFilePathInterpreter(FilePathInterpreter filePathInterpreter)
+  {
+    this.filePathInterpreter=filePathInterpreter;
+  } // public void setFilePathInterpreter(FilePathInterpreter filePathInterpreter)
+  
     /**
     * 设置根目录。
     */
@@ -75,9 +99,12 @@ public class DirectoryListSender
     /**
     * 构造针对这个文件的一行输出。
     */
-    private String construct1LineListFile(File photoDirecotry) 
+//     private String construct1LineListFile(File photoDirecotry) 
+    private String construct1LineListFile(DocumentFile photoDirecotry) 
     {
-      File path=photoDirecotry;
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + photoDirecotry); // Debug.
+//       File path=photoDirecotry;
+      DocumentFile path=photoDirecotry;
     
       // -rw-r--r-- 1 nobody nobody     35179727 Oct 16 07:31 VID_20201015_181816.mp4
 
@@ -122,22 +149,27 @@ public class DirectoryListSender
       String user = "ChenXin";
       
       
-      
-      Path filePathObject=path.toPath(); // Get the associated nio Path object.
-      
-      try // get the owner name
+      Uri directoryUri=path.getUri(); // Get the uri.
+      String directyoryUriPath=directoryUri.getPath(); // Get the string of the uri.
+
+//       Path filePathObject=path.toPath(); // Get the associated nio Path object.
+      File fileObject=new File(directyoryUriPath);
+      Path filePathObject=fileObject.toPath(); // Get the associated nio Path object.
+
+      if (directoryUri.getScheme().equals("file")) // It is a native file
       {
-        UserPrincipal userPrincipal= Files.getOwner(filePathObject);
-        user=userPrincipal.getName(); // get the name of the user.
-      } // try // get the owner name
-      catch(IOException e)
-      {
-        Log.d(TAG, "construct1LineListFile, failed to get owner name:"); // Debug.
-        
-        e.printStackTrace();
-      } // catch(IOException e)
-       
-      
+        try // get the owner name
+        {
+          UserPrincipal userPrincipal= Files.getOwner(filePathObject);
+          user=userPrincipal.getName(); // get the name of the user.
+        } // try // get the owner name
+        catch(IOException e)
+        {
+          Log.d(TAG, "construct1LineListFile, failed to get owner name:"); // Debug.
+          
+          e.printStackTrace();
+        } // catch(IOException e)
+      } // if (path.getScheme().equals("file")) // It is a native file
                             
       String linkNumber="1";
                             
@@ -166,7 +198,8 @@ public class DirectoryListSender
     /**
     *  获取目录的完整列表。
     */
-    private String getDirectoryContentList(File photoDirecotry, String nameOfFile)
+//     private String getDirectoryContentList(File photoDirecotry, String nameOfFile)
+    private String getDirectoryContentList(DocumentFile photoDirecotry, String nameOfFile)
     {
       nameOfFile=nameOfFile.trim(); // 去除空白字符。陈欣
     
@@ -180,26 +213,37 @@ public class DirectoryListSender
       } // if (photoDirecotry.isFile()) // 是一个文件。
       else // 是目录
       {
-        File[] paths = photoDirecotry.listFiles();
+//         File[] paths = photoDirecotry.listFiles();
+        DocumentFile[] paths = photoDirecotry.listFiles();
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", paths size: " + paths.length); // Debug.
 
-        if (paths!=null) // NOt null pointer
+//         if (paths!=null) // NOt null pointer
         {
           Log.d(TAG, "getDirectoryContentList, path: " + photoDirecotry + ", file amount: " + paths.length); // Debug.
           
-          // for each pathname in pathname array
-          for(File path:paths) 
+          if (paths.length==0) // No conet listed
           {
-            String currentLine=construct1LineListFile(path); // 构造针对这个文件的一行输出。
-
-            String fileName=path.getName(); // 获取文件名。
-
-            if (fileName.equals(nameOfFile)  || (nameOfFile.isEmpty())) // 名字匹配。
+            controlConnectHandler.checkFileManagerPermission(Constants.Permission.Read, null); // Check file manager permission.
+          } // if (paths.length==0) // No conet listed
+          else // Listed Successfully
+          {
+            // for each pathname in pathname array
+            //           for(File path:paths) 
+            for(DocumentFile path:paths) // reply files one by one
             {
-              binaryStringSender.sendStringInBinaryMode(currentLine); // 发送回复内容。
-            } //if (fileName.equals(nameOfFile)) // 名字匹配。
-          }
-        }
-        
+              Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + path); // Debug.
+              String currentLine=construct1LineListFile(path); // 构造针对这个文件的一行输出。
+              Log.d(TAG, CodePosition.newInstance().toString()+  ", line: " + currentLine); // Debug.
+
+              String fileName=path.getName(); // 获取文件名。
+
+              if (fileName.equals(nameOfFile)  || (nameOfFile.isEmpty())) // 名字匹配。
+              {
+                binaryStringSender.sendStringInBinaryMode(currentLine); // 发送回复内容。
+              } //if (fileName.equals(nameOfFile)) // 名字匹配。
+            } // for(DocumentFile path:paths) // reply files one by one
+          } // else // Listed Successfully
+        } // if (paths!=null) // NOt null pointer
       } // else // 是目录
          
       Util.writeAll(data_socket, ( "\r\n").getBytes(), new CompletedCallback() 
@@ -222,16 +266,14 @@ public class DirectoryListSender
     /**
     * 获取文件或目录的权限。
     */
-    private String  getPermissionForFile(File path)
+    private String  getPermissionForFile(DocumentFile path)
     {
       String permission="-rw-r--r--"; // 默认权限。
         
-      Log.d(TAG, "getPermissionForFile, path: " + path + ", is directory: " + path.isDirectory()); // Debug.
-        
-      if (path.isDirectory())
+      if (path.isDirectory()) // It is a directory
       {
         permission="drw-r--r--"; // 目录默认权限。
-      }
+      } // if (path.isDirectory()) // It is a directory
         
       return permission;
     } //private String  getPermissionForFile(File path)
@@ -240,50 +282,16 @@ public class DirectoryListSender
     {
       if (fileToSend.exists()) // 文件存在
       {
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send: " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
         getDirectoryContentList(fileToSend, subDirectoryName); // Get the whole directory list.
       } //if (fileToSend.exist()) // 文件存在
       else
       {
+        Log.d(TAG, CodePosition.newInstance().toString()+  "not exist "); // Debug.
         notifyFileNotExist(); // 报告文件不存在。
       }
     } //private void startSendFileContentForLarge()
     
-    /**
-    * 开始发送文件内容。
-    */
-    private void startSendFileContent() 
-    {
-      byte[] photoBytes=null; //数据内容。
-
-      try //尝试构造请求对象，并且捕获可能的异常。
-      {
-        photoBytes= FileUtils.readFileToByteArray(fileToSend); //将照片文件内容全部读取。
-      } //try //尝试构造请求对象，并且捕获可能的异常。
-      catch (Exception e)
-      {
-        e.printStackTrace();
-      }
-
-		if (photoBytes!=null) // 读取的文件存在
-		{
-            Util.writeAll(data_socket, photoBytes, new CompletedCallback() 
-            {
-                @Override
-                public void onCompleted(Exception ex) {
-                    if (ex != null) throw new RuntimeException(ex);
-                    System.out.println("[Server] data Successfully wrote message");
-                    
-                    notifyFileSendCompleted(); // 告知已经发送文件内容数据。
-                    fileToSend=null; // 将要发送的文件对象清空。
-                }
-            });
-		} //if (photoBytes!=null) // 读取的文件存在
-		else // 读取的文件不存在
-		{
-      notifyFileNotExist(); // 告知文件不存在
-		} //else // 读取的文件不存在
-    } //private void startSendFileContent()
-
     /**
     * 发送文件内容。
     */
@@ -293,8 +301,8 @@ public class DirectoryListSender
                     
       wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
-      FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-      File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
+//       FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
+      DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve 目录。
 
       fileToSend=photoDirecotry; // 记录，要发送的文件对象。
         
@@ -309,6 +317,7 @@ public class DirectoryListSender
     */
     public void sendDirectoryList(String data51, String currentWorkingDirectory) 
     {
+      Log.d(TAG, CodePosition.newInstance().toString()+  "directory to list: " + data51 + ", working directory: " + currentWorkingDirectory); // Debug.
       String parameter=""; // 要列出的目录。
       
       int directoryIndex=5; // 要找的下标。
@@ -325,8 +334,9 @@ public class DirectoryListSender
         
       subDirectoryName=parameter; // 记录可能的子目录名字。
 
-      FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-      File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, parameter); //照片目录。
+//       File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, parameter); //照片目录。
+      DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, parameter); // resolve 目录。
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", directory : " + photoDirecotry + ", working directory: " + currentWorkingDirectory + ", directory uri: " + photoDirecotry.getUri().toString()); // Debug.
 
       fileToSend=photoDirecotry; // 记录，要发送的文件对象。
         

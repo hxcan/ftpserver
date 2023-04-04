@@ -22,12 +22,13 @@ public class BinaryStringSender
         @Override
         public void onCompleted(Exception ex) 
         {
-          if (ex != null) throw new RuntimeException(ex);
-          System.out.println("[Server] Successfully wrote message");
+          if (ex != null) // Some exceptin happend
+          {
+            throw new RuntimeException(ex);
+          } // if (ex != null) // Some exceptin happend
         }
       });
     } //private sendStringInBinaryMode(String stringToSend)
     
-
 }
  

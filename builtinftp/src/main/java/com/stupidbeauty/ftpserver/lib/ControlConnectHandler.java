@@ -1,17 +1,27 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import com.stupidbeauty.codeposition.CodePosition;
+import android.os.ParcelFileDescriptor;
+import java.io.FileOutputStream;
+import androidx.documentfile.provider.DocumentFile;
+import java.io.File;
+import com.koushikdutta.async.callback.CompletedCallback;
+import com.koushikdutta.async.callback.DataCallback;
+import com.koushikdutta.async.callback.ListenCallback;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.LocaleList;
-import android.os.PowerManager;
+// import android.os.PowerManager;
 import 	android.provider.DocumentsContract;
 import java.util.Locale;
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.LocalDateTime;
 import java.io.IOException;
-import com.koushikdutta.async.*;
+import com.koushikdutta.async.AsyncServer;
+import com.koushikdutta.async.AsyncServerSocket;
+import com.koushikdutta.async.AsyncSocket;
+import com.koushikdutta.async.ByteBufferList;
+import com.koushikdutta.async.DataEmitter;
 import java.net.InetSocketAddress;
 import com.koushikdutta.async.callback.ConnectCallback;
 import android.os.Handler;
@@ -20,7 +30,7 @@ import android.speech.SpeechRecognizer;
 import android.util.Log;
 import android.app.Application;
 import android.content.Context;
-import android.util.Log;
+// import android.util.Log;
 import java.util.Date;    
 import java.time.format.DateTimeFormatter;
 import java.io.File;
@@ -40,8 +50,12 @@ import android.provider.Settings;
 import android.content.Intent;
 import android.os.Environment;
 
-class ControlConnectHandler
+/**
+* The handler of control connection.
+*/
+public class ControlConnectHandler
 {
+  private FilePathInterpreter filePathInterpreter=null; //!< the file path interpreter.
   private String passWord=null; //!< Pass word provided.
   private boolean authenticated=true; //!< Is Login correct?
   private String userName=null; //!< User name provided.
@@ -59,18 +73,34 @@ class ControlConnectHandler
   private int data_port=1544; //!< 数据连接端口。
   private String ip; //!< ip
   private boolean allowActiveMode=true; //!< 是否允许主动模式。
-  private File writingFile; //!< 当前正在写入的文件。
+
+//   private File writingFile; //!< 当前正在写入的文件。
+  private DocumentFile writingFile; //!< 当前正在写入的文件。
+
   private boolean isUploading=false; //!< 是否正在上传。陈欣
   private InetAddress host;
   private File rootDirectory=null; //!< 根目录。
 
   /**
-  * SEt user manager.
+  * Set the user manager.
   */
   public void setUserManager(UserManager userManager)
   { 
     this.userManager=userManager;
   } // public void setUserManager(UserManager userManager)
+  
+  /**
+  * Set the file path interpreter.
+  */
+  public void setFilePathInterpreter(FilePathInterpreter filePathInterpreter)
+  {
+    this.filePathInterpreter=filePathInterpreter;
+    
+    directoryListSender.setFilePathInterpreter(filePathInterpreter);
+    fileContentSender.setFilePathInterpreter(filePathInterpreter); // SEt the file path interpreter.
+    
+    this.filePathInterpreter.setContext(context); // Set context.
+  } // public void setFilePathInterpreter(FilePathInterpreter filePathInterpreter)
   
   public void setEventListener(EventListener eventListener)
   {
@@ -97,7 +127,16 @@ class ControlConnectHandler
 
     try
     {
-      FileUtils.writeByteArrayToFile(writingFile, content, appendTrue); // 写入。
+//       FileUtils.writeByteArrayToFile(writingFile, content, appendTrue); // 写入。
+
+      Uri uri=writingFile.getUri();
+      ParcelFileDescriptor pfd = context.getContentResolver(). openFileDescriptor(uri, "wa");
+        FileOutputStream fileOutputStream = new FileOutputStream(pfd.getFileDescriptor());
+
+         fileOutputStream.write(("Overwritten at " + System.currentTimeMillis() + "\n").getBytes());
+                fileOutputStream.close();
+        pfd.close();
+
     }
     catch (Exception e)
     {
@@ -112,8 +151,11 @@ class ControlConnectHandler
     this.host=host;
     this.ip=ip; // Remember ip for data server.
 
+    fileContentSender.setContext(context); // Set the context.
+//     filePathInterpreter
+
     setupDataServer(); // 启动数据传输服务器。
-  }
+  } // public ControlConnectHandler(Context context, boolean allowActiveMode, InetAddress host, String ip)
     
     /**
     * 打开指向客户端特定端口的连接。
@@ -135,7 +177,7 @@ class ControlConnectHandler
         public void onConnectCompleted(Exception ex, final AsyncSocket socket) 
         {
           handleConnectCompleted(ex, socket);
-        }
+        } // public void onConnectCompleted(Exception ex, final AsyncSocket socket) 
       });
     } //private void openDataConnectionToClient(String content)
 
@@ -227,8 +269,7 @@ class ControlConnectHandler
     */
     private void startStor(String data51, String currentWorkingDirectory) 
     {
-      FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-      File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
+      DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // Resolve file path.
 
       writingFile=photoDirecotry; // 记录文件。
       isUploading=true; // 记录，处于上传状态。
@@ -240,13 +281,15 @@ class ControlConnectHandler
         
       try //尝试构造请求对象，并且捕获可能的异常。
       {
-        FileUtils.touch(photoDirecotry); //创建文件。
+        DocumentFile parentDocuemntFile=filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, ""); // Resolve parent path.
+//         FileUtils.touch(photoDirecotry); //创建文件。
+        writingFile=parentDocuemntFile.createFile("", data51); // Creat eh file.
       } //try //尝试构造请求对象，并且捕获可能的异常。
       catch (Exception e)
       {
         e.printStackTrace();
       }
-    } //private void startStor(String data51, String currentWorkingDirectory) // 上传文件内容。
+    } // private void startStor(String data51, String currentWorkingDirectory) // 上传文件内容。
     
     /**
     * Process pass command.
@@ -286,15 +329,27 @@ class ControlConnectHandler
     */
     private void processCwdCommand(String targetWorkingDirectory) 
     {
-      FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-      File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, targetWorkingDirectory); //照片目录。
+//       FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
+      DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, targetWorkingDirectory); // 照片目录。
+//       File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, targetWorkingDirectory); // 照片目录。
 
       String replyString="" ; // 回复内容。
-      String fullPath="";
+//       String fullPath="";
+      String fullPath=filePathInterpreter.resolveWholeDirectoryPath( rootDirectory, currentWorkingDirectory, targetWorkingDirectory); // resolve 完整路径。
 
       if (photoDirecotry.isDirectory()) // 是个目录
       {
-        fullPath=photoDirecotry.getPath(); // 获取当前工作目录的完整路径。
+//         fullPath=photoDirecotry.getPath(); // 获取当前工作目录的完整路径。
+//         Uri directoryUri=photoDirecotry.getUri(); // Get the uri.
+//         String directyoryUriPath=directoryUri.getPath(); // Get the string of the uri.
+//         String directoryPurePath=directyoryUriPath.replaceAll("file://", ""); // Replace prefix.
+//         currentVersionName=currentVersionName.replaceAll("[a-zA-Z]|\\s", "");
+
+//         File directoryFileObject=new File()
+        
+//         fullPath=directyoryUriPath; // 获取当前工作目录的完整路径。
+
+        
         String rootPath=rootDirectory.getPath(); // 获取根目录的完整路径。
         
         currentWorkingDirectory=fullPath.substring(rootPath.length()); // 去掉开头的根目录路径。
@@ -304,7 +359,7 @@ class ControlConnectHandler
           currentWorkingDirectory="/"; // 当前工作目录是根目录。
         } // if (currentWorkingDirectory.isEmpty()) // 是空白的了
         
-        Log.d(TAG, "processCwdCommand, fullPath: " + fullPath ); // Debug.
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", fullPath: " + fullPath ); // Debug.
         Log.d(TAG, "processCwdCommand, rootPath: " + rootPath ); // Debug.
         Log.d(TAG, "processCwdCommand, currentWorkingDirectory: " + currentWorkingDirectory ); // Debug.
 
@@ -315,12 +370,14 @@ class ControlConnectHandler
         replyString="550 not a directory: " + targetWorkingDirectory; // 回复内容。
       }
 
-      Log.d(TAG, "reply string: " + replyString); //Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString); //Debug.
         
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
       
-      if (fullPath.equals(Constants.FilePath.AndroidData)) // It is /Android/data
+//       if (fullPath.equals(Constants.FilePath.AndroidData)) // It is /Android/data
+      if (filePathInterpreter.isSamePath (fullPath, Constants.FilePath.AndroidData)) // It is /Android/data, same path.
       {
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", full path : " + fullPath + ", other path: " + Constants.FilePath.AndroidData + ", checking /Android/data permission"); // Debug.
         CheckAndroidDataPermission(); // Check /Android/data permission.
       } // if (currentWorkingDirectory.equals(Constants.FilePath.AndroidData)) // It is /Android/data
     } // private void processCwdCommand(String targetWorkingDirectory)
@@ -334,8 +391,8 @@ class ControlConnectHandler
       Log.d(TAG, "processSizeCommand: workding directory: " + currentWorkingDirectory); // Debug.
       Log.d(TAG, "processSizeCommand: data51: " + data51); // Debug.
     
-      FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-      File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
+//       FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
+      DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve file path.
 
       String replyString=""; // 回复字符串。
 
@@ -354,6 +411,44 @@ class ControlConnectHandler
       
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
     } //private void processSizeCommand(String data51)
+    
+    /**
+    *  Process the dele command
+    */
+    private void processDeleCommand(String data51)
+    {
+      // 删除文件
+
+      String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
+                  
+      wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
+                  
+      //         FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
+      DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve file
+
+      boolean deleteResult= photoDirecotry.delete();
+          
+      Log.d(TAG, "delete result: " + deleteResult); // Debug.
+      
+      String replyString="250 "; // 回复内容。
+
+      if (deleteResult) // Delete success
+      {
+        notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
+        replyString="250 "; // 回复内容。
+      } // if (deleteResult) // Delete success
+      else // Delete fail
+      {
+        replyString="550 File delete failed"; // File delete failed.
+//         replyString="250 "; // 回复内容。
+
+        checkFileManagerPermission(Constants.Permission.Write, photoDirecotry); // Check permission of write.
+      } // else // Delete fail
+
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString); // Debug.
+        
+      binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
+    } // private void processDeleCommand(String data51)
 
     /**
      * 处理命令。
@@ -404,10 +499,10 @@ class ControlConnectHandler
 
         String replyString="227 Entering Passive Mode ("+ipString+","+port256+","+portModule+") "; // 回复内容。
 
-        Log.d(TAG, "reply string: " + replyString); //Debug.
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString); // Debug.
 
         binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
-      } //else if (command.equals("PASV")) // 被动传输
+      } // else if (command.equals("PASV")) // 被动传输
       else if (command.equals("EPSV")) // 扩展被动模式
       {
         String replyString="202 "; // 回复内容。
@@ -491,7 +586,7 @@ class ControlConnectHandler
         
         processUserCommand(targetWorkingDirectory); // Process user command.
 
-      } //if (command.equals("USER")) // 用户登录
+      } // if (command.equals("USER")) // 用户登录
       else if (command.equalsIgnoreCase("PASS")) // 密码
       {
         String targetWorkingDirectory=content.substring(5).trim(); // 获取新的工作目录。
@@ -526,27 +621,9 @@ class ControlConnectHandler
         String data51= content.substring(5);
 
         data51=data51.trim(); // 去掉末尾换行
+        
+        processDeleCommand(data51); // Procee the dele command
 
-        // 删除文件
-
-        String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
-                    
-        wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
-                    
-        FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-        File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
-
-        boolean deleteResult= photoDirecotry.delete();
-            
-        Log.d(TAG, "delete result: " + deleteResult); // Debug.
-            
-        notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
-            
-        String replyString="250 "; // 回复内容。
-
-        Log.d(TAG, "reply string: " + replyString); //Debug.
-          
-        binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
       } //else if (command.equals("DELE")) // 删除文件
       else if (command.equals("RMD")) // 删除目录
       {
@@ -560,8 +637,8 @@ class ControlConnectHandler
                     
         wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
-        FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-        File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
+//         File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
+        DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve 目录。
 
         boolean deleteResult= photoDirecotry.delete();
             
@@ -583,7 +660,7 @@ class ControlConnectHandler
           
         binaryStringSender.sendStringInBinaryMode(replyString); // 回复。
       } //else if (command.equals("EPSV")) // Extended passive mode.
-    } //private void processCommand(String command, String content)
+    } // private void processCommand(String command, String content)
 
     /**
     * Report event.
@@ -608,7 +685,7 @@ class ControlConnectHandler
 
         uiHandler.post(runnable);
       } //if (eventListener!=null) // 有事件监听器。
-    } //private void notifyEvent(String eventCode)
+    } // private void notifyEvent(String eventCode)
 
     /**
     * Report event.
@@ -620,9 +697,9 @@ class ControlConnectHandler
     } //private void notifyEvent(String eventCode)
 
     /**
-    *  CheCK THE permission of file manager.
+    *  Check the permission of file manager.
     */
-    private void checkFileManagerPermission()
+    public void checkFileManagerPermission(int permissinTypeCode, DocumentFile targetFile)
     {
       Log.d(TAG, "checkFileManagerPermission " ); //Debug.
       
@@ -636,10 +713,44 @@ class ControlConnectHandler
         } // if (isFileManager) // Is file manager
         else // Not file manager
         {
+          if (permissinTypeCode==Constants.Permission.Read) // Read permission
+          {
+            File photoDirecotry=Environment.getExternalStorageDirectory(); // Get the file object.
+            //           public static final String AndroidData = Environment.getExternalStorageDirectory().getPath() + "/Android/data/"; //!< /Android/data directory.
+
+            File[] paths = photoDirecotry.listFiles();
+        
+            if (paths==null) // Unable to list files
+            {
+              notifyEvent(EventListener.NEED_EXTERNAL_STORAGE_MANAGER_PERMISSION, null); // Notify event, need external storage manager permission.
+              //         if (filePathInterpreter.virtualPathExists(Constants.FilePath.AndroidData)) // Does virtual path exist
+              //         {
+              //         } // if (filePathInterpreter.virtualPathExists(Constants.FilePath.AndroidData)) // Does virtual path exist
+              //         else // Virtual path does not exist
+              //         {
+              //           requestAndroidDataPermission(); // Request /Android/data permisson.
+              //         } // else // Virtual path does not exist
+            } // if (paths.length==0) // Unable to list files
+          } // if (permissinTypeCode==Constants.Permission.Read) // Read permission
+          else // Write permisison
+          {
+            boolean canDelete=targetFile.canWrite(); // Test whether we can dlete it.
+            
+            if (canDelete) // Can delete
+            {
+            } // if (canDelete) // Can delete
+            else // Cannot delete
+            {
+              notifyEvent(EventListener.NEED_EXTERNAL_STORAGE_MANAGER_PERMISSION, null); // Notify event, need external storage manager permission.
+            } // else // Cannot delete
+          } // else // Write permisison
+
+        
           // Chen xin
-          gotoFileManagerSettingsPage(); // Goto file manager settings page.
+          //           gotoFileManagerSettingsPage(); // Goto file manager settings page.
+          //           notifyEvent(EventListener.NEED_EXTERNAL_STORAGE_MANAGER_PERMISSION, null); // Notify event, need external storage manager permission.
         } // else // Not file manager
-      }
+      } // if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) // Android 11. isExternalStorageManager
     } // private void checkFileManagerPermission()
 
     /**
@@ -676,18 +787,6 @@ class ControlConnectHandler
 //         try 
 //         {            
 //           Uri uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fdata");            
-//           Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);            
-//           intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uri);            
-//           flag看实际业务需要可再补充            
-//           intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);            
-//           activity.startActivityForResult(intent, 6666);        
-//         } 
-//         catch (Exception e) 
-//         {            
-//           e.printStackTrace();        
-//         }    
-//       } 
-
     
       File androidDataFile=new File(Constants.FilePath.AndroidData); // Get the file object.
       
@@ -697,23 +796,43 @@ class ControlConnectHandler
       openDirectory(uri); // Open directory.
     } // private void requestAndroidDataPermission()
     
+    /**
+    * Request to open directory
+    */
     public void openDirectory(Uri uriToLoad) 
     {
       // Choose a directory using the system's file picker.
       Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
 
-      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
       intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);            
       
       // Optionally, specify a URI for the directory that should be opened in
       // the system file picker when it loads.
       intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uriToLoad);
 
+      String packageNmae=context.getPackageName();
+      Log.d(TAG, "gotoFileManagerSettingsPage, package name: " + packageNmae); //Debug.
+
+      String url = "package:"+packageNmae;
+
+      Log.d(TAG, "gotoFileManagerSettingsPage, url: " + url); //Debug.
+
+//       intent.setData(Uri.parse(url));
+
       int yourrequestcode=Constants.RequestCode.AndroidDataPermissionRequestCode;
       
 //       context.startActivityForResult(intent, yourrequestcode);
-      context.startActivity(intent);
-    }
+//       context.startActivity(intent);
+      
+//       Chen xin
+      
+      DocumentTreeBrowseRequest browseRequest=new DocumentTreeBrowseRequest(); // Create the browse request.
+      browseRequest.setRequestCode(yourrequestcode);
+      browseRequest.setIntent(intent); // SEt intent.
+
+      notifyEvent(EventListener.NEED_BROWSE_DOCUMENT_TREE, (Object)(browseRequest)); // Notify event, uplaod finished.
+    } // public void openDirectory(Uri uriToLoad) 
     
     /**
     * Check /Android/data permission.
@@ -726,7 +845,13 @@ class ControlConnectHandler
       
       if (paths==null) // Unable to list files
       {
-        requestAndroidDataPermission(); // Request /Android/data permisson.
+        if (filePathInterpreter.virtualPathExists(Constants.FilePath.AndroidData)) // Does virtual path exist
+        {
+        } // if (filePathInterpreter.virtualPathExists(Constants.FilePath.AndroidData)) // Does virtual path exist
+        else // Virtual path does not exist
+        {
+          requestAndroidDataPermission(); // Request /Android/data permisson.
+        } // else // Virtual path does not exist
       } // if (paths.length==0) // Unable to list files
     } // private void CheckAndroidDataPermission()
     
@@ -738,13 +863,14 @@ class ControlConnectHandler
       //陈欣
       String replyString="150 Opening BINARY mode data connection for file list, ChenXin"; // 回复内容。
 
-      Log.d(TAG, "reply string: " + replyString); //Debug.
-      
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString + ", list command content: " + content); // Debug.
+//       Log.d(TAG, CodePosition.newInstance().toString()+ ", installer type: "+ installerType + ", file path: " + downloadFilePath ); //Debug.
+
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
 
       sendListContentBySender(content, currentWorkingDirectory); // 发送目录列表数据。
 
-      checkFileManagerPermission(); // CheCK THE permission of file manager.
+//       checkFileManagerPermission(); // CheCK THE permission of file manager.
     } //private void processListCommand(String content)
 
     private void handleConnectCompleted(Exception ex, final AsyncSocket socket) 
@@ -764,8 +890,6 @@ class ControlConnectHandler
 //             public void onCompleted(Exception ex) {
 //                 if (ex != null) throw new RuntimeException(ex);
 //                 System.out.println("[Client] Successfully wrote message");
-//             }
-//         });
 
         socket.setDataCallback(new DataCallback() {
             @Override
@@ -777,13 +901,14 @@ class ControlConnectHandler
 
         socket.setClosedCallback(new CompletedCallback() {
             @Override
-            public void onCompleted(Exception ex) {
-                if(ex != null) throw new RuntimeException(ex);
-                System.out.println("[Client] Successfully closed connection");
+            public void onCompleted(Exception ex) 
+            {
+              if(ex != null) throw new RuntimeException(ex);
+              System.out.println("[Client] Successfully closed connection");
                 
-                data_socket=null;
+              data_socket=null;
                 
-                notifyStorCompleted(); // 告知上传完成。
+              notifyStorCompleted(); // 告知上传完成。
             }
         });
 
@@ -793,9 +918,9 @@ class ControlConnectHandler
           public void onCompleted(Exception ex) 
           {
             if(ex != null) throw new RuntimeException(ex);
-            System.out.println("[Client] Successfully end connection");
-          }
-        });
+//             System.out.println("[Client] Successfully end connection");
+          } // public void onCompleted(Exception ex) 
+        }); // socket.setEndCallback(new CompletedCallback() 
       } //else // 无异常。
     }
 
@@ -819,7 +944,7 @@ class ControlConnectHandler
           {
             receiveDataSocket(bb);
           }
-        });
+        }); // socket.setDataCallback(
 
       socket.setClosedCallback(new CompletedCallback() 
       {
@@ -920,7 +1045,7 @@ class ControlConnectHandler
               if ((lineCounter+1)==(lineAmount)) // 是最后一条命令了。
               {
                 hasFolloingCommand=false; // 没有后续命令。
-              }
+              } // if ((lineCounter+1)==(lineAmount)) // 是最后一条命令了。
 
               processCommand(command, currentLine, hasFolloingCommand); // 处理命令。
             } // for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
@@ -950,14 +1075,13 @@ class ControlConnectHandler
           {
             if (ex != null) // 有异常出现
             {
-//                 throw new RuntimeException(ex);
               ex.printStackTrace(); // 报告。
             }
             else // 无异常
             {
               Log.d(TAG, "ftpmodule [Server] Successfully end connection");
             } //else // 无异常
-          }
+          } // public void onCompleted(Exception ex) 
         });
 
         binaryStringSender.sendStringInBinaryMode("220 StupidBeauty FtpServer"); // 发送回复内容。
@@ -1001,7 +1125,7 @@ class ControlConnectHandler
           {
             System.out.println("[Server] Successfully shutdown server");
           }
-        }
+        } // public void onCompleted(Exception ex) 
       });
     } //private void setupDataServer()
 }
