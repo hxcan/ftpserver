@@ -6,16 +6,18 @@ android
 
   resourcePrefix "stupidbeauty__"
 
-  defaultConfig {
+  defaultConfig 
+  {
     buildToolsVersion = "30.0.3"
     minSdkVersion 14
     targetSdkVersion 30
     versionCode 757
-//     versionName version
   }
 
-  buildTypes {
-    release {
+  buildTypes 
+  {
+    release 
+    {
       minifyEnabled false
       proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
     }
@@ -24,9 +26,9 @@ android
 
 dependencies
 {
-  compile 'com.koushikdutta.async:androidasync:2.1.7'
+  implementation 'com.koushikdutta.async:androidasync:2.1.7'
   implementation 'commons-io:commons-io:2.6'
   implementation "androidx.documentfile:documentfile:1.0.1"
   implementation 'com.github.hxcan:CodePosition:2023.3.29'
-  compile 'com.upokecenter:cbor:4.4.4'
+  implementation'com.upokecenter:cbor:4.4.4'
 }

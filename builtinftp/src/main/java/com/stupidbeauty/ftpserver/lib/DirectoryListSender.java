@@ -102,7 +102,7 @@ public class DirectoryListSender
 //     private String construct1LineListFile(File photoDirecotry) 
     private String construct1LineListFile(DocumentFile photoDirecotry) 
     {
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + photoDirecotry); // Debug.
+      // Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + photoDirecotry); // Debug.
 //       File path=photoDirecotry;
       DocumentFile path=photoDirecotry;
     
@@ -231,9 +231,9 @@ public class DirectoryListSender
             //           for(File path:paths) 
             for(DocumentFile path:paths) // reply files one by one
             {
-              Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + path); // Debug.
+              // Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + path); // Debug.
               String currentLine=construct1LineListFile(path); // 构造针对这个文件的一行输出。
-              Log.d(TAG, CodePosition.newInstance().toString()+  ", line: " + currentLine); // Debug.
+              // Log.d(TAG, CodePosition.newInstance().toString()+  ", line: " + currentLine); // Debug.
 
               String fileName=path.getName(); // 获取文件名。
 
