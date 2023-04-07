@@ -262,7 +262,12 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
         else
         {
           targetdocumentFile=targetdocumentFile.findFile(currentSegmetn);
-          Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn + ", target document: " + targetdocumentFile.getUri().toString()); // Debug.
+          
+          Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn + ", target document object: " + targetdocumentFile); // Debug.
+          if (targetdocumentFile!=null) // Target document exists
+          {
+            Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn + ", target document: " + targetdocumentFile.getUri().toString()); // Debug.
+          } // if (targetdocumentFile!=null) // Target document exists
         } // if (currentSegmetn.isEmpty())
       } // //       DocumentFile documentFile=DocumentFile.fromTreeUri(context, uri);
       
