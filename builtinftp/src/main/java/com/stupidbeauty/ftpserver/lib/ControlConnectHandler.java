@@ -273,22 +273,32 @@ public class ControlConnectHandler
 
       writingFile=photoDirecotry; // 记录文件。
       isUploading=true; // 记录，处于上传状态。
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry ); // Debug.
 
-      if (photoDirecotry.exists())
+      if (photoDirecotry!=null && photoDirecotry.exists()) // The file exists
       {
         photoDirecotry.delete();
-      }
+      } // if (photoDirecotry.exists()) // The file exists
         
-      try //尝试构造请求对象，并且捕获可能的异常。
+      try // Create the file.
       {
-        DocumentFile parentDocuemntFile=filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, ""); // Resolve parent path.
+        File virtualFile=new File(data51);
+        
+        File parentVirtualFile=virtualFile.getParentFile();
+        
+        String currentTryingPath=parentVirtualFile.getPath();
+
+        DocumentFile parentDocuemntFile=filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, currentTryingPath); // Resolve parent path.
 //         FileUtils.touch(photoDirecotry); //创建文件。
-        writingFile=parentDocuemntFile.createFile("", data51); // Creat eh file.
-      } //try //尝试构造请求对象，并且捕获可能的异常。
-      catch (Exception e)
+
+        String fileNameOnly=virtualFile.getName(); // Get the file name.
+
+        writingFile=parentDocuemntFile.createFile("", fileNameOnly); // Creat eh file.
+      } // try // Create the file.
+      catch (Exception e) // Catch any exception.
       {
         e.printStackTrace();
-      }
+      } // catch (Exception e) // Catch any exception.
     } // private void startStor(String data51, String currentWorkingDirectory) // 上传文件内容。
     
     /**
