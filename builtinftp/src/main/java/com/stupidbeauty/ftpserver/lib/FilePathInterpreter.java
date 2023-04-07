@@ -297,7 +297,13 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
 //       result=photoDirecotry;
       result=DocumentFile.fromFile(photoDirecotry);
     } // else // Not in the virtual path map
-    Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory + ", uri to use: " + result.getUri().toString()); // Debug.
+    
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory + ", result object: " + result); // Debug.
+
+    if (result!=null) // The result exists
+    {
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory + ", uri to use: " + result.getUri().toString()); // Debug.
+    } // if (result!=null) // The result exists
 
     return result;
   } // public DocumentFile getFile(File rootDirectory, String currentWorkingDirectory, String data51) 
