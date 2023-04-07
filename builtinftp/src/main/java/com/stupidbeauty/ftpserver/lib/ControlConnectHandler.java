@@ -125,23 +125,22 @@ public class ControlConnectHandler
 
     boolean appendTrue=true;
 
-    try
+    try // Write the file
     {
-//       FileUtils.writeByteArrayToFile(writingFile, content, appendTrue); // 写入。
+      //       FileUtils.writeByteArrayToFile(writingFile, content, appendTrue); // 写入。
 
       Uri uri=writingFile.getUri();
       ParcelFileDescriptor pfd = context.getContentResolver(). openFileDescriptor(uri, "wa");
-        FileOutputStream fileOutputStream = new FileOutputStream(pfd.getFileDescriptor());
+      FileOutputStream fileOutputStream = new FileOutputStream(pfd.getFileDescriptor());
 
-         fileOutputStream.write(("Overwritten at " + System.currentTimeMillis() + "\n").getBytes());
-                fileOutputStream.close();
-        pfd.close();
-
-    }
-    catch (Exception e)
+      fileOutputStream.write( content );
+      fileOutputStream.close();
+      pfd.close();
+    } // try // Write the file
+    catch (Exception e) // Catch exception.
     {
       e.printStackTrace();
-    }
+    } // catch (Exception e) // Catch exception.
   } // private void                         receiveDataSocket( ByteBufferList bb)
 
   public ControlConnectHandler(Context context, boolean allowActiveMode, InetAddress host, String ip)
