@@ -83,10 +83,7 @@ import java.net.UnknownHostException;
 
 public class FtpServer 
 {
-  
-//   private FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); //!< Create the file path interpreter.
-  private FilePathInterpreter filePathInterpreter=FilePathInterpreter.migrateCreateFilePathInterpreter(); //!< Create the file path interpreter.
-
+  private FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); //!< Create the file path interpreter.
   private UserManager userManager=null; //!< user manager.
   private EventListener eventListener=null; //!< Event listener.
   private ErrorListener errorListener=null; //!< Error listener. Chen xin. 
@@ -323,6 +320,14 @@ public class FtpServer
     return filePathInterpreter.getVirtualPath(fullPath);
   } // public Uri getVirtualPath(String path)
 
+  /**
+  * Set option. Whether to do external storage perforamnce optimize.
+  */
+  public void setExternalStoragePerformanceOptimize(boolean isChecked)
+  {
+    filePathInterpreter.setExternalStoragePerformanceOptimize(isChecked);
+  } // public void setExternalStoragePerformanceOptimize(boolean isChecked)
+  
   /**
   * Mount virtual path.
   */

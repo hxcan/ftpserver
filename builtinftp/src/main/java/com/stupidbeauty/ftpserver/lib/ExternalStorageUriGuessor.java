@@ -5,8 +5,11 @@ import java.util.Timer;
 import java.util.TimerTask;
 import android.Manifest;
 import android.annotation.SuppressLint;
-// import com.stupidbeauty.hxlauncher.asynctask.VoicePackageNameMapSaveTask;
-// import com.stupidbeauty.hxlauncher.bean.VoiceCommandHitDataObject;
+import android.os.Environment;
+import android.net.LinkAddress;
+import android.net.LinkProperties;
+import android.net.Network;
+import android.net.ConnectivityManager;
 import com.stupidbeauty.codeposition.CodePosition;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
@@ -23,7 +26,7 @@ import android.os.HandlerThread;
 import androidx.documentfile.provider.DocumentFile;
 import java.io.File;
 import com.koushikdutta.async.callback.CompletedCallback;
-// import com.koushikdutta.async.callback.DataCallback;
+import android.provider.DocumentsContract;
 import com.koushikdutta.async.callback.ListenCallback;
 import com.koushikdutta.async.Util;
 import android.util.Log;
@@ -36,9 +39,9 @@ import android.os.AsyncTask;
 import java.util.HashMap;
 import com.stupidbeauty.hxlauncher.asynctask.VirtualPathLoadInterface;
 
-public class FilePathInterpreter implements VirtualPathLoadInterface
+public class ExternalStorageUriGuessor
 {
-  private static final String TAG="FilePathInterpreter"; // !< The tag used to output debug code.
+  private static final String TAG="ExternalStorageUriGuessor"; // !< The tag used to output debug code.
   private HashMap<String, Uri> virtualPathMap=new HashMap<>(); //!< the map of virtual path to uri.
   private Context context=null; //!< Context.
   private boolean externalStoragePerformanceOptimize=false; //!< Whether to do external storage performance optimize.
@@ -78,15 +81,6 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
     translateRequestSendTask.execute(virtualPathMap, context); // 执行任务。
   } //private void saveVoicePackageNameMap()
 
-  @Override
-  /**
-  * Set the virtual path map.
-  */
-  public void  setVoicePackageNameMap (HashMap<String, Uri> voicePackageNameMap)
-  {
-    virtualPathMap=voicePackageNameMap;
-  } // public void  setVoicePackageNameMap (HashMap<String, Uri> voicePackageNameMap)
-  
   /**
   *  Get the uri of specified virtual path.
   */
@@ -139,6 +133,39 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
 
     return result;
   } // private Uri getParentUriByVirtualPathMap(String wholeDirecotoryPath)
+  
+  /**
+  * Guess the uri.
+  */
+  public Uri guessUri(Uri sourceUrit)
+  {
+    Uri result=sourceUrit; // Result;
+    
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", result uri: " + result.toString()); // Debug.
+    String sourceUriString=sourceUrit.toString();
+    
+    if (sourceUriString.startsWith("content://com.android.externalstorage.documents/")) // Possible external storage
+    {
+      String filePath ="";
+
+      // ExternalStorageProvider
+      String docId = DocumentsContract.getDocumentId(sourceUrit);
+      String[] split = docId.split(":");
+      String type = split[0];
+
+      if ("primary".equalsIgnoreCase(type)) // Primary external storage.
+      {
+        String wholePath=Environment.getExternalStorageDirectory() +"/" + split[1];
+        
+        File whoelPathFile=new File(wholePath); // Create the file.
+        
+        result=Uri.fromFile(whoelPathFile); // Construct a file uri.
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholePath + ", result uri: " + result.toString()); // Debug.
+      } // if ("primary".equalsIgnoreCase(type)) // Primary external storage.
+    } // if (sourceUriString.startsWith("content://com.android.externalstorage.documents/")) // Possible external storage
+    
+    return result;
+  } // public Uri guessUri(Uri result)
   
   /**
   * Get the paretn virtual path map.
@@ -316,4 +343,5 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
     return result;
   } // public DocumentFile getFile(File rootDirectory, String currentWorkingDirectory, String data51) 
 } // public class FilePathInterpreter implements VirtualPathLoadInterface
+
 
