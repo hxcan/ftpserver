@@ -156,7 +156,7 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
     while((!currentTryingPath.equals("/")) && (!result)) // Not to root
     {
       result=virtualPathMap.containsKey(currentTryingPath);
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", curent trying Path : " + currentTryingPath + ", result: " + result); // Debug.
+      // Log.d(TAG, CodePosition.newInstance().toString()+  ", curent trying Path : " + currentTryingPath + ", result: " + result); // Debug.
       
       if (result) // Found it
       {

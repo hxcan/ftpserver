@@ -571,7 +571,7 @@ public class ControlConnectHandler
           
         binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
 
-        sendFileContent(data51, currentWorkingDirectory); // 发送文件内容。
+        sendFileContent(data51, currentWorkingDirectory); // Send file content.
       } //else if (command.equals("list")) // 列出目录
       else if (command.toLowerCase().equals("rest")) // 设置断点续传位置。
       {

@@ -1,5 +1,10 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import com.stupidbeauty.codeposition.CodePosition;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.BufferedReader;
+import android.content.Context;
 import android.content.Context;
 import android.util.Log;
 import java.util.Date;    
@@ -109,6 +114,7 @@ public class FileContentSender
     {
       if (fileToSend.exists()) // 文件存在
       {
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
         try
         {
 //           final InputStream is = new FileInputStream(fileToSend);
@@ -157,10 +163,11 @@ public class FileContentSender
           e.printStackTrace();
         }
       } //if (fileToSend.exist()) // 文件存在
-      else
+      else // Not exist
       {
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend); // Debug.
         notifyFileNotExist(); // 报告文件不存在。
-      }
+      } // else // Not exist
     } //private void startSendFileContentForLarge()
     
     /**
@@ -168,14 +175,15 @@ public class FileContentSender
     */
     public void sendFileContent(String data51, String currentWorkingDirectory) 
     {
-      String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
+      // String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
                     
-      wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
+      // wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
 //       File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
       DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // 照片目录。
 
       fileToSend=photoDirecotry; // 记录，要发送的文件对象。
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
         
       if (data_socket!=null) // 数据连接存在。
       {
