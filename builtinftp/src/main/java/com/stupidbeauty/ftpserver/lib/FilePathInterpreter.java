@@ -117,6 +117,8 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
   public void setContext(Context context)
   {
     this.context=context;
+    
+    externalStorageUriGuessor.setContext(context);
   } // fileContentSender
   
   /**

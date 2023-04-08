@@ -43,9 +43,16 @@ public class ExternalStorageUriGuessor
 {
   private static final String TAG="ExternalStorageUriGuessor"; // !< The tag used to output debug code.
   private HashMap<String, Uri> virtualPathMap=new HashMap<>(); //!< the map of virtual path to uri.
-  // private Context context=null; //!< Context.
+  private Context context=null; //!< Context.
   private boolean externalStoragePerformanceOptimize=false; //!< Whether to do external storage performance optimize.
   // private ExternalStorageUriGuessor externalStorageUriGuessor=new ExternalStorageUriGuessor(); //!< Guess the external storage uri.
+  
+  public void setContext(Context context)
+  {
+    this.context=context;
+    
+    // externalStorageUriGuessor.setContext(context);
+  } // fileContentSender
   
   /**
   *  Whether the two are same path.
@@ -99,44 +106,59 @@ public class ExternalStorageUriGuessor
       if (sourceUriString.startsWith("content://com.android.externalstorage.documents/")) // Possible external storage
       {
         String filePath ="";
+        
+        DocumentFile documentFile=DocumentFile.fromTreeUri(context, sourceUrit);
+        
+        Uri uriWithDocumentId=documentFile.getUri(); // Get the uri that correspondse to a document.
+
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", uri used to retrieve document id : " + uriWithDocumentId.toString()); // Debug.
 
         // ExternalStorageProvider
-        String docId = DocumentsContract.getDocumentId(sourceUrit);
-        String[] split = docId.split(":");
-        String type = split[0];
-
-        if ("primary".equalsIgnoreCase(type)) // Primary external storage.
+        try
         {
-          String wholePath=Environment.getExternalStorageDirectory() +"/" + split[1];
-          
-          File whoelPathFile=new File(wholePath); // Create the file.
-          
-          
-          File[] paths = whoelPathFile.listFiles();
-          // DocumentFile[] paths = photoDirecotry.listFiles();
-          // Log.d(TAG, CodePosition.newInstance().toString()+  ", paths size: " + paths.length); // Debug.
+          String docId = DocumentsContract.getDocumentId(uriWithDocumentId); // java.lang.IllegalArgumentException: Invalid URI: content://com.android.externalstorage.documents/tree/primary%3ADCIM%2FGoddessCamera
+          Log.d(TAG, CodePosition.newInstance().toString()+  ", docId : " + docId); // Debug.
+          String[] split = docId.split(":");
+          String type = split[0];
+          Log.d(TAG, CodePosition.newInstance().toString()+  ", type : " + type); // Debug.
 
-          if (paths!=null) // NOt null pointer
+          if ("primary".equalsIgnoreCase(type)) // Primary external storage.
           {
-            Log.d(TAG, "getDirectoryContentList, path: " + whoelPathFile + ", file amount: " + paths.length); // Debug.
+            String wholePath=Environment.getExternalStorageDirectory() +"/" + split[1];
             
-            if (paths.length==0) // No conet listed
-            {
-              // controlConnectHandler.checkFileManagerPermission(Constants.Permission.Read, null); // Check file manager permission.
-            } // if (paths.length==0) // No conet listed
-            else // Listed Successfully
-            {
-              result=Uri.fromFile(whoelPathFile); // Construct a file uri.
-              Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholePath + ", result uri: " + result.toString()); // Debug.
-            } // else // Listed Successfully
-          } // if (paths!=null) // NOt null pointer
+            File whoelPathFile=new File(wholePath); // Create the file.
+            
+            
+            File[] paths = whoelPathFile.listFiles();
+            // DocumentFile[] paths = photoDirecotry.listFiles();
+            // Log.d(TAG, CodePosition.newInstance().toString()+  ", paths size: " + paths.length); // Debug.
 
-          
-          
-          
-          
-          
-        } // if ("primary".equalsIgnoreCase(type)) // Primary external storage.
+            if (paths!=null) // NOt null pointer
+            {
+              Log.d(TAG, "getDirectoryContentList, path: " + whoelPathFile + ", file amount: " + paths.length); // Debug.
+              
+              if (paths.length==0) // No conet listed
+              {
+                // controlConnectHandler.checkFileManagerPermission(Constants.Permission.Read, null); // Check file manager permission.
+              } // if (paths.length==0) // No conet listed
+              else // Listed Successfully
+              {
+                result=Uri.fromFile(whoelPathFile); // Construct a file uri.
+                Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholePath + ", result uri: " + result.toString()); // Debug.
+              } // else // Listed Successfully
+            } // if (paths!=null) // NOt null pointer
+
+            
+            
+            
+            
+            
+          } // if ("primary".equalsIgnoreCase(type)) // Primary external storage.
+        }
+        catch(IllegalArgumentException e)
+        {
+          e.printStackTrace();
+        }
       } // if (sourceUriString.startsWith("content://com.android.externalstorage.documents/")) // Possible external storage
       
       virtualPathMap.put(sourceUriString, result); // Add it into cache.
