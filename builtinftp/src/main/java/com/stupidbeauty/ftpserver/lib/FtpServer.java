@@ -315,6 +315,14 @@ public class FtpServer
   }
 
   /**
+  *  Get the uri of specified virtual path.
+  */
+  public Uri getVirtualPath(String path)
+  {
+    return filePathInterpreter.getVirtualPath(path);
+  } // public Uri getVirtualPath(String path)
+
+  /**
   * Mount virtual path.
   */
   public void mountVirtualPath(String path , Uri uri)

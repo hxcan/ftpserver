@@ -102,6 +102,14 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
   } // public void  setVoicePackageNameMap (HashMap<String, Uri> voicePackageNameMap)
   
   /**
+  *  Get the uri of specified virtual path.
+  */
+  public Uri getVirtualPath(String path)
+  {
+    return virtualPathMap.get(path);
+  } // public Uri getVirtualPath(String path)
+
+  /**
   * Mount virtual path.
   */
   public void mountVirtualPath(String fullPath, Uri uri)
