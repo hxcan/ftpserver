@@ -1060,7 +1060,7 @@ public class ControlConnectHandler
                 
             int lineAmount=lines.length; // 获取行数
 
-            Log.d(TAG, "[Server] line amount: " + lineAmount); // Debug
+            // Log.d(TAG, "[Server] line amount: " + lineAmount); // Debug
 
             for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
             {
