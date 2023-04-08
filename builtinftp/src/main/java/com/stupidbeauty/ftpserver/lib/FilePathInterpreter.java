@@ -104,6 +104,17 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
   } // public void setExternalStoragePerformanceOptimize(boolean isChecked)
   
   /**
+  *  un Mount virtual path.
+  */
+  public void unmountVirtualPath(String fullPath)
+  {
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", full path : " + fullPath ); // Debug.
+    virtualPathMap.remove(fullPath); // Put it into the map.
+    
+    saveVirtualPathMap(); // Save the virtual path map.
+  } // public void unmountVirtualPath(String path)
+  
+  /**
   * Mount virtual path.
   */
   public void mountVirtualPath(String fullPath, Uri uri)

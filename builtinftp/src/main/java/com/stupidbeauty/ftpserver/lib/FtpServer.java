@@ -329,6 +329,16 @@ public class FtpServer
   } // public void setExternalStoragePerformanceOptimize(boolean isChecked)
   
   /**
+  *  un Mount virtual path.
+  */
+  public void unmountVirtualPath(String path)
+  {
+    String fullPath=Constants.FilePath.ExternalRoot + path; // Construct full path.
+
+    filePathInterpreter.unmountVirtualPath(fullPath); // un Mount virtual path.
+  } // public void unmountVirtualPath(String path)
+  
+  /**
   * Mount virtual path.
   */
   public void mountVirtualPath(String path , Uri uri)
