@@ -159,8 +159,31 @@ public class ExternalStorageUriGuessor
         
         File whoelPathFile=new File(wholePath); // Create the file.
         
-        result=Uri.fromFile(whoelPathFile); // Construct a file uri.
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholePath + ", result uri: " + result.toString()); // Debug.
+        
+        File[] paths = whoelPathFile.listFiles();
+        // DocumentFile[] paths = photoDirecotry.listFiles();
+        // Log.d(TAG, CodePosition.newInstance().toString()+  ", paths size: " + paths.length); // Debug.
+
+        if (paths!=null) // NOt null pointer
+        {
+          Log.d(TAG, "getDirectoryContentList, path: " + whoelPathFile + ", file amount: " + paths.length); // Debug.
+          
+          if (paths.length==0) // No conet listed
+          {
+            // controlConnectHandler.checkFileManagerPermission(Constants.Permission.Read, null); // Check file manager permission.
+          } // if (paths.length==0) // No conet listed
+          else // Listed Successfully
+          {
+            result=Uri.fromFile(whoelPathFile); // Construct a file uri.
+            Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholePath + ", result uri: " + result.toString()); // Debug.
+          } // else // Listed Successfully
+        } // if (paths!=null) // NOt null pointer
+
+        
+        
+        
+        
+        
       } // if ("primary".equalsIgnoreCase(type)) // Primary external storage.
     } // if (sourceUriString.startsWith("content://com.android.externalstorage.documents/")) // Possible external storage
     
