@@ -252,8 +252,9 @@ public class DirectoryListSender
         public void onCompleted(Exception ex) 
         {
           if (ex != null) throw new RuntimeException(ex);
-          System.out.println("[Server] data Successfully wrote message");
-                
+          // System.out.println("[Server] data Successfully wrote message");
+          Log.d(TAG, CodePosition.newInstance().toString()+  ", [Server] data Successfully wrote message: " + fileToSend + ", going to close data_socket: " + data_socket); // Debug.
+
           notifyLsCompleted(); // 告知已经发送目录数据。
           fileToSend=null; // 将要发送的文件对象清空。
           data_socket.close(); // 关闭连接。

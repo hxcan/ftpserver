@@ -130,7 +130,9 @@ public class FileContentSender
           
             restSTart=0; // 跳过位置归零。
           }
-          
+
+          Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString() + ", data_socket: " + data_socket); // Debug.
+
           Util.pump(is, data_socket, new CompletedCallback()
           {
             @Override
