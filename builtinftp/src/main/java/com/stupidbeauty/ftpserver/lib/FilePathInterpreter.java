@@ -234,7 +234,7 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
     
     String wholeDirecotoryPath = resolveWholeDirectoryPath( rootDirectory, currentWorkingDirectory, data51); // resolve 完整路径。
 
-    Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory); // Debug.
+    // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory); // Debug.
 
     File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
 
@@ -280,7 +280,7 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
       } // //       DocumentFile documentFile=DocumentFile.fromTreeUri(context, uri);
       
 //       Chen xin.
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory + ", uri to use: " + uri.toString()); // Debug.
+      // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory + ", uri to use: " + uri.toString()); // Debug.
       Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory + ", uri to use: " + uri.toString()  + ", target documetn file: " + targetdocumentFile); // Debug.
 
 //       DocumentFile documentFile=DocumentFile.fromTreeUri(context, uri);

@@ -943,7 +943,8 @@ public class ControlConnectHandler
       fileContentSender.setDataSocket(socket); // 设置数据连接套接字。
       directoryListSender.setDataSocket(socket); // 设置数据连接套接字。
 
-      Log.d(TAG, "handleDataAccept, [Server] data New Connection " + socket.toString());
+      Log.d(TAG, CodePosition.newInstance().toString() + ", handleDataAccept, [Server] data New Connection " + socket.toString());
+      // Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry ); // Debug.
         
       socket.setDataCallback(
         new DataCallback()
@@ -1008,11 +1009,11 @@ public class ControlConnectHandler
             }
           }
                 
-            System.out.println("[Server] data Successfully end connection");
-          }
-        });
+          // System.out.println("[Server] data Successfully end connection");
+          Log.d(TAG, CodePosition.newInstance().toString() + ", [Server] data Successfully end connection " + socket.toString());
+        }
+      });
     } //private void handleDataAccept(final AsyncSocket socket)
-
 
     /**
      * 接受新连接
