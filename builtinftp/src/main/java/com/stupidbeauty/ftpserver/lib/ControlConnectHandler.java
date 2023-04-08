@@ -252,6 +252,18 @@ public class ControlConnectHandler
     } //private void notifyLsCompleted()
     
     /**
+    * Process quit command.
+    */
+    private void processQuitCommand()
+    {
+      String replyString="221 Quit OK. ChenXin"; // The reply string.
+      
+      binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
+
+      Log.d(TAG, "reply string: " + replyString); //Debug.
+    } // private void processQuitCommand()
+    
+    /**
     *  处理上传文件命令。
     */
     private void processStorCommand(String data51)
@@ -444,7 +456,7 @@ public class ControlConnectHandler
       if (deleteResult) // Delete success
       {
         notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
-        replyString="250 "; // 回复内容。
+        replyString="250 Delete success"; // Reply, delete success.
       } // if (deleteResult) // Delete success
       else // Delete fail
       {
@@ -616,6 +628,14 @@ public class ControlConnectHandler
         data51=data51.trim(); // 去掉末尾换行
         
         processStorCommand(data51); // 处理上传文件命令。
+      } //else if (command.equals("stor")) // 上传文件
+      else if (command.equalsIgnoreCase("quit")) // Quit
+      {
+        // String data51= content.substring(5);
+
+        // data51=data51.trim(); // 去掉末尾换行
+        
+        processQuitCommand(); // Process quit command.
       } //else if (command.equals("stor")) // 上传文件
       else if (command.equals("SIZE")) // 文件尺寸
       {
