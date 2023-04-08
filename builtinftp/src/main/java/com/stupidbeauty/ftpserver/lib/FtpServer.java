@@ -319,7 +319,8 @@ public class FtpServer
   */
   public Uri getVirtualPath(String path)
   {
-    return filePathInterpreter.getVirtualPath(path);
+    String fullPath=Constants.FilePath.ExternalRoot + path; // Construct full path.
+    return filePathInterpreter.getVirtualPath(fullPath);
   } // public Uri getVirtualPath(String path)
 
   /**
