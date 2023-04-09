@@ -40,6 +40,7 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
 {
   private static final String TAG="FilePathInterpreter"; // !< The tag used to output debug code.
   private HashMap<String, Uri> virtualPathMap=new HashMap<>(); //!< the map of virtual path to uri.
+  private HashMap<String, DocumentFile> pathDocumentFileMap=new HashMap<>(); //!< Cache. path to documentfile object.
   private Context context=null; //!< Context.
   private boolean externalStoragePerformanceOptimize=false; //!< Whether to do external storage performance optimize.
   private ExternalStorageUriGuessor externalStorageUriGuessor=new ExternalStorageUriGuessor(); //!< Guess the external storage uri.
@@ -274,6 +275,9 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
       DocumentFile targetdocumentFile=documentFile;
       
       Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", target document: " + targetdocumentFile.getUri().toString()); // Debug.
+      
+      String effectiveVirtualPathForCurrentSegment=parentVirtualPath; // Effective virtual path for current segment. Used for DocumentFile cache.
+      
       for(String currentSegmetn: trialingPathSegments)
       {
         // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn); // Debug.
@@ -283,13 +287,27 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
         }
         else
         {
-          targetdocumentFile=targetdocumentFile.findFile(currentSegmetn);
+          effectiveVirtualPathForCurrentSegment=effectiveVirtualPathForCurrentSegment+ "/" + currentSegmetn; // Remember effective virtual path.
           
-          // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn + ", target document object: " + targetdocumentFile); // Debug.
-          if (targetdocumentFile!=null) // Target document exists
+          Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn + ", target document: " + targetdocumentFile.getUri().toString()+ ", effective virtual path: " + effectiveVirtualPathForCurrentSegment); // Debug.
+          targetdocumentFile=pathDocumentFileMap.get(effectiveVirtualPathForCurrentSegment); // Get it from cache.
+          
+          if (targetdocumentFile!=null) // It exists
           {
             Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn + ", target document: " + targetdocumentFile.getUri().toString()); // Debug.
-          } // if (targetdocumentFile!=null) // Target document exists
+          } // if (targetdocumentFile!=null) // It exists
+          else // Not exist. Need to find
+          {
+            targetdocumentFile=targetdocumentFile.findFile(currentSegmetn);
+            
+            // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn + ", target document object: " + targetdocumentFile); // Debug.
+            if (targetdocumentFile!=null) // Target document exists
+            {
+              Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn + ", target document: " + targetdocumentFile.getUri().toString()); // Debug.
+              
+              pathDocumentFileMap.put(effectiveVirtualPathForCurrentSegment, targetdocumentFile); // Put it into the cache.
+            } // if (targetdocumentFile!=null) // Target document exists
+          } // else // Not exist
         } // if (currentSegmetn.isEmpty())
       } // //       DocumentFile documentFile=DocumentFile.fromTreeUri(context, uri);
       
