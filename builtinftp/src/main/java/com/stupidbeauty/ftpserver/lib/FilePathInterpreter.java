@@ -290,10 +290,11 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
           effectiveVirtualPathForCurrentSegment=effectiveVirtualPathForCurrentSegment+ "/" + currentSegmetn; // Remember effective virtual path.
           
           Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn + ", target document: " + targetdocumentFile.getUri().toString()+ ", effective virtual path: " + effectiveVirtualPathForCurrentSegment); // Debug.
-          targetdocumentFile=pathDocumentFileMap.get(effectiveVirtualPathForCurrentSegment); // Get it from cache.
+          DocumentFile cachedtargetdocumentFile=pathDocumentFileMap.get(effectiveVirtualPathForCurrentSegment); // Get it from cache.
           
-          if (targetdocumentFile!=null) // It exists
+          if (cachedtargetdocumentFile!=null) // It exists
           {
+            targetdocumentFile=cachedtargetdocumentFile; // Remember it.
             Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn + ", target document: " + targetdocumentFile.getUri().toString()); // Debug.
           } // if (targetdocumentFile!=null) // It exists
           else // Not exist. Need to find
