@@ -53,7 +53,7 @@ import android.os.Environment;
 /**
 * The handler of control connection.
 */
-public class ControlConnectHandler implements DataServerManagerInterface
+public class DataServerManager
 {
   private FilePathInterpreter filePathInterpreter=null; //!< the file path interpreter.
   private String passWord=null; //!< Pass word provided.
@@ -63,7 +63,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
   private BinaryStringSender binaryStringSender=new BinaryStringSender(); //!< 以二进制方式发送字符串的工具。
   private EventListener eventListener=null; //!< 事件监听器。
   private AsyncSocket socket; //!< 当前的客户端连接。
-  private static final String TAG ="ControlConnectHandler"; //!<  输出调试信息时使用的标记。
+  private static final String TAG ="DataServerManager"; //!<  输出调试信息时使用的标记。
   private Context context; //!< 执行时使用的上下文。
   private AsyncSocket data_socket; //!< 当前的数据连接。
   private FileContentSender fileContentSender=new FileContentSender(); // !< 文件内容发送器。
@@ -144,19 +144,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
     } // catch (Exception e) // Catch exception.
   } // private void                         receiveDataSocket( ByteBufferList bb)
 
-  public ControlConnectHandler(Context context, boolean allowActiveMode, InetAddress host, String ip)
-  {
-    this.context=context;
-    this.allowActiveMode=allowActiveMode;
-    this.host=host;
-    this.ip=ip; // Remember ip for data server.
-
-    fileContentSender.setContext(context); // Set the context.
-//     filePathInterpreter
-
-    setupDataServer(); // 启动数据传输服务器。
-  } // public ControlConnectHandler(Context context, boolean allowActiveMode, InetAddress host, String ip)
-    
     /**
     * 打开指向客户端特定端口的连接。
     */
@@ -203,28 +190,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
       
       notifyEvent(EventListener.DOWNLOAD_FINISH); // 报告事件，完成下载文件。
     } //private void notifyFileSendCompleted()
-
-    /**
-    * 发送文件内容。
-    */
-    private void sendFileContent(String data51, String currentWorkingDirectory) 
-    {
-      fileContentSender.setControlConnectHandler(this); // 设置控制连接处理器。
-      fileContentSender.setDataSocket(data_socket); // 设置数据连接套接字。
-      fileContentSender.sendFileContent(data51, currentWorkingDirectory); // 让文件内容发送器来发送。
-      
-      notifyEvent(EventListener.DOWNLOAD_START); // 报告事件，开始下载文件。
-    } //private void sendFileContent(String data51, String currentWorkingDirectory)
-    
-    /**
-    * Send directory list content.
-    */
-    private void sendListContentBySender(String fileName, String currentWorkingDirectory) 
-    {
-      directoryListSender.setControlConnectHandler(this); // 设置控制连接处理器。
-      directoryListSender.setDataSocket(data_socket); // 设置数据连接套接字。
-      directoryListSender.sendDirectoryList(fileName, currentWorkingDirectory); // 让目录列表发送器来发送。
-    } // private void sendListContentBySender(String fileName, String currentWorkingDirectory)
 
     /**
     * 告知上传完成。
@@ -473,226 +438,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
     } // private void processDeleCommand(String data51)
 
     /**
-     * 处理命令。
-     * @param command 命令关键字
-     * @param content 整个消息内容。
-     */
-    private void processCommand(String command, String content, boolean hasFolloingCommand)
-    {
-      Log.d(TAG, "command: " + command + ", content: " + content); //Debug.
-
-      if (command.equals("SYST")) // 系统信息
-      {
-        binaryStringSender.sendStringInBinaryMode("215 UNIX Type: L8"); //  发送回复。
-      } //else if (command.equals("SYST")) // 系统信息
-      else if (command.equals("PWD")) // 查询当前工作目录
-      {
-        String replyString="257 \"" + currentWorkingDirectory + "\""; // 回复内容。
-
-        Log.d(TAG, "reply string: " + replyString); //Debug.
-          
-        binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复内容。
-      } //else if (command.equals("PWD")) // 查询当前工作目录
-      else if (command.equals("TYPE")) // 传输类型
-      {
-        String replyString="200 binary type set"; // 回复内容。
-
-        Log.d(TAG, "reply string: " + replyString); //Debug.
-            
-        binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
-      } //else if (command.equals("TYPE")) // 传输类型
-      else if (command.equals("PASV")) // 被动传输
-      {
-        setupDataServer(); // 初始化数据服务器。
-
-        String ipAddress = ip;
-
-
-        if (ipAddress==null) // Have not set ip.
-        {
-          WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-          ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
-        } // else // Not set ip.
-
-        String ipString = ipAddress.replace(".", ",");
-
-        int port256=data_port/256;
-        int portModule=data_port-port256*256;
-
-        String replyString="227 Entering Passive Mode ("+ipString+","+port256+","+portModule+") "; // 回复内容。
-
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString); // Debug.
-
-        binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
-      } // else if (command.equals("PASV")) // 被动传输
-      else if (command.equals("EPSV")) // 扩展被动模式
-      {
-        String replyString="202 "; // 回复内容。
-          
-        if (hasFolloingCommand) // 还有后续命令。
-        {
-        } // if (hasFolloingCommand) // 还有后续命令。
-        else // if (hasFolloingCommand) // 还有后续命令。
-        {
-          Log.d(TAG, "reply string: " + replyString); //Debug.
-            
-          binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
-        } // else // if (hasFolloingCommand) // 还有后续命令。
-      } //else if (command.equals("EPSV")) // 扩展被动模式
-      else if (command.equals("PORT")) // 要求服务器主动连接客户端的端口
-      {
-        String replyString="150 "; // 回复内容。正在打开数据连接
-          
-        boolean shouldSend=true; // 是否应当发送回复。
-
-        if (allowActiveMode) // 允许主动模式
-        {
-          openDataConnectionToClient(content); // 打开指向客户端特定端口的连接。
-
-          replyString="150 "; // 回复内容。正在打开数据连接
-        } //if (allowActiveMode) // 允许主动模式
-        else // 不允许主动模式。
-        {
-          replyString="202 "; // 回复内容。未实现。
-            
-          if (hasFolloingCommand) // 还有后续命令。
-          {
-            shouldSend=false; // 不应当发送回复。
-          } // if (hasFolloingCommand) // 还有后续命令。
-        } //else // 不允许主动模式。
-
-        if (shouldSend) // 应当发送回复。
-        {
-          Log.d(TAG, "reply string: " + replyString); //Debug.
-            
-          binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
-        } // if (shouldSend) // 应当发送回复。
-      } //else if (command.equals("EPSV")) // Extended passive mode.
-      else if (command.toLowerCase().equals("list")) // 列出目录 陈欣
-      {
-        processListCommand(content); // 处理目录列表命令。
-      } //else if (command.equals("list")) // 列出目录
-      else if (command.toLowerCase().equals("retr")) // 获取文件
-      {
-        String data51= content.substring(5);
-
-        data51=data51.trim(); // 去掉末尾换行
-
-        String replyString="150 start send content: " + data51 ; // 回复内容。
-
-        Log.d(TAG, "reply string: " + replyString); //Debug.
-          
-        binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
-
-        sendFileContent(data51, currentWorkingDirectory); // Send file content.
-      } //else if (command.equals("list")) // 列出目录
-      else if (command.toLowerCase().equals("rest")) // 设置断点续传位置。
-      {
-        String data51= content.substring(5); // 跳过的长度。
-
-        data51=data51.trim(); // 去掉末尾换行
-
-        String replyString="350 Restart position accepted (" + data51 + ")"; // 回复内容。
-
-        Log.d(TAG, "reply string: " + replyString); //Debug.
-          
-        binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
-          
-        Long restartPosition=Long.valueOf(data51);
-          
-        fileContentSender.setRestartPosition(restartPosition); // 设置重启位置。
-      } //else if (command.equals("list")) // 列出目录
-      else if (command.equalsIgnoreCase("USER")) // 用户登录
-      {
-        String targetWorkingDirectory=content.substring(5).trim(); // 获取新的工作目录。
-        
-        processUserCommand(targetWorkingDirectory); // Process user command.
-
-      } // if (command.equals("USER")) // 用户登录
-      else if (command.equalsIgnoreCase("PASS")) // 密码
-      {
-        String targetWorkingDirectory=content.substring(5).trim(); // 获取新的工作目录。
-        
-        processPassCommand(targetWorkingDirectory); // Process pass command.
-
-      } //else if (command.equals("PASS")) // 密码
-      else if (command.equalsIgnoreCase("cwd")) // 切换工作目录
-      {
-        String targetWorkingDirectory=content.substring(4).trim(); // 获取新的工作目录。
-        
-        processCwdCommand(targetWorkingDirectory); // 处理改变目录命令。
-      } //else if (command.equals("cwd")) // 切换工作目录
-      else if (command.equalsIgnoreCase("stor")) // 上传文件
-      {
-        String data51= content.substring(5);
-
-        data51=data51.trim(); // 去掉末尾换行
-        
-        processStorCommand(data51); // 处理上传文件命令。
-      } //else if (command.equals("stor")) // 上传文件
-      else if (command.equalsIgnoreCase("quit")) // Quit
-      {
-        // String data51= content.substring(5);
-
-        // data51=data51.trim(); // 去掉末尾换行
-        
-        processQuitCommand(); // Process quit command.
-      } //else if (command.equals("stor")) // 上传文件
-      else if (command.equals("SIZE")) // 文件尺寸
-      {
-        String data51 = content.substring(5);
-
-        data51=data51.trim(); // 去掉末尾换行
-
-        processSizeCommand(data51); // 处理尺寸 命令。
-      } //else if (command.equals("SIZE")) // 文件尺寸
-      else if (command.equals("DELE")) // 删除文件
-      {
-        String data51= content.substring(5);
-
-        data51=data51.trim(); // 去掉末尾换行
-        
-        processDeleCommand(data51); // Procee the dele command
-
-      } //else if (command.equals("DELE")) // 删除文件
-      else if (command.equals("RMD")) // 删除目录
-      {
-        String data51= content.substring(4);
-
-        data51=data51.trim(); // 去掉末尾换行
-
-        // 删除文件。陈欣
-
-        String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
-                    
-        wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
-                    
-//         File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
-        DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve 目录。
-
-        boolean deleteResult= photoDirecotry.delete();
-            
-        Log.d(TAG, "delete result: " + deleteResult); // Debug.
-            
-        notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
-            
-        String replyString="250 Delete success "+ data51; // 回复内容。
-
-        Log.d(TAG, "reply string: " + replyString); //Debug.
-          
-        binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
-      } //else if (command.equals("DELE")) // 删除文件
-      else  // 其它命令
-      {
-        String replyString="502 " + content.trim()  +  " not implemented"; // 回复内容。未实现。
-
-        Log.d(TAG, "reply string: " + replyString); //Debug.
-          
-        binaryStringSender.sendStringInBinaryMode(replyString); // 回复。
-      } //else if (command.equals("EPSV")) // Extended passive mode.
-    } // private void processCommand(String command, String content)
-
-    /**
     * Report event.
     */
     private void notifyEvent(final String eventCode, final Object extraContent)
@@ -885,24 +630,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
       } // if (paths.length==0) // Unable to list files
     } // private void CheckAndroidDataPermission()
     
-    /**
-    * 处理目录列表命令。
-    */
-    private void processListCommand(String content) 
-    {
-      //陈欣
-      String replyString="150 Opening BINARY mode data connection for file list, ChenXin"; // 回复内容。
-
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString + ", list command content: " + content); // Debug.
-//       Log.d(TAG, CodePosition.newInstance().toString()+ ", installer type: "+ installerType + ", file path: " + downloadFilePath ); //Debug.
-
-      binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
-
-      sendListContentBySender(content, currentWorkingDirectory); // 发送目录列表数据。
-
-//       checkFileManagerPermission(); // CheCK THE permission of file manager.
-    } //private void processListCommand(String content)
-
     private void handleConnectCompleted(Exception ex, final AsyncSocket socket) 
     {
       if(ex != null) 
@@ -954,12 +681,11 @@ public class ControlConnectHandler implements DataServerManagerInterface
       } //else // 无异常。
     }
 
-    @Override
-    /**
+        /**
      * Accept data connection.
      * @param socket 连接对象。
      */
-    public void handleDataAccept(final AsyncSocket socket)
+    private void handleDataAccept(final AsyncSocket socket)
     {
       this.data_socket=socket;
       fileContentSender.setDataSocket(socket); // 设置数据连接套接字。
@@ -1038,110 +764,21 @@ public class ControlConnectHandler implements DataServerManagerInterface
     } //private void handleDataAccept(final AsyncSocket socket)
 
     /**
-     * 接受新连接
-     * @param socket 新连接的套接字对象
-     */
-    public void handleAccept(final AsyncSocket socket)
-    {
-      this.socket=socket;
-      binaryStringSender.setSocket(socket); // 设置套接字。
-      
-      System.out.println("[Server] New Connection " + socket.toString());
-
-      socket.setDataCallback
-      (
-        new DataCallback()
-        {
-          @Override
-          public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) 
-          {
-            String content = new String(bb.getAllByteArray());
-            Log.d(TAG, "[Server] Received Message " + content); // Debug
-                
-            String[] lines=content.split("\r\n"); // 分割成一行行的命令。
-                
-            int lineAmount=lines.length; // 获取行数
-
-            // Log.d(TAG, "[Server] line amount: " + lineAmount); // Debug
-
-            for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
-            {
-              String currentLine=lines[lineCounter]; // 获取当前命令。
-                  
-              String command = currentLine.split(" ")[0]; // Get the command.
-
-              command=command.trim();
-              
-              boolean hasFolloingCommand=true; // 是否还有后续命令。
-              
-              if ((lineCounter+1)==(lineAmount)) // 是最后一条命令了。
-              {
-                hasFolloingCommand=false; // 没有后续命令。
-              } // if ((lineCounter+1)==(lineAmount)) // 是最后一条命令了。
-
-              processCommand(command, currentLine, hasFolloingCommand); // 处理命令。
-            } // for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
-          }
-        });
-
-        socket.setClosedCallback(new CompletedCallback() 
-        {
-          @Override
-          public void onCompleted(Exception ex) 
-          {
-            if (ex != null) 
-            {
-              ex.printStackTrace(); // 报告错误。
-            }
-            else
-            {
-              System.out.println("[Server] Successfully closed connection");
-            }
-          }
-        });
-
-        socket.setEndCallback(new CompletedCallback() 
-        {
-          @Override
-          public void onCompleted(Exception ex) 
-          {
-            if (ex != null) // 有异常出现
-            {
-              ex.printStackTrace(); // 报告。
-            }
-            else // 无异常
-            {
-              Log.d(TAG, "ftpmodule [Server] Successfully end connection");
-            } //else // 无异常
-          } // public void onCompleted(Exception ex) 
-        });
-
-        binaryStringSender.sendStringInBinaryMode("220 StupidBeauty FtpServer"); // 发送回复内容。
-    } //private void handleAccept(final AsyncSocket socket)
-
-    @Override
-    /**
      * 启动数据传输服务器。
      */
-    public void setupDataServer()
+    public int setupDataServer(DataServerManagerInterface dataServerManagerInterface)
     {
-      // setupDataServerListen(); // Set up data server by listening.
+      int result = setupDataServerListen(dataServerManagerInterface); // Set up data server by listening.
+      
+      return result;
 
-      setupDataServerByManager(); // Set up data server by manager.
+      // setupDataServerByManager(); // Set up data server by manager.
     } //private void setupDataServer()
     
     /**
-    * Set up data server by manager.
-    */
-    private void setupDataServerByManager()
-    {
-      data_port=dataServerManager.setupDataServer(this); // Set up data server.
-    } // private void setupDataServerByManager()
-
-    /**
      * 启动数据传输服务器。
      */
-    private void setupDataServerListen()
+    private int setupDataServerListen(DataServerManagerInterface dataServerManagerInterface)
     {
       Random random=new Random(); //随机数生成器。
 
@@ -1154,7 +791,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
         @Override
         public void onAccepted(final AsyncSocket socket)
         {
-          handleDataAccept(socket);
+          dataServerManagerInterface.handleDataAccept(socket);
         } //public void onAccepted(final AsyncSocket socket)
 
         @Override
@@ -1170,7 +807,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
           {
             ex.printStackTrace();
 
-            setupDataServer(); // 重新初始化。
+            dataServerManagerInterface.setupDataServer(); // 重新初始化。
           }
           else
           {
@@ -1178,5 +815,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
           }
         } // public void onCompleted(Exception ex) 
       });
+      
+      return data_port;
     } //private void setupDataServer()
 }
