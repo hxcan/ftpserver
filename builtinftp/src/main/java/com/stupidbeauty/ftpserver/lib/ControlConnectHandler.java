@@ -81,6 +81,11 @@ public class ControlConnectHandler implements DataServerManagerInterface
   private boolean isUploading=false; //!< 是否正在上传。陈欣
   private InetAddress host;
   private File rootDirectory=null; //!< 根目录。
+  
+  public void setDataServerManager(DataServerManager dataServerManager)
+  {
+    this.dataServerManager=dataServerManager;
+  } // public void setDataServerManager(DataServerManager dataServerManager)
 
   /**
   * Set the user manager.

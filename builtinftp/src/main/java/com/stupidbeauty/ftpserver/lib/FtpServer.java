@@ -96,6 +96,7 @@ public class FtpServer
   private boolean autoDetectIp=true; //!< Whether we should detect ip automatically.
   private File rootDirectory=null; //!< 根目录。
   private WIFIConnectChangeReceiver wifiConnectChangeReceiver=new WIFIConnectChangeReceiver(this); //!< 无线网络改变事件接收器。
+  private DataServerManager dataServerManager=new DataServerManager(); //!< The data server manager.
 
   /**
   * Get the actual ip.
@@ -442,7 +443,8 @@ public class FtpServer
         handler.setEventListener(eventListener); // 设置事件监听器。
         handler.setUserManager(userManager); // set user manager.
         handler.setFilePathInterpreter(filePathInterpreter); // Set the file path interpreter.
-      }
+        handler.setDataServerManager(dataServerManager); // Set the data server manager.
+      } // public void onAccepted(final AsyncSocket socket)
 
       @Override
       public void onListening(AsyncServerSocket socket)
