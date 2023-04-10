@@ -292,25 +292,6 @@ public class DirectoryListSender
     /**
     * 发送文件内容。
     */
-    public void sendFileContent(String data51, String currentWorkingDirectory) 
-    {
-      wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
-                    
-      wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
-                    
-      DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve 目录。
-
-      fileToSend=photoDirecotry; // 记录，要发送的文件对象。
-        
-      if (data_socket!=null) // 数据连接存在。
-      {
-        startSendFileContentForLarge(); // 开始发送文件内容。
-      } //if (data_socket!=null) // 数据连接存在。
-    } //private void sendFileContent(String data51, String currentWorkingDirectory)
-    
-    /**
-    * 发送文件内容。
-    */
     public void sendDirectoryList(String data51, String currentWorkingDirectory) 
     {
       Log.d(TAG, CodePosition.newInstance().toString()+  "directory to list: " + data51 + ", working directory: " + currentWorkingDirectory); // Debug.
@@ -330,9 +311,9 @@ public class DirectoryListSender
         
       subDirectoryName=parameter; // 记录可能的子目录名字。
 
-//       File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, parameter); //照片目录。
+      wholeDirecotoryPath = filePathInterpreter.resolveWholeDirectoryPath( rootDirectory, currentWorkingDirectory, parameter); // resolve whole directory path.
       DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, parameter); // resolve 目录。
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", directory : " + photoDirecotry + ", working directory: " + currentWorkingDirectory + ", directory uri: " + photoDirecotry.getUri().toString()); // Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", directory : " + photoDirecotry + ", working directory: " + currentWorkingDirectory + ", directory uri: " + photoDirecotry.getUri().toString() + ", whole directory path: " + wholeDirecotoryPath); // Debug.
 
       fileToSend=photoDirecotry; // 记录，要发送的文件对象。
         
@@ -340,7 +321,7 @@ public class DirectoryListSender
       {
         startSendFileContentForLarge(); // 开始发送文件内容。
       } //if (data_socket!=null) // 数据连接存在。
-    } //private void sendFileContent(String data51, String currentWorkingDirectory)
+    } // private void sendFileContent(String data51, String currentWorkingDirectory)
     
     private void notifyLsCompleted()
     {
