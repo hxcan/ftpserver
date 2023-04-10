@@ -33,9 +33,9 @@ import android.os.AsyncTask;
 import java.util.HashMap;
 import com.stupidbeauty.hxlauncher.asynctask.VirtualPathLoadInterface;
 
-public class FilePathInterpreter implements VirtualPathLoadInterface
+public class PathDocumentFileCacheManager
 {
-  private static final String TAG="FilePathInterpreter"; // !< The tag used to output debug code.
+  private static final String TAG="PathDocumentFileCacheManager"; // !< The tag used to output debug code.
   private HashMap<String, Uri> virtualPathMap=new HashMap<>(); //!< the map of virtual path to uri.
   private HashMap<String, DocumentFile> pathDocumentFileMap=new HashMap<>(); //!< Cache. path to documentfile object.
   private PathDocumentFileCacheManager pathDocumentFileCacheManager=new PathDocumentFileCacheManager(); //!< The manager of path to documentfile objects cache.
@@ -77,15 +77,6 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
     translateRequestSendTask.execute(virtualPathMap, context); // 执行任务。
   } //private void saveVoicePackageNameMap()
 
-  @Override
-  /**
-  * Set the virtual path map.
-  */
-  public void  setVoicePackageNameMap (HashMap<String, Uri> voicePackageNameMap)
-  {
-    virtualPathMap=voicePackageNameMap;
-  } // public void  setVoicePackageNameMap (HashMap<String, Uri> voicePackageNameMap)
-  
   /**
   *  Get the uri of specified virtual path.
   */
@@ -238,82 +229,79 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
   } // public String resolveWholeDirectoryPath( File rootDirectory, String currentWorkingDirectory, String data51)
   
   /**
-  * Get the path documetnfile cache manager.
-  */
-  public PathDocumentFileCacheManager getPathDocumentFileCacheManager() 
-  {
-    return pathDocumentFileCacheManager;
-  } // public PathDocumentFileCacheManager getPathDocumentFileCacheManager()
-  
-  /**
   * resolve file path.
   */
-  public DocumentFile getFile(File rootDirectory, String currentWorkingDirectory, String data51) 
+  public void put(String effectiveVirtualPathForCurrentSegment, DocumentFile  targetdocumentFile) 
   {
     DocumentFile result=null; // Result;
     
-    String wholeDirecotoryPath = resolveWholeDirectoryPath( rootDirectory, currentWorkingDirectory, data51); // resolve 完整路径。
-
-    // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory); // Debug.
-
-    File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
-
-    Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ", check virtual exists"); // Debug.
-    if (virtualPathExists(wholeDirecotoryPath)) // It is in the virtual path map
     {
 //       Uri uri=virtualPathMap.get(wholeDirecotoryPath); // Get the uri.
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  virtual path exists"); // Debug.
-      Uri uri=  getParentUriByVirtualPathMap(wholeDirecotoryPath); // Get the uri.
-      // DocumentFile documentFile=DocumentFile.fromTreeUri(context, uri); // 04-08 18:22:04.279 15010 15045 W System.err: java.lang.IllegalArgumentException: Invalid URI: file:///storage/emulated/0/DCIM/GoddessCamera
-      DocumentFile documentFile=getDocumentFileFromUri(context, uri); // 04-08 18:22:04.279 15010 15045 W System.err: java.lang.IllegalArgumentException: Invalid URI: file:///storage/emulated/0/DCIM/GoddessCamera
       
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  parent document file: " + documentFile); // Debug.
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  parent uri: " + uri); // Debug.
-      String parentVirtualPath=getParentVirtualPathByVirtualPathMap(wholeDirecotoryPath); // Get the paretn virtual path map.
-      
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  parent virtual path: " + parentVirtualPath); // Debug.
-      String trailingPath=wholeDirecotoryPath.substring(parentVirtualPath.length(), wholeDirecotoryPath.length());
-      
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath); // Debug.
-      
-      String[] trialingPathSegments=trailingPath.split("/");
-      
-      DocumentFile targetdocumentFile=documentFile;
-      
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", target document: " + targetdocumentFile.getUri().toString()); // Debug.
-      
-      String effectiveVirtualPathForCurrentSegment=parentVirtualPath; // Effective virtual path for current segment. Used for DocumentFile cache.
-      
-      for(String currentSegmetn: trialingPathSegments)
+      // for(String currentSegmetn: trialingPathSegments)
       {
         // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn); // Debug.
-        if (currentSegmetn.isEmpty()) // Skip empty segment
+        // else
         {
-          // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn + ", skip"); // Debug.
-        } // if (currentSegmetn.isEmpty()) // Skip empty segment
-        else
-        {
-          effectiveVirtualPathForCurrentSegment=effectiveVirtualPathForCurrentSegment+ "/" + currentSegmetn; // Remember effective virtual path.
           effectiveVirtualPathForCurrentSegment=effectiveVirtualPathForCurrentSegment.replace("//", "/"); // Remove consecutive /
 
-          Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn + ", target document: " + targetdocumentFile.getUri().toString()+ ", effective virtual path: " + effectiveVirtualPathForCurrentSegment); // Debug.
-          // DocumentFile cachedtargetdocumentFile=pathDocumentFileMap.get(effectiveVirtualPathForCurrentSegment); // Get it from cache.
           DocumentFile cachedtargetdocumentFile=pathDocumentFileCacheManager.get(effectiveVirtualPathForCurrentSegment); // Get it from cache.
           
           if (cachedtargetdocumentFile!=null) // It exists
           {
             targetdocumentFile=cachedtargetdocumentFile; // Remember it.
-            Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn + ", target document: " + targetdocumentFile.getUri().toString()); // Debug.
           } // if (targetdocumentFile!=null) // It exists
           else // Not exist. Need to find
           {
-            targetdocumentFile=targetdocumentFile.findFile(currentSegmetn);
-            
-            // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn + ", target document object: " + targetdocumentFile); // Debug.
             if (targetdocumentFile!=null) // Target document exists
             {
-              Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn + ", target document: " + targetdocumentFile.getUri().toString()); // Debug.
-              
+              pathDocumentFileMap.put(effectiveVirtualPathForCurrentSegment, targetdocumentFile); // Put it into the cache.
+              // pathDocumentFileCacheManager.put(effectiveVirtualPathForCurrentSegment, targetdocumentFile); // Put it into the cache.
+            } // if (targetdocumentFile!=null) // Target document exists
+          } // else // Not exist
+        } // if (currentSegmetn.isEmpty())
+      } // //       DocumentFile documentFile=DocumentFile.fromTreeUri(context, uri);
+      
+//       Chen xin.
+      // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory + ", uri to use: " + uri.toString()); // Debug.
+      // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory + ", uri to use: " + uri.toString()  + ", target documetn file: " + targetdocumentFile); // Debug.
+
+//       DocumentFile documentFile=DocumentFile.fromTreeUri(context, uri);
+//       DocumentFile documentFile=DocumentFile.fromTreeUri(context, targetPathuri);
+      
+      result=targetdocumentFile;
+    } // if (virtualPathMap.contains(wholeDirecotoryPath)) // It is in the virtual path map
+  } // public DocumentFile getFile(File rootDirectory, String currentWorkingDirectory, String data51) 
+  
+  /**
+  * resolve file path.
+  */
+  public DocumentFile get(String effectiveVirtualPathForCurrentSegment) 
+  {
+    DocumentFile result=null; // Result;
+    
+    {
+//       Uri uri=virtualPathMap.get(wholeDirecotoryPath); // Get the uri.
+      DocumentFile targetdocumentFile=null;
+      
+      // for(String currentSegmetn: trialingPathSegments)
+      {
+        // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn); // Debug.
+        // else
+        {
+          effectiveVirtualPathForCurrentSegment=effectiveVirtualPathForCurrentSegment.replace("//", "/"); // Remove consecutive /
+
+          DocumentFile cachedtargetdocumentFile=pathDocumentFileMap.get(effectiveVirtualPathForCurrentSegment); // Get it from cache.
+          // DocumentFile cachedtargetdocumentFile=pathDocumentFileCacheManager.get(effectiveVirtualPathForCurrentSegment); // Get it from cache.
+          
+          if (cachedtargetdocumentFile!=null) // It exists
+          {
+            targetdocumentFile=cachedtargetdocumentFile; // Remember it.
+          } // if (targetdocumentFile!=null) // It exists
+          else // Not exist. Need to find
+          {
+            if (targetdocumentFile!=null) // Target document exists
+            {
               // pathDocumentFileMap.put(effectiveVirtualPathForCurrentSegment, targetdocumentFile); // Put it into the cache.
               pathDocumentFileCacheManager.put(effectiveVirtualPathForCurrentSegment, targetdocumentFile); // Put it into the cache.
             } // if (targetdocumentFile!=null) // Target document exists
@@ -330,31 +318,7 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
       
       result=targetdocumentFile;
     } // if (virtualPathMap.contains(wholeDirecotoryPath)) // It is in the virtual path map
-    else // Not in the virtual path map
-    {
-      if (photoDirecotry.exists()) // 文件存在
-      {
-      } // if (photoDirecotry.exists()) // 文件存在
-      else // 文件不 存在
-      {
-        //       wholeDirecotoryPath = rootDirectory.getPath() + data51; // 构造完整路径。
-        // 
-        //       wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
-        // 
-        //       photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
-      } //else // 文件不 存在
-      
-//       result=photoDirecotry;
-      result=DocumentFile.fromFile(photoDirecotry);
-    } // else // Not in the virtual path map
     
-    Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory + ", result object: " + result); // Debug.
-
-    if (result!=null) // The result exists
-    {
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory + ", uri to use: " + result.getUri().toString()); // Debug.
-    } // if (result!=null) // The result exists
-
     return result;
   } // public DocumentFile getFile(File rootDirectory, String currentWorkingDirectory, String data51) 
   
@@ -378,4 +342,5 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
     return result;
   } // private DocumentFile getDocumentFileFromUri(Context context, Uri uri)
 } // public class FilePathInterpreter implements VirtualPathLoadInterface
+
 

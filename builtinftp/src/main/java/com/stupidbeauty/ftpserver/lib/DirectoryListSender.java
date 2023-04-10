@@ -4,7 +4,6 @@ import com.stupidbeauty.codeposition.CodePosition;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.BufferedReader;
-// import com.stupidbeauty.hxlauncher.listener.BuiltinFtpServerErrorListener; 
 import android.net.Uri;
 import android.provider.Settings;
 import android.content.Intent;
@@ -54,7 +53,7 @@ public class DirectoryListSender
   private ControlConnectHandler controlConnectHandler=null; //!< 控制连接处理器。
   private AsyncSocket data_socket=null; //!< 当前的数据连接。
   private File rootDirectory=null; //!< 根目录。
-//   private File fileToSend=null; //!< 要发送的文件。
+  private String wholeDirecotoryPath= ""; //!< The whole directory path to be used.
   private DocumentFile fileToSend=null; //!< 要发送的文件。
   private String subDirectoryName=null; //!< 要列出的子目录名字。
   private static final String TAG ="DirectoryListSender"; //!<  输出调试信息时使用的标记。
@@ -198,7 +197,6 @@ public class DirectoryListSender
     /**
     *  获取目录的完整列表。
     */
-//     private String getDirectoryContentList(File photoDirecotry, String nameOfFile)
     private String getDirectoryContentList(DocumentFile photoDirecotry, String nameOfFile)
     {
       nameOfFile=nameOfFile.trim(); // 去除空白字符。陈欣
@@ -213,37 +211,35 @@ public class DirectoryListSender
       } // if (photoDirecotry.isFile()) // 是一个文件。
       else // 是目录
       {
-//         File[] paths = photoDirecotry.listFiles();
         DocumentFile[] paths = photoDirecotry.listFiles();
         Log.d(TAG, CodePosition.newInstance().toString()+  ", paths size: " + paths.length); // Debug.
 
-//         if (paths!=null) // NOt null pointer
+        if (paths.length==0) // No content listed
         {
-          Log.d(TAG, "getDirectoryContentList, path: " + photoDirecotry + ", file amount: " + paths.length); // Debug.
-          
-          if (paths.length==0) // No conet listed
+          controlConnectHandler.checkFileManagerPermission(Constants.Permission.Read, null); // Check file manager permission.
+        } // if (paths.length==0) // No conet listed
+        else // Listed Successfully
+        {
+          PathDocumentFileCacheManager pathDocumentFileCacheManager = filePathInterpreter.getPathDocumentFileCacheManager(); // Get the path documetnfile cache manager.
+          for(DocumentFile path:paths) // reply files one by one
           {
-            controlConnectHandler.checkFileManagerPermission(Constants.Permission.Read, null); // Check file manager permission.
-          } // if (paths.length==0) // No conet listed
-          else // Listed Successfully
-          {
-            // for each pathname in pathname array
-            //           for(File path:paths) 
-            for(DocumentFile path:paths) // reply files one by one
+            String currentLine=construct1LineListFile(path); // 构造针对这个文件的一行输出。
+
+            String fileName=path.getName(); // 获取文件名。
+            
+            String effectiveVirtualPathForCurrentSegment=wholeDirecotoryPath+ "/" + fileName; // Remember effective virtual path.
+            effectiveVirtualPathForCurrentSegment=effectiveVirtualPathForCurrentSegment.replace("//", "/"); // Remove consecutive /
+            
+            Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", target document: " + path.getUri().toString()+ ", effective virtual path: " + effectiveVirtualPathForCurrentSegment); // Debug.
+
+            pathDocumentFileCacheManager.put(effectiveVirtualPathForCurrentSegment, path); // Put it into the cache.
+
+            if (fileName.equals(nameOfFile)  || (nameOfFile.isEmpty())) // 名字匹配。
             {
-              // Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + path); // Debug.
-              String currentLine=construct1LineListFile(path); // 构造针对这个文件的一行输出。
-              // Log.d(TAG, CodePosition.newInstance().toString()+  ", line: " + currentLine); // Debug.
-
-              String fileName=path.getName(); // 获取文件名。
-
-              if (fileName.equals(nameOfFile)  || (nameOfFile.isEmpty())) // 名字匹配。
-              {
-                binaryStringSender.sendStringInBinaryMode(currentLine); // 发送回复内容。
-              } //if (fileName.equals(nameOfFile)) // 名字匹配。
-            } // for(DocumentFile path:paths) // reply files one by one
-          } // else // Listed Successfully
-        } // if (paths!=null) // NOt null pointer
+              binaryStringSender.sendStringInBinaryMode(currentLine); // 发送回复内容。
+            } //if (fileName.equals(nameOfFile)) // 名字匹配。
+          } // for(DocumentFile path:paths) // reply files one by one
+        } // else // Listed Successfully
       } // else // 是目录
          
       Util.writeAll(data_socket, ( "\r\n").getBytes(), new CompletedCallback() 
@@ -298,11 +294,10 @@ public class DirectoryListSender
     */
     public void sendFileContent(String data51, String currentWorkingDirectory) 
     {
-      String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
+      wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
                     
       wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
-//       FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
       DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve 目录。
 
       fileToSend=photoDirecotry; // 记录，要发送的文件对象。
