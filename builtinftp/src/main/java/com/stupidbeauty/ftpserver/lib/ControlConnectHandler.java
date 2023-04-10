@@ -159,7 +159,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     fileContentSender.setContext(context); // Set the context.
 //     filePathInterpreter
 
-    setupDataServer(); // 启动数据传输服务器。
+    // setupDataServer(); // 启动数据传输服务器。
   } // public ControlConnectHandler(Context context, boolean allowActiveMode, InetAddress host, String ip)
     
     /**
