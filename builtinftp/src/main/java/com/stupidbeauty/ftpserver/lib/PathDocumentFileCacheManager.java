@@ -38,10 +38,10 @@ public class PathDocumentFileCacheManager
   private static final String TAG="PathDocumentFileCacheManager"; // !< The tag used to output debug code.
   private HashMap<String, Uri> virtualPathMap=new HashMap<>(); //!< the map of virtual path to uri.
   private HashMap<String, DocumentFile> pathDocumentFileMap=new HashMap<>(); //!< Cache. path to documentfile object.
-  private PathDocumentFileCacheManager pathDocumentFileCacheManager=new PathDocumentFileCacheManager(); //!< The manager of path to documentfile objects cache.
-  private Context context=null; //!< Context.
-  private boolean externalStoragePerformanceOptimize=false; //!< Whether to do external storage performance optimize.
-  private ExternalStorageUriGuessor externalStorageUriGuessor=new ExternalStorageUriGuessor(); //!< Guess the external storage uri.
+  // private PathDocumentFileCacheManager pathDocumentFileCacheManager=new PathDocumentFileCacheManager(); //!< The manager of path to documentfile objects cache.
+  // private Context context=null; //!< Context.
+  // private boolean externalStoragePerformanceOptimize=false; //!< Whether to do external storage performance optimize.
+  // private ExternalStorageUriGuessor externalStorageUriGuessor=new ExternalStorageUriGuessor(); //!< Guess the external storage uri.
   
   /**
   *  Whether the two are same path.
@@ -58,26 +58,6 @@ public class PathDocumentFileCacheManager
   } // public boolean isSamePath (String fullPath, String ConstantsFilePathAndroidData)
   
   /**
-    * 载入 virtual path to uri 之间的映射。
-    */
-  public void loadVirtualPathMap()
-  {
-    LoadVoicePackageNameMapTask translateRequestSendTask =new LoadVoicePackageNameMapTask(); //创建异步任务。
-
-    translateRequestSendTask.execute(this, context); //执行任务。
-  } //private void loadVoicePackageNameMap()
-
-  /**
-    * 保存映射。 The virtual path map.
-    */ 
-  private void saveVirtualPathMap()
-  {
-    VirtualPathMapSaveTask translateRequestSendTask =new VirtualPathMapSaveTask(); // 创建异步任务。
-
-    translateRequestSendTask.execute(virtualPathMap, context); // 执行任务。
-  } //private void saveVoicePackageNameMap()
-
-  /**
   *  Get the uri of specified virtual path.
   */
   public Uri getVirtualPath(String path)
@@ -85,64 +65,6 @@ public class PathDocumentFileCacheManager
     return virtualPathMap.get(path);
   } // public Uri getVirtualPath(String path)
 
-  /**
-  * Set option. Whether to do external storage perforamnce optimize.
-  */
-  public void setExternalStoragePerformanceOptimize(boolean isChecked)
-  {
-    externalStoragePerformanceOptimize=isChecked; // Remember the option.
-  } // public void setExternalStoragePerformanceOptimize(boolean isChecked)
-  
-  /**
-  *  un Mount virtual path.
-  */
-  public void unmountVirtualPath(String fullPath)
-  {
-    Log.d(TAG, CodePosition.newInstance().toString()+  ", full path : " + fullPath ); // Debug.
-    virtualPathMap.remove(fullPath); // Put it into the map.
-    
-    saveVirtualPathMap(); // Save the virtual path map.
-  } // public void unmountVirtualPath(String path)
-  
-  /**
-  * Mount virtual path.
-  */
-  public void mountVirtualPath(String fullPath, Uri uri)
-  {
-    Log.d(TAG, CodePosition.newInstance().toString()+  ", full path : " + fullPath + ", uri to use: " + uri.toString()); // Debug.
-    virtualPathMap.put(fullPath, uri); // Put it into the map.
-    
-    saveVirtualPathMap(); // Save the virtual path map.
-  } // public void mountVirtualPath(String fullPath, Uri uri)
-
-  public void setContext(Context context)
-  {
-    this.context=context;
-    
-    externalStorageUriGuessor.setContext(context);
-  } // fileContentSender
-  
-  /**
-  * Get the uri. of a virtual path.
-  */
-  private Uri getParentUriByVirtualPathMap(String wholeDirecotoryPath) 
-  {
-    String currentTryingPath=getParentVirtualPathByVirtualPathMap(wholeDirecotoryPath); // Get the paretn virtual path map.
-    
-    Uri result=null;
-    
-    result=virtualPathMap.get(currentTryingPath); // Get the uri.
-    
-    if (externalStoragePerformanceOptimize) // Need to do external storage performance optimize
-    {
-      result=externalStorageUriGuessor.guessUri(result); // Guess the uri.
-    } // if (externalStoragePerformanceOptimize) // Need to do external storage performance optimize
-    
-    //       Uri uri=virtualPathMap.get(wholeDirecotoryPath); // Get the uri.
-
-    return result;
-  } // private Uri getParentUriByVirtualPathMap(String wholeDirecotoryPath)
-  
   /**
   * Get the paretn virtual path map.
   */
@@ -245,13 +167,7 @@ public class PathDocumentFileCacheManager
         {
           effectiveVirtualPathForCurrentSegment=effectiveVirtualPathForCurrentSegment.replace("//", "/"); // Remove consecutive /
 
-          DocumentFile cachedtargetdocumentFile=pathDocumentFileCacheManager.get(effectiveVirtualPathForCurrentSegment); // Get it from cache.
-          
-          if (cachedtargetdocumentFile!=null) // It exists
-          {
-            targetdocumentFile=cachedtargetdocumentFile; // Remember it.
-          } // if (targetdocumentFile!=null) // It exists
-          else // Not exist. Need to find
+          // else // Not exist. Need to find
           {
             if (targetdocumentFile!=null) // Target document exists
             {
@@ -298,14 +214,6 @@ public class PathDocumentFileCacheManager
           {
             targetdocumentFile=cachedtargetdocumentFile; // Remember it.
           } // if (targetdocumentFile!=null) // It exists
-          else // Not exist. Need to find
-          {
-            if (targetdocumentFile!=null) // Target document exists
-            {
-              // pathDocumentFileMap.put(effectiveVirtualPathForCurrentSegment, targetdocumentFile); // Put it into the cache.
-              pathDocumentFileCacheManager.put(effectiveVirtualPathForCurrentSegment, targetdocumentFile); // Put it into the cache.
-            } // if (targetdocumentFile!=null) // Target document exists
-          } // else // Not exist
         } // if (currentSegmetn.isEmpty())
       } // //       DocumentFile documentFile=DocumentFile.fromTreeUri(context, uri);
       
