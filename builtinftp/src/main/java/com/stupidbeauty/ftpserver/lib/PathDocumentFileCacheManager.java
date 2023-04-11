@@ -115,20 +115,11 @@ public class PathDocumentFileCacheManager
   } // private String getParentVirtualPathByVirtualPathMap(String wholeDirecotoryPath)
   
   /**
-  * Does virtual path exist
+  *  Remove it from the cache.
   */
-  public boolean virtualPathExists(String ConstantsFilePathAndroidData)
+  public void remove(String effectiveVirtualPathForCurrentSegment)
   {
-    boolean result=false;
-    
-    String currentTryingPath=getParentVirtualPathByVirtualPathMap(ConstantsFilePathAndroidData); // Get the paretn virtual path map.
-    
-    if (currentTryingPath!=null) // The virtual path exists
-    {
-      result=true;
-    } // if (currentTryingPath!=null) // The virtual path exists
-
-    return result;
+    pathDocumentFileMap.remove(effectiveVirtualPathForCurrentSegment); // Remove it from the cache.    
   } // public boolean virtualPathExists(String ConstantsFilePathAndroidData) // Does virtual path exist
   
   /**

@@ -461,7 +461,27 @@ public class ControlConnectHandler implements DataServerManagerInterface
       if (deleteResult) // Delete success
       {
         notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
-        replyString="250 Delete success"; // Reply, delete success.
+        replyString="250 Delete success " + data51; // Reply, delete success.
+        
+        
+        // Chen xin. remove cache DocumentFile.
+        
+        PathDocumentFileCacheManager pathDocumentFileCacheManager = filePathInterpreter.getPathDocumentFileCacheManager(); // Get the path documetnfile cache manager.
+          // for(DocumentFile path:paths) // reply files one by one
+          {
+            // String currentLine=construct1LineListFile(path); // 构造针对这个文件的一行输出。
+
+            // String fileName=path.getName(); // 获取文件名。
+            
+            String effectiveVirtualPathForCurrentSegment=wholeDirecotoryPath; // Remember effective virtual path.
+            effectiveVirtualPathForCurrentSegment=effectiveVirtualPathForCurrentSegment.replace("//", "/"); // Remove consecutive /
+            
+            Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath  + ", effective virtual path: " + effectiveVirtualPathForCurrentSegment); // Debug.
+
+            pathDocumentFileCacheManager.remove(effectiveVirtualPathForCurrentSegment); // Remove it from the cache.
+
+          } // for(DocumentFile path:paths) // reply files one by one
+
       } // if (deleteResult) // Delete success
       else // Delete fail
       {
