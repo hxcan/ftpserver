@@ -48,6 +48,7 @@ import com.koushikdutta.async.callback.ConnectCallback;
 
 public class DirectoryListSender
 {
+  private boolean fileNameTolerant=false; //!< Set the file name tolerant mode.
   private FilePathInterpreter filePathInterpreter=null; //!< the file path interpreter.
   private byte[] dataSocketPendingByteArray=null; //!< 数据套接字数据内容 排队。
   private ControlConnectHandler controlConnectHandler=null; //!< 控制连接处理器。
@@ -193,6 +194,14 @@ public class DirectoryListSender
       return currentLine;
     } // private String construct1LineListFile(File photoDirecotry)
     
+  /**
+  * File name tolerant. For example: /Android/data/com.client.xrxs.com.xrxsapp/files/XrxsSignRecordLog/Zw40VlOyfctCQCiKL_63sg==, with a trailing <LF> (%0A).
+  */
+  public void setFileNameTolerant(boolean toleranttrue)
+  {
+    fileNameTolerant=toleranttrue; // Remember.
+  } // public void setFileNameTolerant(boolean toleranttrue)
+  
     /**
     *  获取目录的完整列表。
     */
@@ -234,6 +243,21 @@ public class DirectoryListSender
             Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", target document: " + path.getUri().toString()+ ", effective virtual path: " + effectiveVirtualPathForCurrentSegment); // Debug.
 
             pathDocumentFileCacheManager.put(effectiveVirtualPathForCurrentSegment, path); // Put it into the cache.
+            
+            String tolerantEffectiveVirtualPath=effectiveVirtualPathForCurrentSegment.trim(); // Trim to get alternative path.
+            
+            if (tolerantEffectiveVirtualPath.equals(effectiveVirtualPathForCurrentSegment)) // No special characters
+            {
+            } // if (tolerantEffectiveVirtualPath.equals(effectiveVirtualPathForCurrentSegment)) // No special characters
+            else // Special characters trimmed
+            {
+              DocumentFile documentFileForTolerantPath=pathDocumentFileCacheManager.get(tolerantEffectiveVirtualPath); // Try to get a document for the tolerant path.
+              
+              if (documentFileForTolerantPath==null) // NOt exist
+              {
+                pathDocumentFileCacheManager.put(tolerantEffectiveVirtualPath, path); // Add a map for this entry.
+              } // if (documentFileForTolerantPath==null) // NOt exist
+            } // else // Special characters trimmed
 
             if (fileName.equals(nameOfFile)  || (nameOfFile.isEmpty())) // 名字匹配。
             {

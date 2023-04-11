@@ -4,12 +4,10 @@ import com.stupidbeauty.codeposition.CodePosition;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.BufferedReader;
-// import com.stupidbeauty.hxlauncher.listener.BuiltinFtpServerErrorListener; 
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
-// import com.stupidbeauty.farmingbookapp.PreferenceManagerUtil;
 import java.net.NetworkInterface;
 import java.util.Enumeration;
 import java.net.SocketException;
@@ -94,6 +92,7 @@ public class FtpServer
   private String ip; //!< ip
   private boolean allowActiveMode=true; //!< 是否允许主动模式。
   private boolean autoDetectIp=true; //!< Whether we should detect ip automatically.
+  private boolean fileNameTolerant=false; //!< Set the file name tolerant mode.
   private File rootDirectory=null; //!< 根目录。
   private WIFIConnectChangeReceiver wifiConnectChangeReceiver=new WIFIConnectChangeReceiver(this); //!< 无线网络改变事件接收器。
   private DataServerManager dataServerManager=new DataServerManager(); //!< The data server manager.
@@ -322,6 +321,14 @@ public class FtpServer
   } // public Uri getVirtualPath(String path)
 
   /**
+  * File name tolerant. For example: /Android/data/com.client.xrxs.com.xrxsapp/files/XrxsSignRecordLog/Zw40VlOyfctCQCiKL_63sg==, with a trailing <LF> (%0A).
+  */
+  public void setFileNameTolerant(boolean toleranttrue)
+  {
+    fileNameTolerant=toleranttrue; // Remember.
+  } // public void setFileNameTolerant(boolean toleranttrue)
+  
+  /**
   * Set option. Whether to do external storage perforamnce optimize.
   */
   public void setExternalStoragePerformanceOptimize(boolean isChecked)
@@ -444,6 +451,7 @@ public class FtpServer
         handler.setUserManager(userManager); // set user manager.
         handler.setFilePathInterpreter(filePathInterpreter); // Set the file path interpreter.
         handler.setDataServerManager(dataServerManager); // Set the data server manager.
+        handler.setFileNameTolerant(fileNameTolerant); // Set the file name tolerant mode.
       } // public void onAccepted(final AsyncSocket socket)
 
       @Override

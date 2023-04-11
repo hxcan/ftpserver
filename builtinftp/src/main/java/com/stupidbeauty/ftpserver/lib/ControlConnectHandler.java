@@ -120,8 +120,16 @@ public class ControlConnectHandler implements DataServerManagerInterface
         
     fileContentSender.setRootDirectory(rootDirectory); // 设置根目录。
     directoryListSender.setRootDirectory(rootDirectory); // 设置根目录。
-  }
+  } // public void setRootDirectory(File root)
 
+  /**
+  * File name tolerant. For example: /Android/data/com.client.xrxs.com.xrxsapp/files/XrxsSignRecordLog/Zw40VlOyfctCQCiKL_63sg==, with a trailing <LF> (%0A).
+  */
+  public void setFileNameTolerant(boolean toleranttrue)
+  {
+    directoryListSender.setFileNameTolerant(toleranttrue);
+  } // public void setFileNameTolerant(boolean toleranttrue)
+  
   /**
   * 从数据套接字处接收数据。陈欣
   */
