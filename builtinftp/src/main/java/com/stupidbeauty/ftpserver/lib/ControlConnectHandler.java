@@ -683,11 +683,13 @@ public class ControlConnectHandler implements DataServerManagerInterface
       else if (command.equals("DELE")) // 删除文件
       {
         String data51= content.substring(5);
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file name to delete: " + data51 + ", lnegth: " + data51.length()); // Debug.
 
         data51=data51.trim(); // 去掉末尾换行
         
-        processDeleCommand(data51); // Procee the dele command
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file name to delete: " + data51 + ", lnegth: " + data51.length()); // Debug.
 
+        processDeleCommand(data51); // Procee the dele command
       } //else if (command.equals("DELE")) // 删除文件
       else if (command.equals("RMD")) // 删除目录
       {

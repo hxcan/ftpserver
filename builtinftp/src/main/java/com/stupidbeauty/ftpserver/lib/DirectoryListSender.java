@@ -98,7 +98,6 @@ public class DirectoryListSender
     /**
     * 构造针对这个文件的一行输出。
     */
-//     private String construct1LineListFile(File photoDirecotry) 
     private String construct1LineListFile(DocumentFile photoDirecotry) 
     {
       // Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + photoDirecotry); // Debug.
