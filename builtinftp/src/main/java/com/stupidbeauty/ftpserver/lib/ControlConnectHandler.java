@@ -452,44 +452,54 @@ public class ControlConnectHandler implements DataServerManagerInterface
       //         FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
       DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve file
 
-      boolean deleteResult= photoDirecotry.delete();
-          
-      Log.d(TAG, "delete result: " + deleteResult); // Debug.
-      
+        
       String replyString="250 "; // 回复内容。
 
-      if (deleteResult) // Delete success
+      if (photoDirecotry!=null) // The documentfile object exists
       {
-        notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
-        replyString="250 Delete success " + data51; // Reply, delete success.
-        
-        
-        // Chen xin. remove cache DocumentFile.
-        
-        PathDocumentFileCacheManager pathDocumentFileCacheManager = filePathInterpreter.getPathDocumentFileCacheManager(); // Get the path documetnfile cache manager.
-          // for(DocumentFile path:paths) // reply files one by one
-          {
-            // String currentLine=construct1LineListFile(path); // 构造针对这个文件的一行输出。
-
-            // String fileName=path.getName(); // 获取文件名。
+        boolean deleteResult= photoDirecotry.delete();
             
-            String effectiveVirtualPathForCurrentSegment=wholeDirecotoryPath; // Remember effective virtual path.
-            effectiveVirtualPathForCurrentSegment=effectiveVirtualPathForCurrentSegment.replace("//", "/"); // Remove consecutive /
-            
-            Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath  + ", effective virtual path: " + effectiveVirtualPathForCurrentSegment); // Debug.
+        Log.d(TAG, "delete result: " + deleteResult); // Debug.
+        
 
-            pathDocumentFileCacheManager.remove(effectiveVirtualPathForCurrentSegment); // Remove it from the cache.
+        if (deleteResult) // Delete success
+        {
+          notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
+          replyString="250 Delete success " + data51; // Reply, delete success.
+          
+          
+          // Chen xin. remove cache DocumentFile.
+          
+          PathDocumentFileCacheManager pathDocumentFileCacheManager = filePathInterpreter.getPathDocumentFileCacheManager(); // Get the path documetnfile cache manager.
+            // for(DocumentFile path:paths) // reply files one by one
+            {
+              // String currentLine=construct1LineListFile(path); // 构造针对这个文件的一行输出。
 
-          } // for(DocumentFile path:paths) // reply files one by one
+              // String fileName=path.getName(); // 获取文件名。
+              
+              String effectiveVirtualPathForCurrentSegment=wholeDirecotoryPath; // Remember effective virtual path.
+              effectiveVirtualPathForCurrentSegment=effectiveVirtualPathForCurrentSegment.replace("//", "/"); // Remove consecutive /
+              
+              Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath  + ", effective virtual path: " + effectiveVirtualPathForCurrentSegment); // Debug.
 
-      } // if (deleteResult) // Delete success
-      else // Delete fail
+              pathDocumentFileCacheManager.remove(effectiveVirtualPathForCurrentSegment); // Remove it from the cache.
+
+            } // for(DocumentFile path:paths) // reply files one by one
+
+        } // if (deleteResult) // Delete success
+        else // Delete fail
+        {
+          replyString="550 File delete failed"; // File delete failed.
+  //         replyString="250 "; // 回复内容。
+
+          checkFileManagerPermission(Constants.Permission.Write, photoDirecotry); // Check permission of write.
+        } // else // Delete fail
+      } // if (photoDirecotry!=null) // The documentfile object exists
+      else // The doucmentfile object does not exist
       {
-        replyString="550 File delete failed"; // File delete failed.
-//         replyString="250 "; // 回复内容。
-
-        checkFileManagerPermission(Constants.Permission.Write, photoDirecotry); // Check permission of write.
-      } // else // Delete fail
+        replyString="550 File delete failed " + data51; // File delete failed.
+      } // else // The doucmentfile object does not exist
+      
 
       Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString); // Debug.
         
