@@ -418,12 +418,11 @@ public class ControlConnectHandler implements DataServerManagerInterface
       Log.d(TAG, "processSizeCommand: workding directory: " + currentWorkingDirectory); // Debug.
       Log.d(TAG, "processSizeCommand: data51: " + data51); // Debug.
     
-//       FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
       DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve file path.
 
       String replyString=""; // 回复字符串。
 
-      if (photoDirecotry.exists()) // 文件存在
+      if  ((photoDirecotry!=null) && (photoDirecotry.exists())) // The path exists.
       {
         long fileSize= photoDirecotry.length(); //文件尺寸。 陈欣
             

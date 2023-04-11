@@ -328,6 +328,8 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
           else // Failed to get sub document file from last iteration.
           {
             Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn + ", target document: " + targetdocumentFile+ ", last effective virtual path: " + effectiveVirtualPathForCurrentSegment); // Debug.
+            
+            break; // No need to iterate any more.
           } // else // Failed to get sub document file from last iteration.
         } // if (currentSegmetn.isEmpty())
       } // //       DocumentFile documentFile=DocumentFile.fromTreeUri(context, uri);
