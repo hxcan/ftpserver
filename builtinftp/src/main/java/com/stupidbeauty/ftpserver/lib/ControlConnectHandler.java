@@ -75,7 +75,8 @@ public class ControlConnectHandler implements DataServerManagerInterface
   private int data_port=1544; //!< 数据连接端口。
   private String ip; //!< ip
   private boolean allowActiveMode=true; //!< 是否允许主动模式。
-  private DataServerManager dataServerManager=null; //!< Data server manager
+  // private DataServerManager dataServerManager=null; //!< Data server manager
+  private DataServerManager dataServerManager=new DataServerManager(); //!< The data server manager.
 
 //   private File writingFile; //!< 当前正在写入的文件。
   private DocumentFile writingFile; //!< 当前正在写入的文件。
@@ -84,10 +85,10 @@ public class ControlConnectHandler implements DataServerManagerInterface
   private InetAddress host;
   private File rootDirectory=null; //!< 根目录。
   
-  public void setDataServerManager(DataServerManager dataServerManager)
-  {
-    this.dataServerManager=dataServerManager;
-  } // public void setDataServerManager(DataServerManager dataServerManager)
+  // public void setDataServerManager(DataServerManager dataServerManager)
+  // {
+  //   this.dataServerManager=dataServerManager;
+  // } // public void setDataServerManager(DataServerManager dataServerManager)
 
   /**
   * Set the user manager.
@@ -161,6 +162,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
 
   public ControlConnectHandler(Context context, boolean allowActiveMode, InetAddress host, String ip)
   {
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", constructing new ControlConnectHandler: " + this); // Debug.
     this.context=context;
     this.allowActiveMode=allowActiveMode;
     this.host=host;
@@ -1175,7 +1177,10 @@ public class ControlConnectHandler implements DataServerManagerInterface
             }
             else // 无异常
             {
-              Log.d(TAG, "ftpmodule [Server] Successfully end connection");
+              // Log.d(TAG, "ftpmodule [Server] Successfully end connection");
+              Log.d(TAG, CodePosition.newInstance().toString()+  ", ftpmodule [Server] Successfully end connection: " + this + ", chance to clean up"); // Debug.
+              
+              dataServerManager.stopServerSockets(); // Stop server sockets.
             } //else // 无异常
           } // public void onCompleted(Exception ex) 
         });

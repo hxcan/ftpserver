@@ -315,11 +315,11 @@ public class DirectoryListSender
         Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send: " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
         getDirectoryContentList(fileToSend, subDirectoryName); // Get the whole directory list.
       } //if (fileToSend.exist()) // 文件存在
-      else
+      else // The file exist
       {
-        Log.d(TAG, CodePosition.newInstance().toString()+  "not exist "); // Debug.
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", not exist "); // Debug.
         notifyFileNotExist(); // 报告文件不存在。
-      }
+      } // else // The file exist
     } //private void startSendFileContentForLarge()
     
     /**

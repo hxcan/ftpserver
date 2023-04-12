@@ -80,7 +80,7 @@ public class DataServerManager
   private DirectoryListSender directoryListSender=new DirectoryListSender(); // !< 目录列表发送器。
   private byte[] dataSocketPendingByteArray=null; //!< 数据套接字数据内容 排队。
   private String currentWorkingDirectory="/"; //!< 当前工作目录
-  // private int data_port=1544; //!< 数据连接端口。
+  private AsyncServerSocket listeningServerSocket = null; //!< Remembered listening server socket.
   private String ip; //!< ip
   private boolean allowActiveMode=true; //!< 是否允许主动模式。
   private DataServerManager dataServerManager=null; //!< Data server manager
@@ -92,6 +92,14 @@ public class DataServerManager
   private InetAddress host;
   private File rootDirectory=null; //!< 根目录。
 
+  /**
+  * Stop server sockets.
+  */
+  public void stopServerSockets()
+  {
+    listeningServerSocket.stop(); // Stop.
+  } // public void stopServerSockets()
+  
   /**
   * Set the user manager.
   */
@@ -579,6 +587,7 @@ public class DataServerManager
           @Override
           public void onListening(AsyncServerSocket socket)
           {
+            listeningServerSocket = socket; // Remember listening server socket.
             // System.out.println("[Server] Server started listening for data connections");
             // Log.d(TAG, CodePosition.newInstance().toString()+  ", [Server] Server started listening for data connections, port: " + data_port); // Debug.
             

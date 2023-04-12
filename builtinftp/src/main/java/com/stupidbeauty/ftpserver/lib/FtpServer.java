@@ -95,7 +95,7 @@ public class FtpServer
   private boolean fileNameTolerant=false; //!< Set the file name tolerant mode.
   private File rootDirectory=null; //!< 根目录。
   private WIFIConnectChangeReceiver wifiConnectChangeReceiver=new WIFIConnectChangeReceiver(this); //!< 无线网络改变事件接收器。
-  private DataServerManager dataServerManager=new DataServerManager(); //!< The data server manager.
+  // private DataServerManager dataServerManager=new DataServerManager(); //!< The data server manager.
 
   /**
   * Get the actual ip.
@@ -450,7 +450,7 @@ public class FtpServer
         handler.setEventListener(eventListener); // 设置事件监听器。
         handler.setUserManager(userManager); // set user manager.
         handler.setFilePathInterpreter(filePathInterpreter); // Set the file path interpreter.
-        handler.setDataServerManager(dataServerManager); // Set the data server manager.
+        // handler.setDataServerManager(dataServerManager); // Set the data server manager.
         handler.setFileNameTolerant(fileNameTolerant); // Set the file name tolerant mode.
       } // public void onAccepted(final AsyncSocket socket)
 
