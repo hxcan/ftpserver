@@ -237,6 +237,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     private void sendListContentBySender(String fileName, String currentWorkingDirectory) 
     {
       directoryListSender.setControlConnectHandler(this); // 设置控制连接处理器。
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", setting data socket: " + data_socket ); // Debug.
       directoryListSender.setDataSocket(data_socket); // 设置数据连接套接字。
       directoryListSender.sendDirectoryList(fileName, currentWorkingDirectory); // 让目录列表发送器来发送。
     } // private void sendListContentBySender(String fileName, String currentWorkingDirectory)
@@ -974,6 +975,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
       {
         this.data_socket=socket; // Remember the data connection.
         fileContentSender.setDataSocket(socket); // 设置数据连接套接字。
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", setting data socket: " + socket ); // Debug.
         directoryListSender.setDataSocket(socket); // 设置数据连接套接字。
 
 //         Util.writeAll(socket, "Hello Server".getBytes(), new CompletedCallback() {
@@ -1022,11 +1024,12 @@ public class ControlConnectHandler implements DataServerManagerInterface
      */
     public void handleDataAccept(final AsyncSocket socket)
     {
+      Log.d(TAG, CodePosition.newInstance().toString() + ", handleDataAccept, [Server] data New Connection " + socket.toString());
       this.data_socket=socket;
       fileContentSender.setDataSocket(socket); // 设置数据连接套接字。
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", setting data socket: " + socket ); // Debug.
       directoryListSender.setDataSocket(socket); // 设置数据连接套接字。
 
-      Log.d(TAG, CodePosition.newInstance().toString() + ", handleDataAccept, [Server] data New Connection " + socket.toString());
       // Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry ); // Debug.
         
       socket.setDataCallback(
@@ -1062,6 +1065,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
               
           data_socket=null;
           fileContentSender.setDataSocket(data_socket); // 将数据连接清空
+          Log.d(TAG, CodePosition.newInstance().toString()+  ", setting data socket: " + data_socket ); // Debug.
           directoryListSender.setDataSocket(data_socket); // 将数据连接清空。
               
           if (isUploading) // 是处于上传状态。
