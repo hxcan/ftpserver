@@ -517,7 +517,7 @@ public class DataServerManager
       {
         boolean ocupied=dataPortUsageMap.get(currentPortInPool); // Get copucied status.
         
-        if (!ocupied) // not ocuupied
+        // if (!ocupied) // not ocuupied
         {
           foundExistingPort=true;
           result=currentPortInPool; // use existing port.
@@ -570,10 +570,8 @@ public class DataServerManager
                 
                 boolean dataPortUsageCounter=false; // Get the counter.
                 dataPortUsageMap.put(data_port, dataPortUsageCounter); // put back.
-                
               }
             });
-
           } //public void onAccepted(final AsyncSocket socket)
 
           @Override
@@ -603,10 +601,11 @@ public class DataServerManager
             {
               System.out.println("[Server] Successfully shutdown server");
             }
+            
+            dataPortPool.remove(data_port); // Remove from data port pool.
           } // public void onCompleted(Exception ex) 
         });
       } // else // not found existing port
-    
       
       return result;
     } //private void setupDataServer()
