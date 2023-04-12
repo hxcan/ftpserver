@@ -244,20 +244,23 @@ public class DirectoryListSender
 
             pathDocumentFileCacheManager.put(effectiveVirtualPathForCurrentSegment, path); // Put it into the cache.
             
-            String tolerantEffectiveVirtualPath=effectiveVirtualPathForCurrentSegment.trim(); // Trim to get alternative path.
-            
-            if (tolerantEffectiveVirtualPath.equals(effectiveVirtualPathForCurrentSegment)) // No special characters
+            if (fileNameTolerant) // tolerant special characters in file name
             {
-            } // if (tolerantEffectiveVirtualPath.equals(effectiveVirtualPathForCurrentSegment)) // No special characters
-            else // Special characters trimmed
-            {
-              DocumentFile documentFileForTolerantPath=pathDocumentFileCacheManager.get(tolerantEffectiveVirtualPath); // Try to get a document for the tolerant path.
+              String tolerantEffectiveVirtualPath=effectiveVirtualPathForCurrentSegment.trim(); // Trim to get alternative path.
               
-              if (documentFileForTolerantPath==null) // NOt exist
+              if (tolerantEffectiveVirtualPath.equals(effectiveVirtualPathForCurrentSegment)) // No special characters
               {
-                pathDocumentFileCacheManager.put(tolerantEffectiveVirtualPath, path); // Add a map for this entry.
-              } // if (documentFileForTolerantPath==null) // NOt exist
-            } // else // Special characters trimmed
+              } // if (tolerantEffectiveVirtualPath.equals(effectiveVirtualPathForCurrentSegment)) // No special characters
+              else // Special characters trimmed
+              {
+                DocumentFile documentFileForTolerantPath=pathDocumentFileCacheManager.get(tolerantEffectiveVirtualPath); // Try to get a document for the tolerant path.
+                
+                if (documentFileForTolerantPath==null) // NOt exist
+                {
+                  pathDocumentFileCacheManager.put(tolerantEffectiveVirtualPath, path); // Add a map for this entry.
+                } // if (documentFileForTolerantPath==null) // NOt exist
+              } // else // Special characters trimmed
+            } // if (fileNameTolerant) // tolerant special characters in file name
 
             if (fileName.equals(nameOfFile)  || (nameOfFile.isEmpty())) // 名字匹配。
             {

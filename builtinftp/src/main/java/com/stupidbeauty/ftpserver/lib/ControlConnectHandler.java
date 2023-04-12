@@ -11,7 +11,10 @@ import com.koushikdutta.async.callback.ListenCallback;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.LocaleList;
-// import android.os.PowerManager;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import com.stupidbeauty.hxlauncher.interfaces.LocalServerListLoadListener;
 import 	android.provider.DocumentsContract;
 import java.util.Locale;
 import java.time.ZoneId;
@@ -30,7 +33,6 @@ import android.speech.SpeechRecognizer;
 import android.util.Log;
 import android.app.Application;
 import android.content.Context;
-// import android.util.Log;
 import java.util.Date;    
 import java.time.format.DateTimeFormatter;
 import java.io.File;
@@ -440,7 +442,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
 
       String replyString=""; // 回复字符串。
 
-      if  ((photoDirecotry!=null) && (photoDirecotry.exists())) // The path exists.
+      if  ((photoDirecotry!=null) && (photoDirecotry.exists() && (photoDirecotry.isFile()))) // The path exists. And it is a file.
       {
         long fileSize= photoDirecotry.length(); //文件尺寸。 陈欣
             
@@ -1073,27 +1075,26 @@ public class ControlConnectHandler implements DataServerManagerInterface
         }
       });
 
-      socket.setEndCallback(new CompletedCallback() 
-      {
-        @Override
-        public void onCompleted(Exception ex) 
-        {
-          if(ex != null) // 有异常。陈欣。
-          {
-            if ( ex instanceof IOException ) // java.lang.RuntimeException: java.io.IOException: Software caused connection abort
-            {
-              ex.printStackTrace();
-            }
-            else // Other exceptions
-            {
-              throw new RuntimeException(ex);
-            }
-          }
-                
-          // System.out.println("[Server] data Successfully end connection");
-          Log.d(TAG, CodePosition.newInstance().toString() + ", [Server] data Successfully end connection " + socket.toString());
-        }
-      });
+//       socket.setEndCallback(new CompletedCallback() 
+//       {
+//         @Override
+//         public void onCompleted(Exception ex) 
+//         {
+//           if(ex != null) // 有异常。陈欣。
+//           {
+//             if ( ex instanceof IOException ) // java.lang.RuntimeException: java.io.IOException: Software caused connection abort
+//             {
+//               ex.printStackTrace();
+//             }
+//             else // Other exceptions
+//             {
+//               throw new RuntimeException(ex);
+//             }
+//           }
+//                 
+//           Log.d(TAG, CodePosition.newInstance().toString() + ", [Server] data Successfully end connection " + socket.toString());
+//         }
+//       });
     } //private void handleDataAccept(final AsyncSocket socket)
 
     /**

@@ -1,5 +1,15 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import com.stupidbeauty.hxlauncher.interfaces.LocalServerListLoadListener;
+import java.util.Map;
+import java.util.List;
+import android.os.Process;
 import com.stupidbeauty.codeposition.CodePosition;
 import android.os.ParcelFileDescriptor;
 import java.io.FileOutputStream;
@@ -11,7 +21,6 @@ import com.koushikdutta.async.callback.ListenCallback;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.LocaleList;
-// import android.os.PowerManager;
 import 	android.provider.DocumentsContract;
 import java.util.Locale;
 import java.time.ZoneId;
@@ -30,7 +39,6 @@ import android.speech.SpeechRecognizer;
 import android.util.Log;
 import android.app.Application;
 import android.content.Context;
-// import android.util.Log;
 import java.util.Date;    
 import java.time.format.DateTimeFormatter;
 import java.io.File;
@@ -55,6 +63,8 @@ import android.os.Environment;
 */
 public class DataServerManager
 {
+  private Map<Integer, Boolean> dataPortUsageMap=new HashMap<>(); //!< The map of data port usage mark.
+  private List<Integer> dataPortPool=new ArrayList<>(); //!< Data port pool.
   private FilePathInterpreter filePathInterpreter=null; //!< the file path interpreter.
   private String passWord=null; //!< Pass word provided.
   private boolean authenticated=true; //!< Is Login correct?
@@ -70,7 +80,7 @@ public class DataServerManager
   private DirectoryListSender directoryListSender=new DirectoryListSender(); // !< 目录列表发送器。
   private byte[] dataSocketPendingByteArray=null; //!< 数据套接字数据内容 排队。
   private String currentWorkingDirectory="/"; //!< 当前工作目录
-  private int data_port=1544; //!< 数据连接端口。
+  // private int data_port=1544; //!< 数据连接端口。
   private String ip; //!< ip
   private boolean allowActiveMode=true; //!< 是否允许主动模式。
   private DataServerManager dataServerManager=null; //!< Data server manager
@@ -168,29 +178,6 @@ public class DataServerManager
       });
     } //private void openDataConnectionToClient(String content)
 
-    public void notifyFileNotExist() // 告知文件不存在
-    {
-      String replyString="550 File not exist"; // File does not exist.
-
-      Log.d(TAG, "reply string: " + replyString); //Debug.
-        
-      binaryStringSender.sendStringInBinaryMode(replyString); // 发送。
-    } //private void notifyFileNotExist()
-
-    /**
-    * 告知已经发送文件内容数据。
-    */
-    public void notifyFileSendCompleted() 
-    {
-      String replyString="216 File sent. ChenXin"; // 回复内容。
-
-      Log.d(TAG, "reply string: " + replyString); //Debug.
-        
-      binaryStringSender.sendStringInBinaryMode(replyString); // 发送。
-      
-      notifyEvent(EventListener.DOWNLOAD_FINISH); // 报告事件，完成下载文件。
-    } //private void notifyFileSendCompleted()
-
     /**
     * 告知上传完成。
     */
@@ -279,29 +266,6 @@ public class DataServerManager
     } // private void startStor(String data51, String currentWorkingDirectory) // 上传文件内容。
     
     /**
-    * Process pass command.
-    */
-    private void processPassCommand(String targetWorkingDirectory) 
-    {
-      this.passWord=targetWorkingDirectory; // Remember password.
-      
-      if (userManager!=null)
-      {
-        authenticated=userManager.authenticate(userName, passWord); // Authenticate.
-      } // if (userManager!=null)
-      
-      
-      if (authenticated) // Login correct
-      {
-        binaryStringSender.sendStringInBinaryMode("230 Loged in."); // 回复，登录成功。
-      } // if (authenticated) // Login correct
-      else // Login not correct
-      {
-        binaryStringSender.sendStringInBinaryMode("430 Invalid username or password."); // 回复，登录成功。
-      }
-    } // private void processPassCommand(String targetWorkingDirectory)
-
-    /**
     * Process user command.
     */
     private void processUserCommand(String userName)
@@ -310,64 +274,6 @@ public class DataServerManager
     
       binaryStringSender.sendStringInBinaryMode("331 Send password"); //  发送回复。
     } // private void processUserCommand(String userName)
-
-    /**
-    * 处理改变目录命令。
-    */
-    private void processCwdCommand(String targetWorkingDirectory) 
-    {
-//       FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-      DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, targetWorkingDirectory); // 照片目录。
-//       File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, targetWorkingDirectory); // 照片目录。
-
-      String replyString="" ; // 回复内容。
-//       String fullPath="";
-      String fullPath=filePathInterpreter.resolveWholeDirectoryPath( rootDirectory, currentWorkingDirectory, targetWorkingDirectory); // resolve 完整路径。
-
-      if (photoDirecotry.isDirectory()) // 是个目录
-      {
-//         fullPath=photoDirecotry.getPath(); // 获取当前工作目录的完整路径。
-//         Uri directoryUri=photoDirecotry.getUri(); // Get the uri.
-//         String directyoryUriPath=directoryUri.getPath(); // Get the string of the uri.
-//         String directoryPurePath=directyoryUriPath.replaceAll("file://", ""); // Replace prefix.
-//         currentVersionName=currentVersionName.replaceAll("[a-zA-Z]|\\s", "");
-
-//         File directoryFileObject=new File()
-        
-//         fullPath=directyoryUriPath; // 获取当前工作目录的完整路径。
-
-        
-        String rootPath=rootDirectory.getPath(); // 获取根目录的完整路径。
-        
-        currentWorkingDirectory=fullPath.substring(rootPath.length()); // 去掉开头的根目录路径。
-        
-        if (currentWorkingDirectory.isEmpty()) // 是空白的了
-        {
-          currentWorkingDirectory="/"; // 当前工作目录是根目录。
-        } // if (currentWorkingDirectory.isEmpty()) // 是空白的了
-        
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", fullPath: " + fullPath ); // Debug.
-        Log.d(TAG, "processCwdCommand, rootPath: " + rootPath ); // Debug.
-        Log.d(TAG, "processCwdCommand, currentWorkingDirectory: " + currentWorkingDirectory ); // Debug.
-
-        replyString="250 cwd succeed" ; // 回复内容。
-      } //if (photoDirecotry.isDirectory()) // 是个目录
-      else //不是个目录
-      {
-        replyString="550 not a directory: " + targetWorkingDirectory; // 回复内容。
-      }
-
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString); //Debug.
-        
-      binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
-      
-//       if (fullPath.equals(Constants.FilePath.AndroidData)) // It is /Android/data
-      if (filePathInterpreter.isSamePath (fullPath, Constants.FilePath.AndroidData)) // It is /Android/data, same path.
-      {
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", full path : " + fullPath + ", other path: " + Constants.FilePath.AndroidData + ", checking /Android/data permission"); // Debug.
-        CheckAndroidDataPermission(); // Check /Android/data permission.
-      } // if (currentWorkingDirectory.equals(Constants.FilePath.AndroidData)) // It is /Android/data
-    } // private void processCwdCommand(String targetWorkingDirectory)
 
     /**
     * 处理尺寸查询命令。
@@ -399,44 +305,6 @@ public class DataServerManager
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
     } //private void processSizeCommand(String data51)
     
-    /**
-    *  Process the dele command
-    */
-    private void processDeleCommand(String data51)
-    {
-      // 删除文件
-
-      String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
-                  
-      wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
-                  
-      //         FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
-      DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve file
-
-      boolean deleteResult= photoDirecotry.delete();
-          
-      Log.d(TAG, "delete result: " + deleteResult); // Debug.
-      
-      String replyString="250 "; // 回复内容。
-
-      if (deleteResult) // Delete success
-      {
-        notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
-        replyString="250 Delete success"; // Reply, delete success.
-      } // if (deleteResult) // Delete success
-      else // Delete fail
-      {
-        replyString="550 File delete failed"; // File delete failed.
-//         replyString="250 "; // 回复内容。
-
-        checkFileManagerPermission(Constants.Permission.Write, photoDirecotry); // Check permission of write.
-      } // else // Delete fail
-
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString); // Debug.
-        
-      binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
-    } // private void processDeleCommand(String data51)
-
     /**
     * Report event.
     */
@@ -472,63 +340,6 @@ public class DataServerManager
     } //private void notifyEvent(String eventCode)
 
     /**
-    *  Check the permission of file manager.
-    */
-    public void checkFileManagerPermission(int permissinTypeCode, DocumentFile targetFile)
-    {
-      Log.d(TAG, "checkFileManagerPermission " ); //Debug.
-      
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) // Android 11. isExternalStorageManager
-      {
-        boolean isFileManager=Environment.isExternalStorageManager();
-
-        Log.d(TAG, "checkFileManagerPermission, is file manager: " + isFileManager ); //Debug.
-        if (isFileManager) // Is file manager
-        {
-        } // if (isFileManager) // Is file manager
-        else // Not file manager
-        {
-          if (permissinTypeCode==Constants.Permission.Read) // Read permission
-          {
-            File photoDirecotry=Environment.getExternalStorageDirectory(); // Get the file object.
-            //           public static final String AndroidData = Environment.getExternalStorageDirectory().getPath() + "/Android/data/"; //!< /Android/data directory.
-
-            File[] paths = photoDirecotry.listFiles();
-        
-            if (paths==null) // Unable to list files
-            {
-              notifyEvent(EventListener.NEED_EXTERNAL_STORAGE_MANAGER_PERMISSION, null); // Notify event, need external storage manager permission.
-              //         if (filePathInterpreter.virtualPathExists(Constants.FilePath.AndroidData)) // Does virtual path exist
-              //         {
-              //         } // if (filePathInterpreter.virtualPathExists(Constants.FilePath.AndroidData)) // Does virtual path exist
-              //         else // Virtual path does not exist
-              //         {
-              //           requestAndroidDataPermission(); // Request /Android/data permisson.
-              //         } // else // Virtual path does not exist
-            } // if (paths.length==0) // Unable to list files
-          } // if (permissinTypeCode==Constants.Permission.Read) // Read permission
-          else // Write permisison
-          {
-            boolean canDelete=targetFile.canWrite(); // Test whether we can dlete it.
-            
-            if (canDelete) // Can delete
-            {
-            } // if (canDelete) // Can delete
-            else // Cannot delete
-            {
-              notifyEvent(EventListener.NEED_EXTERNAL_STORAGE_MANAGER_PERMISSION, null); // Notify event, need external storage manager permission.
-            } // else // Cannot delete
-          } // else // Write permisison
-
-        
-          // Chen xin
-          //           gotoFileManagerSettingsPage(); // Goto file manager settings page.
-          //           notifyEvent(EventListener.NEED_EXTERNAL_STORAGE_MANAGER_PERMISSION, null); // Notify event, need external storage manager permission.
-        } // else // Not file manager
-      } // if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) // Android 11. isExternalStorageManager
-    } // private void checkFileManagerPermission()
-
-    /**
     *   Goto file manager settings page.
     */
     private void gotoFileManagerSettingsPage()
@@ -550,85 +361,6 @@ public class DataServerManager
 
       context.startActivity(intent);
     } // private void gotoFileManagerSettingsPage()
-    
-    /**
-    * Request /Android/data permisson.
-    */
-    private void requestAndroidDataPermission()
-    {
-//       @TargetApi(26)    
-//       private void requestAccessAndroidData(Activity activity)
-//       {        
-//         try 
-//         {            
-//           Uri uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fdata");            
-    
-      File androidDataFile=new File(Constants.FilePath.AndroidData); // Get the file object.
-      
-      Uri uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fdata");            
-//       Uri androidDataUri=Uri.fromFile(androidDataFile); // Create Uri.
-    
-      openDirectory(uri); // Open directory.
-    } // private void requestAndroidDataPermission()
-    
-    /**
-    * Request to open directory
-    */
-    public void openDirectory(Uri uriToLoad) 
-    {
-      // Choose a directory using the system's file picker.
-      Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-
-//       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-      intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);            
-      
-      // Optionally, specify a URI for the directory that should be opened in
-      // the system file picker when it loads.
-      intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uriToLoad);
-
-      String packageNmae=context.getPackageName();
-      Log.d(TAG, "gotoFileManagerSettingsPage, package name: " + packageNmae); //Debug.
-
-      String url = "package:"+packageNmae;
-
-      Log.d(TAG, "gotoFileManagerSettingsPage, url: " + url); //Debug.
-
-//       intent.setData(Uri.parse(url));
-
-      int yourrequestcode=Constants.RequestCode.AndroidDataPermissionRequestCode;
-      
-//       context.startActivityForResult(intent, yourrequestcode);
-//       context.startActivity(intent);
-      
-//       Chen xin
-      
-      DocumentTreeBrowseRequest browseRequest=new DocumentTreeBrowseRequest(); // Create the browse request.
-      browseRequest.setRequestCode(yourrequestcode);
-      browseRequest.setIntent(intent); // SEt intent.
-
-      notifyEvent(EventListener.NEED_BROWSE_DOCUMENT_TREE, (Object)(browseRequest)); // Notify event, uplaod finished.
-    } // public void openDirectory(Uri uriToLoad) 
-    
-    /**
-    * Check /Android/data permission.
-    */
-    private void CheckAndroidDataPermission() 
-    {
-      File photoDirecotry=new File(Constants.FilePath.AndroidData); // Get the file object.
-      
-      File[] paths = photoDirecotry.listFiles();
-      
-      if (paths==null) // Unable to list files
-      {
-        if (filePathInterpreter.virtualPathExists(Constants.FilePath.AndroidData)) // Does virtual path exist
-        {
-        } // if (filePathInterpreter.virtualPathExists(Constants.FilePath.AndroidData)) // Does virtual path exist
-        else // Virtual path does not exist
-        {
-          requestAndroidDataPermission(); // Request /Android/data permisson.
-        } // else // Virtual path does not exist
-      } // if (paths.length==0) // Unable to list files
-    } // private void CheckAndroidDataPermission()
     
     private void handleConnectCompleted(Exception ex, final AsyncSocket socket) 
     {
@@ -771,8 +503,6 @@ public class DataServerManager
       int result = setupDataServerListen(dataServerManagerInterface); // Set up data server by listening.
       
       return result;
-
-      // setupDataServerByManager(); // Set up data server by manager.
     } //private void setupDataServer()
     
     /**
@@ -780,42 +510,104 @@ public class DataServerManager
      */
     private int setupDataServerListen(DataServerManagerInterface dataServerManagerInterface)
     {
-      Random random=new Random(); //随机数生成器。
-
-      int randomIndex=random.nextInt(65535-1025)+1025; //随机选择一个端口。
-
-      data_port=randomIndex; 
-
-      AsyncServer.getDefault().listen(host, data_port, new ListenCallback() 
+      int result=0;  // The listening data port.
+      // int data_port=0;  // The listening data port.
+      boolean foundExistingPort=false; // Found existing port
+      for(int currentPortInPool: dataPortPool) // Check exisintg port pool
       {
-        @Override
-        public void onAccepted(final AsyncSocket socket)
+        boolean ocupied=dataPortUsageMap.get(currentPortInPool); // Get copucied status.
+        
+        if (!ocupied) // not ocuupied
         {
-          dataServerManagerInterface.handleDataAccept(socket);
-        } //public void onAccepted(final AsyncSocket socket)
-
-        @Override
-        public void onListening(AsyncServerSocket socket)
-        {
-          System.out.println("[Server] Server started listening for data connections");
-        }
-
-        @Override
-        public void onCompleted(Exception ex) 
-        {
-          if(ex != null) 
-          {
-            ex.printStackTrace();
-
-            dataServerManagerInterface.setupDataServer(); // 重新初始化。
-          }
-          else
-          {
-            System.out.println("[Server] Successfully shutdown server");
-          }
-        } // public void onCompleted(Exception ex) 
-      });
+          foundExistingPort=true;
+          result=currentPortInPool; // use existing port.
+          break;
+        } // if (!ocupied) // not ocuupied
+      } // for(int currentPortInPool: dataPortPool) // Check exisintg port pool
       
-      return data_port;
+      if (foundExistingPort) // Found existing port
+      {
+        // data_port=
+      } // if (foundExistingPort) // Found existing port
+      else // not found existing port
+      {
+        Random random=new Random(); //随机数生成器。
+
+        int randomIndex=random.nextInt(65535-1025)+1025; //随机选择一个端口。
+
+        final int data_port=randomIndex;  // The listening data port.
+        result=randomIndex;
+
+        AsyncServer.getDefault().listen(host, data_port, new ListenCallback() 
+        {
+          @Override
+          public void onAccepted(final AsyncSocket socket)
+          {
+            dataServerManagerInterface.handleDataAccept(socket);
+            
+            boolean dataPortUsageCounter=true; // Get the counter.
+            // dataPortUsageCounter++;
+            dataPortUsageMap.put(data_port, dataPortUsageCounter); // put back.
+            
+            socket.setEndCallback(new CompletedCallback() 
+            {
+              @Override
+              public void onCompleted(Exception ex) 
+              {
+                if(ex != null) // 有异常。陈欣。
+                {
+                  if ( ex instanceof IOException ) // java.lang.RuntimeException: java.io.IOException: Software caused connection abort
+                  {
+                    ex.printStackTrace();
+                  }
+                  else // Other exceptions
+                  {
+                    throw new RuntimeException(ex);
+                  }
+                }
+                      
+                Log.d(TAG, CodePosition.newInstance().toString() + ", [Server] data Successfully end connection " + socket.toString() + ", port: " + data_port);
+                
+                boolean dataPortUsageCounter=false; // Get the counter.
+                dataPortUsageMap.put(data_port, dataPortUsageCounter); // put back.
+                
+              }
+            });
+
+          } //public void onAccepted(final AsyncSocket socket)
+
+          @Override
+          public void onListening(AsyncServerSocket socket)
+          {
+            // System.out.println("[Server] Server started listening for data connections");
+            // Log.d(TAG, CodePosition.newInstance().toString()+  ", [Server] Server started listening for data connections, port: " + data_port); // Debug.
+            
+            dataPortPool.add(data_port); // Add to data port pool.
+            
+            boolean dataPortUsageCounter=false; // Not used.
+            
+            dataPortUsageMap.put(data_port, dataPortUsageCounter); // put back.
+            Log.d(TAG, CodePosition.newInstance().toString()+  ", [Server] Server started listening for data connections, port: " + data_port + ", data port pool size: " + dataPortPool.size()); // Debug.
+          } // public void onListening(AsyncServerSocket socket)
+
+          @Override
+          public void onCompleted(Exception ex) 
+          {
+            if(ex != null) 
+            {
+              ex.printStackTrace();
+
+              dataServerManagerInterface.setupDataServer(); // 重新初始化。
+            }
+            else
+            {
+              System.out.println("[Server] Successfully shutdown server");
+            }
+          } // public void onCompleted(Exception ex) 
+        });
+      } // else // not found existing port
+    
+      
+      return result;
     } //private void setupDataServer()
 }
