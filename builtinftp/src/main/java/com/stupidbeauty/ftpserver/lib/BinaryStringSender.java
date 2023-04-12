@@ -32,7 +32,7 @@ public class BinaryStringSender
     {
       byte[] contentToSend= (stringToSend+"\r\n").getBytes(StandardCharsets.UTF_8);
       
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", sending content size: " + contentToSend.length + ", original string length: " + stringToSend.length() + ", original string: " + stringToSend); // Debug.
+      // Log.d(TAG, CodePosition.newInstance().toString()+  ", sending content size: " + contentToSend.length + ", original string length: " + stringToSend.length() + ", original string: " + stringToSend); // Debug.
       
       Util.writeAll(socket, contentToSend, new CompletedCallback() 
       {

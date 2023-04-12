@@ -258,7 +258,7 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
 
     File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
 
-    Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ", check virtual exists"); // Debug.
+    // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ", check virtual exists"); // Debug.
     if (virtualPathExists(wholeDirecotoryPath)) // It is in the virtual path map
     {
 //       Uri uri=virtualPathMap.get(wholeDirecotoryPath); // Get the uri.
@@ -365,7 +365,7 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
 
     if (result!=null) // The result exists
     {
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory + ", uri to use: " + result.getUri().toString()); // Debug.
+      // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory + ", uri to use: " + result.getUri().toString()); // Debug.
     } // if (result!=null) // The result exists
 
     return result;

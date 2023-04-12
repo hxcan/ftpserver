@@ -283,6 +283,7 @@ public class DirectoryListSender
           Log.d(TAG, CodePosition.newInstance().toString()+  ", [Server] data Successfully wrote message: " + fileToSend + ", going to close data_socket: " + data_socket); // Debug.
 
           notifyLsCompleted(); // 告知已经发送目录数据。
+          Log.d(TAG, CodePosition.newInstance().toString()+  ", going to set file to send : " + null); // Debug.
           fileToSend=null; // 将要发送的文件对象清空。
           data_socket.close(); // 关闭连接。
         } // public void onCompleted(Exception ex) 
@@ -326,7 +327,7 @@ public class DirectoryListSender
     */
     public void sendDirectoryList(String data51, String currentWorkingDirectory) 
     {
-      Log.d(TAG, CodePosition.newInstance().toString()+  "directory to list: " + data51 + ", working directory: " + currentWorkingDirectory); // Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", directory to list: " + data51 + ", working directory: " + currentWorkingDirectory); // Debug.
       String parameter=""; // 要列出的目录。
       
       int directoryIndex=5; // 要找的下标。
@@ -346,6 +347,7 @@ public class DirectoryListSender
       wholeDirecotoryPath = filePathInterpreter.resolveWholeDirectoryPath( rootDirectory, currentWorkingDirectory, parameter); // resolve whole directory path.
       DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, parameter); // resolve 目录。
       Log.d(TAG, CodePosition.newInstance().toString()+  ", directory : " + photoDirecotry + ", working directory: " + currentWorkingDirectory + ", directory uri: " + photoDirecotry.getUri().toString() + ", whole directory path: " + wholeDirecotoryPath); // Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", going to set file to send : " + photoDirecotry); // Debug.
 
       fileToSend=photoDirecotry; // 记录，要发送的文件对象。
         
