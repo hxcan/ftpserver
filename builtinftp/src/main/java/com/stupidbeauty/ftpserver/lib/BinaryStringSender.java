@@ -17,7 +17,7 @@ import java.nio.charset.StandardCharsets;
 
 public class BinaryStringSender
 {
-  private static final String TAG ="DirectoryListSender"; //!<  输出调试信息时使用的标记。
+  private static final String TAG ="BinaryStringSender"; //!<  The tag used in debug strings.
   private AsyncSocket socket; //!< 当前的客户端连接。
     
   public void setSocket(AsyncSocket socketToSet)

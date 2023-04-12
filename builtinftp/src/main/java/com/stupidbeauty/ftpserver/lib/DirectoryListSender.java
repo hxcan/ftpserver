@@ -86,14 +86,17 @@ public class DirectoryListSender
     */
     public void setDataSocket(AsyncSocket socket) 
     {
-        data_socket=socket; // 记录。
-        
-        binaryStringSender.setSocket(data_socket); // 设置套接字。
-        
-        if ((fileToSend!=null) && (data_socket!=null)) // 有等待发送的内容。
-        {
-            startSendFileContentForLarge(); // 开始发送文件内容。
-        } // if (dataSocketPendingByteArray!=null)
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", data socket: " + socket ); // Debug.
+      data_socket=socket; // 记录。
+      
+      binaryStringSender.setSocket(data_socket); // 设置套接字。
+      
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send: " + fileToSend); // Debug.
+      if ((fileToSend!=null) && (data_socket!=null)) // 有等待发送的内容。
+      {
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send: " + fileToSend); // Debug.
+        startSendFileContentForLarge(); // 开始发送文件内容。
+      } // if (dataSocketPendingByteArray!=null)
     } //public void setDataSocket(AsyncSocket socket)
     
     /**
@@ -282,7 +285,7 @@ public class DirectoryListSender
           notifyLsCompleted(); // 告知已经发送目录数据。
           fileToSend=null; // 将要发送的文件对象清空。
           data_socket.close(); // 关闭连接。
-        }
+        } // public void onCompleted(Exception ex) 
       });
 
       return result;
@@ -305,6 +308,7 @@ public class DirectoryListSender
 
     private void startSendFileContentForLarge()
     {
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send: " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
       if (fileToSend.exists()) // 文件存在
       {
         Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send: " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
@@ -349,6 +353,10 @@ public class DirectoryListSender
       {
         startSendFileContentForLarge(); // 开始发送文件内容。
       } //if (data_socket!=null) // 数据连接存在。
+      else // The data socket does not exist yet
+      {
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", directory : " + photoDirecotry + ", working directory: " + currentWorkingDirectory + ", directory uri: " + photoDirecotry.getUri().toString() + ", whole directory path: " + wholeDirecotoryPath + ", data socket not exist, skip"); // Debug.
+      } // else // The data socket does not exist yet
     } // private void sendFileContent(String data51, String currentWorkingDirectory)
     
     private void notifyLsCompleted()

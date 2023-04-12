@@ -527,6 +527,7 @@ public class DataServerManager
       
       if (foundExistingPort) // Found existing port
       {
+        Log.d(TAG, CodePosition.newInstance().toString() + ", use existing port: " + result);
         // data_port=
       } // if (foundExistingPort) // Found existing port
       else // not found existing port
@@ -537,6 +538,7 @@ public class DataServerManager
 
         final int data_port=randomIndex;  // The listening data port.
         result=randomIndex;
+        Log.d(TAG, CodePosition.newInstance().toString() + ", use new port: " + result);
 
         AsyncServer.getDefault().listen(host, data_port, new ListenCallback() 
         {
