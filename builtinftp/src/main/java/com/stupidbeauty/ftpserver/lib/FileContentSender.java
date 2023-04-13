@@ -56,9 +56,9 @@ public class FileContentSender
   private ControlConnectHandler controlConnectHandler=null; //!< 控制连接处理器。
   private AsyncSocket data_socket=null; //!< 当前的数据连接。
   private File rootDirectory=null; //!< 根目录。
-//   private File fileToSend=null; //!< 要发送的文件。
   private DocumentFile fileToSend=null; //!< 要发送的文件。
   private Context context=null; //!< Context.
+  private String wholeDirecotoryPath= ""; //!< The full path of the file to send.
   
   /**
   * 设置重启位置。
@@ -177,9 +177,9 @@ public class FileContentSender
     */
     public void sendFileContent(String data51, String currentWorkingDirectory) 
     {
-      // String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
+      wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
                     
-      // wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
+      wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                     
 //       File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
       DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // 照片目录。
@@ -201,9 +201,12 @@ public class FileContentSender
       controlConnectHandler.notifyFileSendCompleted(); // 告知文件内容发送完毕。
     } //private void notifyFileSendCompleted()
     
-    private void notifyFileNotExist() // 告知文件不存在
+    /**
+    * Notify file not exist
+    */
+    private void notifyFileNotExist()
     {
-      controlConnectHandler.notifyFileNotExist(); // 告知文件不存在。
+      controlConnectHandler.notifyFileNotExist(wholeDirecotoryPath); // Notify that the file does not exist.
     } //private void notifyFileNotExist()
 
     /**

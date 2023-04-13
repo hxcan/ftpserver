@@ -63,7 +63,7 @@ import android.os.Environment;
 */
 public class DataServerManager
 {
-  private Map<Integer, Boolean> dataPortUsageMap=new HashMap<>(); //!< The map of data port usage mark.
+  private Map<Integer, Integer> dataPortUsageMap=new HashMap<>(); //!< The map of data port usage mark.
   private List<Integer> dataPortPool=new ArrayList<>(); //!< Data port pool.
   private FilePathInterpreter filePathInterpreter=null; //!< the file path interpreter.
   private String passWord=null; //!< Pass word provided.
@@ -99,14 +99,6 @@ public class DataServerManager
   {
     listeningServerSocket.stop(); // Stop.
   } // public void stopServerSockets()
-  
-  /**
-  * Set the user manager.
-  */
-  public void setUserManager(UserManager userManager)
-  { 
-    this.userManager=userManager;
-  } // public void setUserManager(UserManager userManager)
   
   /**
   * Set the file path interpreter.
@@ -421,88 +413,6 @@ public class DataServerManager
       } //else // 无异常。
     }
 
-        /**
-     * Accept data connection.
-     * @param socket 连接对象。
-     */
-    private void handleDataAccept(final AsyncSocket socket)
-    {
-      this.data_socket=socket;
-      fileContentSender.setDataSocket(socket); // 设置数据连接套接字。
-      directoryListSender.setDataSocket(socket); // 设置数据连接套接字。
-
-      Log.d(TAG, CodePosition.newInstance().toString() + ", handleDataAccept, [Server] data New Connection " + socket.toString());
-      // Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry ); // Debug.
-        
-      socket.setDataCallback(
-        new DataCallback()
-        {
-          @Override
-          public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) 
-          {
-            receiveDataSocket(bb);
-          }
-        }); // socket.setDataCallback(
-
-      socket.setClosedCallback(new CompletedCallback() 
-      {
-        @Override
-        public void onCompleted(Exception ex) 
-        {
-//             if (ex != null) throw new RuntimeException(ex);
-            
-          if(ex != null) // 有异常。陈欣。
-          {
-            if ( ex instanceof IOException ) // java.lang.RuntimeException: java.io.IOException: Software caused connection abort
-            {
-              ex.printStackTrace();
-            }
-            else // Other exceptions
-            {
-              throw new RuntimeException(ex);
-            }
-          }
-            
-          System.out.println("[Server] data Successfully closed connection");
-              
-          data_socket=null;
-          fileContentSender.setDataSocket(data_socket); // 将数据连接清空
-          directoryListSender.setDataSocket(data_socket); // 将数据连接清空。
-              
-          if (isUploading) // 是处于上传状态。
-          {
-            notifyStorCompleted(); // 告知上传完成。
-            
-            
-                  
-            isUploading=false; // 不再处于上传状态了。
-          } //if (isUploading) // 是处于上传状态。
-        }
-      });
-
-      socket.setEndCallback(new CompletedCallback() 
-      {
-        @Override
-        public void onCompleted(Exception ex) 
-        {
-          if(ex != null) // 有异常。陈欣。
-          {
-            if ( ex instanceof IOException ) // java.lang.RuntimeException: java.io.IOException: Software caused connection abort
-            {
-              ex.printStackTrace();
-            }
-            else // Other exceptions
-            {
-              throw new RuntimeException(ex);
-            }
-          }
-                
-          // System.out.println("[Server] data Successfully end connection");
-          Log.d(TAG, CodePosition.newInstance().toString() + ", [Server] data Successfully end connection " + socket.toString());
-        }
-      });
-    } //private void handleDataAccept(final AsyncSocket socket)
-
     /**
      * 启动数据传输服务器。
      */
@@ -523,7 +433,7 @@ public class DataServerManager
       boolean foundExistingPort=false; // Found existing port
       for(int currentPortInPool: dataPortPool) // Check exisintg port pool
       {
-        boolean ocupied=dataPortUsageMap.get(currentPortInPool); // Get copucied status.
+        // boolean ocupied=dataPortUsageMap.get(currentPortInPool); // Get copucied status.
         
         // if (!ocupied) // not ocuupied
         {
@@ -555,8 +465,9 @@ public class DataServerManager
           {
             dataServerManagerInterface.handleDataAccept(socket);
             
-            boolean dataPortUsageCounter=true; // Get the counter.
-            // dataPortUsageCounter++;
+            int dataPortUsageCounter=dataPortUsageMap.get(data_port); // Get the counter.
+            dataPortUsageCounter++;
+            Log.d(TAG, CodePosition.newInstance().toString() + ", [Server] data Successfully accepted connection " + socket.toString() + ", port: " + data_port + ", usage count: " + dataPortUsageCounter);
             dataPortUsageMap.put(data_port, dataPortUsageCounter); // put back.
             
             socket.setEndCallback(new CompletedCallback() 
@@ -578,9 +489,11 @@ public class DataServerManager
                       
                 Log.d(TAG, CodePosition.newInstance().toString() + ", [Server] data Successfully end connection " + socket.toString() + ", port: " + data_port);
                 
-                boolean dataPortUsageCounter=false; // Get the counter.
+                int dataPortUsageCounter=dataPortUsageMap.get(data_port); // Get the counter.
+                dataPortUsageCounter--;
+                Log.d(TAG, CodePosition.newInstance().toString() + ", [Server] data Successfully end connection " + socket.toString() + ", port: " + data_port + ", usage count: " + dataPortUsageCounter);
                 dataPortUsageMap.put(data_port, dataPortUsageCounter); // put back.
-              }
+              } // public void onCompleted(Exception ex) 
             });
           } //public void onAccepted(final AsyncSocket socket)
 
@@ -593,8 +506,8 @@ public class DataServerManager
             
             dataPortPool.add(data_port); // Add to data port pool.
             
-            boolean dataPortUsageCounter=false; // Not used.
-            
+            // boolean dataPortUsageCounter=false; // Not used.
+            int dataPortUsageCounter=0;
             dataPortUsageMap.put(data_port, dataPortUsageCounter); // put back.
             Log.d(TAG, CodePosition.newInstance().toString()+  ", [Server] Server started listening for data connections, port: " + data_port + ", data port pool size: " + dataPortPool.size()); // Debug.
           } // public void onListening(AsyncServerSocket socket)

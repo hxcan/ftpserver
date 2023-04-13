@@ -374,9 +374,12 @@ public class DirectoryListSender
       controlConnectHandler.notifyFileSendCompleted(); // 告知文件内容发送完毕。
     } //private void notifyFileSendCompleted()
     
-    private void notifyFileNotExist() // 告知文件不存在
+    /**
+    * Notify that the file does not exist
+    */
+    private void notifyFileNotExist()
     {
-      controlConnectHandler.notifyFileNotExist(); // 告知文件不存在。
+      controlConnectHandler.notifyFileNotExist(wholeDirecotoryPath); // 告知文件不存在。
     } //private void notifyFileNotExist()
 
     /**

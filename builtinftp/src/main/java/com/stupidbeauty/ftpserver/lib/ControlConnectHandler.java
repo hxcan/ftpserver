@@ -198,12 +198,16 @@ public class ControlConnectHandler implements DataServerManagerInterface
       });
     } //private void openDataConnectionToClient(String content)
 
-    public void notifyFileNotExist() // 告知文件不存在
+    /**
+    * Notify file not exist.
+    */
+    public void notifyFileNotExist(String filePath)
     {
-      String replyString="550 File not exist"; // File does not exist.
+      String replyString="550 File not exist " + filePath; // File does not exist.
 
-      Log.d(TAG, "reply string: " + replyString); //Debug.
-        
+      // Log.d(TAG, "reply string: " + replyString); //Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString  + ", this: " + this); // Debug.
+
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送。
     } //private void notifyFileNotExist()
 
