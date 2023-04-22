@@ -1002,13 +1002,18 @@ public class ControlConnectHandler implements DataServerManagerInterface
             @Override
             public void onCompleted(Exception ex) 
             {
-              if(ex != null) throw new RuntimeException(ex);
+              if(ex != null) // There is some exception
+              {
+                // throw new RuntimeException(ex);
+                ex.printStackTrace();
+              } // if(ex != null) // There is some exception
+
               System.out.println("[Client] Successfully closed connection");
                 
               data_socket=null;
                 
               notifyStorCompleted(); // 告知上传完成。
-            }
+            } // public void onCompleted(Exception ex) 
         });
 
         socket.setEndCallback(new CompletedCallback() 
