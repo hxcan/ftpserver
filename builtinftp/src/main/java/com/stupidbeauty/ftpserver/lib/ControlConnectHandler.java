@@ -253,6 +253,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     */
     private void notifyStorCompleted() 
     {
+      // if (writingFile!=null)
       String replyString="226 Stor completed."; // 回复内容。
 
       Log.d(TAG, "reply string: " + replyString); //Debug.
@@ -1011,8 +1012,11 @@ public class ControlConnectHandler implements DataServerManagerInterface
               System.out.println("[Client] Successfully closed connection");
                 
               data_socket=null;
-                
-              notifyStorCompleted(); // 告知上传完成。
+
+              if (writingFile!=null) // The writing file exists
+              {
+                notifyStorCompleted(); // 告知上传完成。
+              } // if (writingFile!=null) // The writing file exists
             } // public void onCompleted(Exception ex) 
         });
 
