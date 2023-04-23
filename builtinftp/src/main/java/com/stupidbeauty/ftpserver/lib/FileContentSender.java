@@ -117,11 +117,8 @@ public class FileContentSender
         Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
         try
         {
-//           final InputStream is = new FileInputStream(fileToSend);
-//           final InputStream is = new FileInputStream(fileToSend);
           Uri fileUri=fileToSend.getUri(); // Get the uri.
           
-//           Chen xin.
           final InputStream is  = context.getContentResolver().openInputStream(fileUri);     
           
           if (restSTart>0) // 要跳过。 
@@ -150,11 +147,11 @@ public class FileContentSender
                 }
               }
 
-//               System.out.println("[Server] data Successfully wrote message");
               Log.d(TAG, "startSendFileContentForLarge, file sent."); // Debug.
                     
               notifyFileSendCompleted(); // 告知已经发送文件内容数据。
               fileToSend=null; // 将要发送的文件对象清空。
+              Log.d(TAG, "startSendFileContentForLarge, file sent. Closing data socket"); // Debug.
               data_socket.close(); // 关闭连接。
             }
           });

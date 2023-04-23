@@ -74,6 +74,8 @@ public class ControlConnectHandler implements DataServerManagerInterface
   private String currentWorkingDirectory="/"; //!< 当前工作目录
   private int data_port=1544; //!< 数据连接端口。
   private String ip; //!< ip
+  private String clientIp;
+  private int clientDataPort; //!< Client data port to connect to.
   private boolean allowActiveMode=true; //!< 是否允许主动模式。
   // private DataServerManager dataServerManager=null; //!< Data server manager
   private DataServerManager dataServerManager=new DataServerManager(); //!< The data server manager.
@@ -173,6 +175,24 @@ public class ControlConnectHandler implements DataServerManagerInterface
 
     // setupDataServer(); // 启动数据传输服务器。
   } // public ControlConnectHandler(Context context, boolean allowActiveMode, InetAddress host, String ip)
+  
+  /**
+  * Connect to client data port.
+  */
+  private void connectToClientDataPort() 
+  {
+    String ip=clientIp;
+    int port=clientDataPort;
+    
+    AsyncServer.getDefault().connectSocket(new InetSocketAddress(ip, port), new ConnectCallback() 
+    {
+      @Override
+      public void onConnectCompleted(Exception ex, final AsyncSocket socket) 
+      {
+        handleConnectCompleted(ex, socket);
+      } // public void onConnectCompleted(Exception ex, final AsyncSocket socket) 
+    }); // AsyncServer.getDefault().connectSocket(new InetSocketAddress(ip, port), new ConnectCallback() 
+  } // private void connectToClientDataPort()
     
     /**
     * 打开指向客户端特定端口的连接。
@@ -185,17 +205,14 @@ public class ControlConnectHandler implements DataServerManagerInterface
     
       String ip=addressStringList[0]+"."+addressStringList[1]+"."+addressStringList[2]+"."+addressStringList[3]; // 构造IP。陈欣
       int port=Integer.parseInt(addressStringList[4])*256+Integer.parseInt(addressStringList[5]); // 计算出端口号。
-    
-      //连接：陈欣
-    
-      AsyncServer.getDefault().connectSocket(new InetSocketAddress(ip, port), new ConnectCallback() 
-      {
-        @Override
-        public void onConnectCompleted(Exception ex, final AsyncSocket socket) 
-        {
-          handleConnectCompleted(ex, socket);
-        } // public void onConnectCompleted(Exception ex, final AsyncSocket socket) 
-      });
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", connecting to port specified by client: " + port  + ", this: " + this); // Debug.
+      
+      clientIp=ip;
+      clientDataPort=port;
+
+      // Make the connection:
+      
+      connectToClientDataPort(); // Connect to client data port.
     } //private void openDataConnectionToClient(String content)
 
     /**
@@ -972,52 +989,55 @@ public class ControlConnectHandler implements DataServerManagerInterface
 //       checkFileManagerPermission(); // CheCK THE permission of file manager.
     } //private void processListCommand(String content)
 
+    /**
+    * Handle connect completed. Connect to port specified by the client.
+    */
     private void handleConnectCompleted(Exception ex, final AsyncSocket socket) 
     {
-      if(ex != null) 
+      if(ex != null) // There was a problem.
       {
-        ex.printStackTrace(); //报告错误
-      }
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", error connecting to port specified by client, this: " + this); // Debug.
+
+        ex.printStackTrace(); // Report the error.
+        connectToClientDataPort(); // Connect to client data port.
+      } // if(ex != null) // There was a problem.
       else // 无异常。
       {
         this.data_socket=socket; // Remember the data connection.
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", connected to port specified by client, this: " + this); // Debug.
         fileContentSender.setDataSocket(socket); // 设置数据连接套接字。
         Log.d(TAG, CodePosition.newInstance().toString()+  ", setting data socket: " + socket ); // Debug.
         directoryListSender.setDataSocket(socket); // 设置数据连接套接字。
 
-//         Util.writeAll(socket, "Hello Server".getBytes(), new CompletedCallback() {
-//             @Override
-//             public void onCompleted(Exception ex) {
-//                 if (ex != null) throw new RuntimeException(ex);
-//                 System.out.println("[Client] Successfully wrote message");
-
-        socket.setDataCallback(new DataCallback() {
-            @Override
-            public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) 
-            {
-                receiveDataSocket(bb);
-            } //public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) 
+        socket.setDataCallback(new DataCallback() 
+        {
+          @Override
+          public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) 
+          {
+            receiveDataSocket(bb);
+          } //public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) 
         }); //socket.setDataCallback(new DataCallback() {
 
-        socket.setClosedCallback(new CompletedCallback() {
-            @Override
-            public void onCompleted(Exception ex) 
+        socket.setClosedCallback(new CompletedCallback() 
+        {
+          @Override
+          public void onCompleted(Exception ex) 
+          {
+            if(ex != null) // There is some exception
             {
-              if(ex != null) // There is some exception
-              {
-                // throw new RuntimeException(ex);
-                ex.printStackTrace();
-              } // if(ex != null) // There is some exception
+              // throw new RuntimeException(ex);
+              ex.printStackTrace();
+            } // if(ex != null) // There is some exception
 
-              System.out.println("[Client] Successfully closed connection");
-                
-              data_socket=null;
+            System.out.println("[Client] Successfully closed connection");
+              
+            data_socket=null;
 
-              if (writingFile!=null) // The writing file exists
-              {
-                notifyStorCompleted(); // 告知上传完成。
-              } // if (writingFile!=null) // The writing file exists
-            } // public void onCompleted(Exception ex) 
+            if (writingFile!=null) // The writing file exists
+            {
+              notifyStorCompleted(); // 告知上传完成。
+            } // if (writingFile!=null) // The writing file exists
+          } // public void onCompleted(Exception ex) 
         });
 
         socket.setEndCallback(new CompletedCallback() 
@@ -1030,7 +1050,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
               // throw new RuntimeException(ex);
               ex.printStackTrace(); // Report error.
             } // if(ex != null) 
-//             System.out.println("[Client] Successfully end connection");
           } // public void onCompleted(Exception ex) 
         }); // socket.setEndCallback(new CompletedCallback() 
       } //else // 无异常。
