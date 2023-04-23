@@ -76,7 +76,8 @@ public class ControlConnectHandler implements DataServerManagerInterface
   private String ip; //!< ip
   private String clientIp;
   private int clientDataPort; //!< Client data port to connect to.
-  private boolean allowActiveMode=true; //!< 是否允许主动模式。
+  private int retryConnectClientDataPortAmount=0; //!< the time retried for connecting client data port.
+  private boolean allowActiveMode=true; //!< Whether to allow active mode.
   // private DataServerManager dataServerManager=null; //!< Data server manager
   private DataServerManager dataServerManager=new DataServerManager(); //!< The data server manager.
 
@@ -194,6 +195,8 @@ public class ControlConnectHandler implements DataServerManagerInterface
         handleConnectCompleted(ex, socket);
       } // public void onConnectCompleted(Exception ex, final AsyncSocket socket) 
     }); // AsyncServer.getDefault().connectSocket(new InetSocketAddress(ip, port), new ConnectCallback() 
+    
+    
   } // private void connectToClientDataPort()
     
     /**
@@ -213,7 +216,8 @@ public class ControlConnectHandler implements DataServerManagerInterface
       clientDataPort=port;
 
       // Make the connection:
-      
+
+      retryConnectClientDataPortAmount=0; // reset the retry times.
       connectToClientDataPort(); // Connect to client data port.
     } //private void openDataConnectionToClient(String content)
 
@@ -1001,8 +1005,23 @@ public class ControlConnectHandler implements DataServerManagerInterface
         Log.d(TAG, CodePosition.newInstance().toString()+  ", error connecting to port specified by client, this: " + this); // Debug.
 
         // ex.printStackTrace(); // Report the error.
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", connecting to port specified by client: " + clientDataPort + ", this: " + this); // Debug.
-        connectToClientDataPort(); // Connect to client data port.
+        
+        
+        if (retryConnectClientDataPortAmount>=10) // limit the retry times
+        {
+        } // if (retryConnectClientDataPortAmount>=10) // limit the retry times
+        else // Still retry
+        {
+          Log.d(TAG, CodePosition.newInstance().toString()+  ", connecting to port specified by client: " + clientDataPort + ", this: " + this); // Debug.
+          
+          
+          connectToClientDataPort(); // Connect to client data port.
+          
+          retryConnectClientDataPortAmount++; // Count the times.
+          
+          
+        } // else // Still retry
+        
       } // if(ex != null) // There was a problem.
       else // 无异常。
       {
