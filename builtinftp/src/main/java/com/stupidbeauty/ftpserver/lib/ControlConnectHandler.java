@@ -184,6 +184,8 @@ public class ControlConnectHandler implements DataServerManagerInterface
     String ip=clientIp;
     int port=clientDataPort;
     
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", connecting to port specified by client: " + port  + ", this: " + this); // Debug.
+
     AsyncServer.getDefault().connectSocket(new InetSocketAddress(ip, port), new ConnectCallback() 
     {
       @Override
@@ -998,7 +1000,8 @@ public class ControlConnectHandler implements DataServerManagerInterface
       {
         Log.d(TAG, CodePosition.newInstance().toString()+  ", error connecting to port specified by client, this: " + this); // Debug.
 
-        ex.printStackTrace(); // Report the error.
+        // ex.printStackTrace(); // Report the error.
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", connecting to port specified by client: " + clientDataPort + ", this: " + this); // Debug.
         connectToClientDataPort(); // Connect to client data port.
       } // if(ex != null) // There was a problem.
       else // 无异常。
