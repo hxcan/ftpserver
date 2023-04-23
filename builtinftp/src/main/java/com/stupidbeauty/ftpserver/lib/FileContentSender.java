@@ -112,9 +112,12 @@ public class FileContentSender
     */
     private void startSendFileContentForLarge()
     {
-      if (fileToSend.exists()) // 文件存在
+      if (fileToSend.exists()) // The file exists.
       {
         Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
+        
+        notifyFileSendStarted(); // Notify the file send started.
+        
         try
         {
           Uri fileUri=fileToSend.getUri(); // Get the uri.
@@ -197,6 +200,14 @@ public class FileContentSender
     {
       controlConnectHandler.notifyFileSendCompleted(); // 告知文件内容发送完毕。
     } //private void notifyFileSendCompleted()
+    
+    /**
+    * Notify the file send started.
+    */
+    private void notifyFileSendStarted()
+    {
+      controlConnectHandler.notifyFileSendStarted(wholeDirecotoryPath); // Notify that the file send started.
+    } // private void notifyFileSendStarted()
     
     /**
     * Notify file not exist

@@ -222,6 +222,20 @@ public class ControlConnectHandler implements DataServerManagerInterface
     } //private void openDataConnectionToClient(String content)
 
     /**
+    * Notify the file send started.
+    */
+    public void notifyFileSendStarted(String filePath)
+    {
+      String replyString="150 start send content: " + filePath ; // The reply string.
+
+      Log.d(TAG, "reply string: " + replyString); //Debug.
+
+      binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
+
+      // controlConnectHandler.notifyFileSendStarted(wholeDirecotoryPath); // Notify that the file send started.
+    } // private void notifyFileSendStarted()
+    
+    /**
     * Notify file not exist.
     */
     public void notifyFileNotExist(String filePath)
@@ -309,6 +323,14 @@ public class ControlConnectHandler implements DataServerManagerInterface
 
       Log.d(TAG, "reply string: " + replyString); //Debug.
     } // private void processQuitCommand()
+    
+    /**
+    * Process the retr command.
+    */
+    private void processRetrCommand(String data51)
+    {
+      sendFileContent(data51, currentWorkingDirectory); // Send file content.
+    } // private void processRetrCommand(String data51)
     
     /**
     *  处理上传文件命令。
@@ -479,9 +501,18 @@ public class ControlConnectHandler implements DataServerManagerInterface
             
         replyString="213 " + fileSize + " "; // 文件尺寸。
       } //if (photoDirecotry.exists()) // 文件存在
-      else // 文件不 存在
+      else // Not an existing file
       {
-        replyString="550 No directory traversal allowed in SIZE param"; // File does not exist.
+        if ((photoDirecotry==null) || (!photoDirecotry.exists())) // not exist
+        {
+          // Chen xin.
+          replyString="550 File not exist " + data51; // File does not exist.
+          // replyString="550 No directory traversal allowed in SIZE param"; // File does not exist.
+        } // if ((photoDirecotry==null) || (!photoDirecotry.exists())) // not exist
+        else // Directory
+        {
+          replyString="550 No directory traversal allowed in SIZE param"; // File does not exist.
+        } // else // Directory
       } //else // 文件不 存在
 
       Log.d(TAG, "reply string: " + replyString); //Debug.
@@ -662,14 +693,9 @@ public class ControlConnectHandler implements DataServerManagerInterface
         String data51= content.substring(5);
 
         data51=data51.trim(); // 去掉末尾换行
+        
+        processRetrCommand(data51); // Process the retr command.
 
-        String replyString="150 start send content: " + data51 ; // 回复内容。
-
-        Log.d(TAG, "reply string: " + replyString); //Debug.
-          
-        binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
-
-        sendFileContent(data51, currentWorkingDirectory); // Send file content.
       } //else if (command.equals("list")) // 列出目录
       else if (command.toLowerCase().equals("rest")) // 设置断点续传位置。
       {
