@@ -260,6 +260,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送。
       
       notifyEvent(EventListener.DOWNLOAD_FINISH); // 报告事件，完成下载文件。
+      
     } //private void notifyFileSendCompleted()
 
     /**
@@ -663,6 +664,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
 
         if (allowActiveMode) // 允许主动模式
         {
+          data_socket=null; // Forget the used data socket.
           openDataConnectionToClient(content); // 打开指向客户端特定端口的连接。
 
           replyString="150 "; // 回复内容。正在打开数据连接
@@ -1052,7 +1054,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
       else // 无异常。
       {
         this.data_socket=socket; // Remember the data connection.
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", connected to port specified by client, this: " + this); // Debug.
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", connected to port specified by client, this: " + this + ", datas socket: " + socket); // Debug.
         fileContentSender.setDataSocket(socket); // 设置数据连接套接字。
         Log.d(TAG, CodePosition.newInstance().toString()+  ", setting data socket: " + socket ); // Debug.
         directoryListSender.setDataSocket(socket); // 设置数据连接套接字。
