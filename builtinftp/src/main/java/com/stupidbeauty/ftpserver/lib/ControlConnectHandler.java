@@ -282,7 +282,8 @@ public class ControlConnectHandler implements DataServerManagerInterface
     */
     public void notifyFileSendCompleted() 
     {
-      String replyString="216 File sent. " + "ChenXin" + " 嘴巴上挂着价签吗" + " 并不好吃，感觉它本身的味道没调好"; // The reply message.
+      // String replyString="216 File sent. " + "ChenXin" + " 嘴巴上挂着价签吗" + " 并不好吃，感觉它本身的味道没调好"; // The reply message.
+      String replyString="226 File sent. " + "ChenXin" + " 嘴巴上挂着价签吗" + " 并不好吃，感觉它本身的味道没调好" + " 你还是去闻熏村那种吧[微笑]"; // The reply message.
 
       // Log.d(TAG, "reply string: " + replyString); //Debug.
       Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString  + ", this: " + this); // Debug.
@@ -617,6 +618,35 @@ public class ControlConnectHandler implements DataServerManagerInterface
         
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
     } // private void processDeleCommand(String data51)
+    
+    /**
+    *  process pasv command.
+    */
+    private void processPasvCommand()
+    {
+        data_socket=null; // Forget the used data socket.
+        setupDataServer(); // 初始化数据服务器。
+
+        String ipAddress = ip;
+
+
+        if (ipAddress==null) // Have not set ip.
+        {
+          WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+          ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
+        } // else // Not set ip.
+
+        String ipString = ipAddress.replace(".", ",");
+
+        int port256=data_port/256;
+        int portModule=data_port-port256*256;
+
+        String replyString="227 Entering Passive Mode ("+ipString+","+port256+","+portModule+") "; // 回复内容。
+
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString); // Debug.
+
+        binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
+    } // private void processPasvCommand()
 
     /**
      * 处理命令。
@@ -648,29 +678,9 @@ public class ControlConnectHandler implements DataServerManagerInterface
             
         binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
       } //else if (command.equals("TYPE")) // 传输类型
-      else if (command.equals("PASV")) // 被动传输
+      else if (command.equalsIgnoreCase("PASV")) // passive transmission.
       {
-        setupDataServer(); // 初始化数据服务器。
-
-        String ipAddress = ip;
-
-
-        if (ipAddress==null) // Have not set ip.
-        {
-          WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-          ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
-        } // else // Not set ip.
-
-        String ipString = ipAddress.replace(".", ",");
-
-        int port256=data_port/256;
-        int portModule=data_port-port256*256;
-
-        String replyString="227 Entering Passive Mode ("+ipString+","+port256+","+portModule+") "; // 回复内容。
-
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString); // Debug.
-
-        binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
+        processPasvCommand(); // process pasv command.
       } // else if (command.equals("PASV")) // 被动传输
       else if (command.equals("EPSV")) // 扩展被动模式
       {
