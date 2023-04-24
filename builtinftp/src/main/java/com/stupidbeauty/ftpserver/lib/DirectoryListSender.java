@@ -283,7 +283,7 @@ public class DirectoryListSender
           Log.d(TAG, CodePosition.newInstance().toString()+  ", [Server] data Successfully wrote message: " + fileToSend + ", going to close data_socket: " + data_socket); // Debug.
 
           notifyLsCompleted(); // 告知已经发送目录数据。
-          Log.d(TAG, CodePosition.newInstance().toString()+  ", going to set file to send : " + null); // Debug.
+          // Log.d(TAG, CodePosition.newInstance().toString()+  ", going to set file to send : " + null); // Debug.
           fileToSend=null; // 将要发送的文件对象清空。
           data_socket.close(); // 关闭连接。
         } // public void onCompleted(Exception ex) 

@@ -1,5 +1,10 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import 	java.util.Timer;
+import java.util.TimerTask;
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import com.stupidbeauty.codeposition.CodePosition;
 import android.os.ParcelFileDescriptor;
 import java.io.FileOutputStream;
@@ -253,13 +258,31 @@ public class ControlConnectHandler implements DataServerManagerInterface
 
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送。
     } // private void notifyFileNotExist()
+    
+    /**
+    * Delay and notify the file send completed.
+    */
+    public void delayednotifyFileSendCompleted()
+    {
+      // Chen xin.
+      Timer timerObj = new Timer();
+      TimerTask timerTaskObj = new TimerTask() 
+      {
+        public void run() 
+        {
+          notifyFileSendCompleted(); // Notify file send completed.
+        }
+      };
+      timerObj.schedule(timerTaskObj, 20); // delay and run.
+
+    } // public void delayednotifyFileSendCompleted()
 
     /**
     * 告知已经发送文件内容数据。
     */
     public void notifyFileSendCompleted() 
     {
-      String replyString="216 File sent. " + "ChenXin" + " 嘴巴上挂着价签吗"; // The reply message.
+      String replyString="216 File sent. " + "ChenXin" + " 嘴巴上挂着价签吗" + " 并不好吃，感觉它本身的味道没调好"; // The reply message.
 
       // Log.d(TAG, "reply string: " + replyString); //Debug.
       Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString  + ", this: " + this); // Debug.

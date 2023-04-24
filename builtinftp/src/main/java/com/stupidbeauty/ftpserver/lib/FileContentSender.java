@@ -152,7 +152,9 @@ public class FileContentSender
 
               Log.d(TAG, "startSendFileContentForLarge, file sent."); // Debug.
                     
-              notifyFileSendCompleted(); // 告知已经发送文件内容数据。
+              // notifyFileSendCompleted(); // 告知已经发送文件内容数据。
+              delayednotifyFileSendCompleted(); // Notify the file send completed after a short delay.
+
               fileToSend=null; // 将要发送的文件对象清空。
               Log.d(TAG, CodePosition.newInstance().toString()+  ", file sent. Closing data socket: " + data_socket); // Debug.
               // Log.d(TAG, "startSendFileContentForLarge, file sent. Closing data socket: " + data_socket); // Debug.
@@ -201,6 +203,14 @@ public class FileContentSender
     {
       controlConnectHandler.notifyFileSendCompleted(); // 告知文件内容发送完毕。
     } //private void notifyFileSendCompleted()
+    
+    /**
+    * Notify the file send completed after a short delay.
+    */
+    private void delayednotifyFileSendCompleted()
+    {
+      controlConnectHandler.delayednotifyFileSendCompleted(); // Delay and notify the file send completed.
+    } // private void delayednotifyFileSendCompleted()
     
     /**
     * Notify the file send started.

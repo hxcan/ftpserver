@@ -66,9 +66,9 @@ public class ControlConnectionDataCallback implements DataCallback
   private EventListener eventListener=null; //!< 事件监听器。
   private ErrorListener errorListener=null; //!< Error listener. Chen xin. 
   private AsyncSocket socket; //!< 当前的客户端连接。
-  private static final String TAG ="ControlConnectHandler"; //!<  输出调试信息时使用的标记。
+  private static final String TAG ="ControlConnectionDataCallback"; //!<  The tag used in debug code.
   private ControlConnectHandler context; //!< The control connection handler.
-  private AsyncSocket data_socket; //!< 当前的数据连接。
+  // private AsyncSocket data_socket; //!< 当前的数据连接。
   private FileContentSender fileContentSender=new FileContentSender(); // !< 文件内容发送器。
   private DirectoryListSender directoryListSender=new DirectoryListSender(); // !< 目录列表发送器。
   private byte[] dataSocketPendingByteArray=null; //!< 数据套接字数据内容 排队。
