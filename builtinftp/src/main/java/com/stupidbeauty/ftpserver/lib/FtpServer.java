@@ -448,6 +448,7 @@ public class FtpServer
         handler.handleAccept(socket);
         handler.setRootDirectory(rootDirectory); // 设置根目录。
         handler.setEventListener(eventListener); // 设置事件监听器。
+        handler.setErrorListener(errorListener); // Set error listener.
         handler.setUserManager(userManager); // set user manager.
         handler.setFilePathInterpreter(filePathInterpreter); // Set the file path interpreter.
         // handler.setDataServerManager(dataServerManager); // Set the data server manager.

@@ -8,7 +8,8 @@ public class Constants
   public static class ErrorCode
   {
     public static final Integer ADDRESS_ALREADY_IN_USE = 182735; //!< Address already in use. Chen xin.
-  }
+    public static final Integer ControlConnectionEndedUnexpectedly = 95731; //!< Control connection ended unexpectedly.
+  } // public static class ErrorCode
 
   public static class FilePath
   {

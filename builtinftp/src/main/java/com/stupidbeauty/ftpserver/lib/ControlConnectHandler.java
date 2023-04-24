@@ -64,6 +64,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
   private UserManager userManager=null; //!< user manager.
   private BinaryStringSender binaryStringSender=new BinaryStringSender(); //!< 以二进制方式发送字符串的工具。
   private EventListener eventListener=null; //!< 事件监听器。
+  private ErrorListener errorListener=null; //!< Error listener. Chen xin. 
   private AsyncSocket socket; //!< 当前的客户端连接。
   private static final String TAG ="ControlConnectHandler"; //!<  输出调试信息时使用的标记。
   private Context context; //!< 执行时使用的上下文。
@@ -114,6 +115,11 @@ public class ControlConnectHandler implements DataServerManagerInterface
     this.filePathInterpreter.setContext(context); // Set context.
   } // public void setFilePathInterpreter(FilePathInterpreter filePathInterpreter)
   
+  public void setErrorListener(ErrorListener errorListener)    
+  {
+    this.errorListener = errorListener;
+  } //public void setErrorListener(ErrorListener errorListener)    
+
   public void setEventListener(EventListener eventListener)
   {
     this.eventListener=eventListener;
@@ -246,22 +252,22 @@ public class ControlConnectHandler implements DataServerManagerInterface
       Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString  + ", this: " + this); // Debug.
 
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送。
-    } //private void notifyFileNotExist()
+    } // private void notifyFileNotExist()
 
     /**
     * 告知已经发送文件内容数据。
     */
     public void notifyFileSendCompleted() 
     {
-      String replyString="216 File sent. ChenXin"; // 回复内容。
+      String replyString="216 File sent."; // The reply message.
 
-      Log.d(TAG, "reply string: " + replyString); //Debug.
+      // Log.d(TAG, "reply string: " + replyString); //Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString  + ", this: " + this); // Debug.
         
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送。
       
-      notifyEvent(EventListener.DOWNLOAD_FINISH); // 报告事件，完成下载文件。
-      
-    } //private void notifyFileSendCompleted()
+      notifyEvent(EventListener.DOWNLOAD_FINISH); // Notify event, file download finished.
+    } // private void notifyFileSendCompleted()
 
     /**
     * 发送文件内容。
@@ -840,9 +846,32 @@ public class ControlConnectHandler implements DataServerManagerInterface
     /**
     * Report event.
     */
+    private void notifyError(Integer eventCode)
+    {   
+      if (errorListener!=null) // The error listener exists.
+      {
+        Handler uiHandler = new Handler(Looper.getMainLooper());
+
+        Runnable runnable= new Runnable()
+        {
+          /**
+            * 具体执行的代码
+          */
+          public void run()
+          {
+            errorListener.onError(eventCode); // report error.
+          } //public void run()
+        };
+
+        uiHandler.post(runnable);
+      } //if (eventListener!=null) // 有事件监听器。
+    } // private void notifyEvent(String eventCode)
+
+    /**
+    * Report event.
+    */
     private void notifyEvent(final String eventCode)
     {   
-    
       notifyEvent(eventCode, null);
     } //private void notifyEvent(String eventCode)
 
@@ -1198,7 +1227,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
       this.socket=socket;
       binaryStringSender.setSocket(socket); // 设置套接字。
       
-      System.out.println("[Server] New Connection " + socket.toString());
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", [Server] New Connection " + socket.toString() +  ", this: " + this); // Debug.
 
       socket.setDataCallback
       (
@@ -1208,13 +1237,12 @@ public class ControlConnectHandler implements DataServerManagerInterface
           public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) 
           {
             String content = new String(bb.getAllByteArray());
-            Log.d(TAG, "[Server] Received Message " + content); // Debug
-                
+
+            Log.d(TAG, CodePosition.newInstance().toString()+  ", [Server] Received Message " + content + ", this: " + this); // Debug.
+
             String[] lines=content.split("\r\n"); // 分割成一行行的命令。
                 
             int lineAmount=lines.length; // 获取行数
-
-            // Log.d(TAG, "[Server] line amount: " + lineAmount); // Debug
 
             for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
             {
@@ -1257,10 +1285,15 @@ public class ControlConnectHandler implements DataServerManagerInterface
           @Override
           public void onCompleted(Exception ex) 
           {
-            if (ex != null) // 有异常出现
+            if (ex != null) // There was an exception
             {
-              ex.printStackTrace(); // 报告。
-            }
+              Log.d(TAG, CodePosition.newInstance().toString()+  ", control connection ended unexpected: " + this + ", chance to clean up"); // Debug.
+              
+              // Chenx in
+              notifyError(Constants.ErrorCode.ControlConnectionEndedUnexpectedly); // Notify error. Control connection ended unexpectedly.
+              
+              ex.printStackTrace(); // Report the exeception.
+            } // if (ex != null) // There was an exception
             else // 无异常
             {
               // Log.d(TAG, "ftpmodule [Server] Successfully end connection");
