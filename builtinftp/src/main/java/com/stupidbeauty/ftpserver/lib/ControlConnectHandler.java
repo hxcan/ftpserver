@@ -259,7 +259,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     */
     public void notifyFileSendCompleted() 
     {
-      String replyString="216 File sent."; // The reply message.
+      String replyString="216 File sent. " + "ChenXin" + " 嘴巴上挂着价签吗"; // The reply message.
 
       // Log.d(TAG, "reply string: " + replyString); //Debug.
       Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString  + ", this: " + this); // Debug.
@@ -495,7 +495,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     private void processSizeCommand(String data51)
     {
       Log.d(TAG, "processSizeCommand: filesdir: " + rootDirectory.getPath()); // Debug.
-      Log.d(TAG, "processSizeCommand: workding directory: " + currentWorkingDirectory); // Debug.
+      // Log.d(TAG, "processSizeCommand: workding directory: " + currentWorkingDirectory); // Debug.
       Log.d(TAG, "processSizeCommand: data51: " + data51); // Debug.
     
       DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve file path.
@@ -600,9 +600,10 @@ public class ControlConnectHandler implements DataServerManagerInterface
      * @param command 命令关键字
      * @param content 整个消息内容。
      */
-    private void processCommand(String command, String content, boolean hasFolloingCommand)
+    public void processCommand(String command, String content, boolean hasFolloingCommand)
     {
-      Log.d(TAG, "command: " + command + ", content: " + content); //Debug.
+      // Log.d(TAG, "command: " + command + ", content: " + content); //Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", command: " + command + ", content: " + content); // Debug.
 
       if (command.equals("SYST")) // 系统信息
       {
@@ -1225,44 +1226,48 @@ public class ControlConnectHandler implements DataServerManagerInterface
     public void handleAccept(final AsyncSocket socket)
     {
       this.socket=socket;
-      binaryStringSender.setSocket(socket); // 设置套接字。
+      binaryStringSender.setSocket(socket); // set the socket object.
       
       Log.d(TAG, CodePosition.newInstance().toString()+  ", [Server] New Connection " + socket.toString() +  ", this: " + this); // Debug.
+      
+      ControlConnectionDataCallback dataCallback = new ControlConnectionDataCallback(this); // Creat e the control connection data callback.
+      
+      socket.setDataCallback(dataCallback); // SEt the data call back.
 
-      socket.setDataCallback
-      (
-        new DataCallback()
-        {
-          @Override
-          public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) 
-          {
-            String content = new String(bb.getAllByteArray());
-
-            Log.d(TAG, CodePosition.newInstance().toString()+  ", [Server] Received Message " + content + ", this: " + this); // Debug.
-
-            String[] lines=content.split("\r\n"); // 分割成一行行的命令。
-                
-            int lineAmount=lines.length; // 获取行数
-
-            for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
-            {
-              String currentLine=lines[lineCounter]; // 获取当前命令。
-                  
-              String command = currentLine.split(" ")[0]; // Get the command.
-
-              command=command.trim();
-              
-              boolean hasFolloingCommand=true; // 是否还有后续命令。
-              
-              if ((lineCounter+1)==(lineAmount)) // 是最后一条命令了。
-              {
-                hasFolloingCommand=false; // 没有后续命令。
-              } // if ((lineCounter+1)==(lineAmount)) // 是最后一条命令了。
-
-              processCommand(command, currentLine, hasFolloingCommand); // 处理命令。
-            } // for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
-          }
-        });
+//       socket.setDataCallback
+//       (
+//         new DataCallback()
+//         {
+//           @Override
+//           public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) 
+//           {
+//             String content = new String(bb.getAllByteArray());
+// 
+//             Log.d(TAG, CodePosition.newInstance().toString()+  ", [Server] Received Message " + content + ", this: " + this); // Debug.
+// 
+//             String[] lines=content.split("\r\n"); // 分割成一行行的命令。
+//                 
+//             int lineAmount=lines.length; // 获取行数
+// 
+//             for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
+//             {
+//               String currentLine=lines[lineCounter]; // 获取当前命令。
+//                   
+//               String command = currentLine.split(" ")[0]; // Get the command.
+// 
+//               command=command.trim();
+//               
+//               boolean hasFolloingCommand=true; // 是否还有后续命令。
+//               
+//               if ((lineCounter+1)==(lineAmount)) // 是最后一条命令了。
+//               {
+//                 hasFolloingCommand=false; // 没有后续命令。
+//               } // if ((lineCounter+1)==(lineAmount)) // 是最后一条命令了。
+// 
+//               processCommand(command, currentLine, hasFolloingCommand); // 处理命令。
+//             } // for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
+//           } // public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) 
+//         });
 
         socket.setClosedCallback(new CompletedCallback() 
         {
