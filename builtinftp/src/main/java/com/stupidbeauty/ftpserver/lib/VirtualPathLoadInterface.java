@@ -1,4 +1,4 @@
-package com.stupidbeauty.hxlauncher.asynctask;
+package com.stupidbeauty.ftpserver.lib;
 
 import android.content.pm.PackageInstaller;
 import android.os.Bundle;
@@ -29,7 +29,7 @@ import android.os.Debug;
 // import com.stupidbeauty.hxlauncher.asynctask.LoadBuiltinVoiceShortcutMapTask;
 // import com.stupidbeauty.hxlauncher.asynctask.LoadServerVoiceCommandReponseIgnoreTask;
 // import com.stupidbeauty.hxlauncher.asynctask.LoadVoiceShortcutIdMapTask;
-import com.stupidbeauty.hxlauncher.asynctask.LoadVoicePackageNameMapTask;
+// import com.stupidbeauty.hxlauncher.asynctask.LoadVoicePackageNameMapTask;
 import java.util.Timer;
 import java.util.TimerTask;
 import android.Manifest;

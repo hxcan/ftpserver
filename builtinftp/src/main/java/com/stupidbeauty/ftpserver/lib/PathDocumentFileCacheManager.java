@@ -1,6 +1,6 @@
 package com.stupidbeauty.ftpserver.lib;
 
-import com.stupidbeauty.hxlauncher.asynctask.LoadVoicePackageNameMapTask;
+// import com.stupidbeauty.hxlauncher.asynctask.LoadVoicePackageNameMapTask;
 import java.util.Timer;
 import java.util.TimerTask;
 // import android.Manifest;
@@ -31,7 +31,7 @@ import java.util.HashMap;
 import android.view.View;
 import android.os.AsyncTask;
 import java.util.HashMap;
-import com.stupidbeauty.hxlauncher.asynctask.VirtualPathLoadInterface;
+// import com.stupidbeauty.hxlauncher.asynctask.VirtualPathLoadInterface;
 
 public class PathDocumentFileCacheManager
 {

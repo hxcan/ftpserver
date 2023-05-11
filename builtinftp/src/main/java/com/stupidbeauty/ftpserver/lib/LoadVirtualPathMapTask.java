@@ -1,4 +1,4 @@
-package com.stupidbeauty.hxlauncher.asynctask;
+package com.stupidbeauty.ftpserver.lib;
 
 import android.content.Context;
 import android.util.Log;
@@ -47,12 +47,12 @@ import android.content.pm.ShortcutInfo;
 import android.graphics.drawable.AnimationDrawable;
 import android.util.Pair;
 
-public class LoadVoicePackageNameMapTask extends AsyncTask<Object, Void, Object>
+public class LoadVirtualPathMapTask extends AsyncTask<Object, Void, Object>
 {
   private HashMap<String, Uri> voicePackageNameMap; //!< The map of virtual path to Uri.
   private Context context= null; //!< 上下文
 
-	private static final String TAG="LoadVoicePackageNameMapTask"; //!<输出调试信息时使用的标记。
+	private static final String TAG="LoadVirtualPathMapTask"; //!< The tag used for debug code.
 
 	private VirtualPathLoadInterface launcherActivity=null; //!< The interface of virtual path load result.
 	

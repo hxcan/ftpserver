@@ -1,6 +1,6 @@
 package com.stupidbeauty.ftpserver.lib;
 
-import com.stupidbeauty.hxlauncher.asynctask.LoadVoicePackageNameMapTask;
+// import com.stupidbeauty.hxlauncher.asynctask.LoadVoicePackageNameMapTask;
 import java.util.Timer;
 import java.util.TimerTask;
 // import android.Manifest;
@@ -31,7 +31,7 @@ import java.util.HashMap;
 import android.view.View;
 import android.os.AsyncTask;
 import java.util.HashMap;
-import com.stupidbeauty.hxlauncher.asynctask.VirtualPathLoadInterface;
+// import com.stupidbeauty.hxlauncher.asynctask.VirtualPathLoadInterface;
 
 public class FilePathInterpreter implements VirtualPathLoadInterface
 {
@@ -58,13 +58,13 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
   } // public boolean isSamePath (String fullPath, String ConstantsFilePathAndroidData)
   
   /**
-    * 载入 virtual path to uri 之间的映射。
+    * Load the map of virtual path to uri
     */
   public void loadVirtualPathMap()
   {
-    LoadVoicePackageNameMapTask translateRequestSendTask =new LoadVoicePackageNameMapTask(); //创建异步任务。
+    LoadVirtualPathMapTask loadVirtualPathMapTask =new LoadVirtualPathMapTask(); // Create the async task
 
-    translateRequestSendTask.execute(this, context); //执行任务。
+    loadVirtualPathMapTask.execute(this, context); // Execute it.
   } //private void loadVoicePackageNameMap()
 
   /**
