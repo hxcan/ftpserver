@@ -88,7 +88,7 @@ import android.widget.Toast;
 // import com.stupidbeauty.hxlauncher.bean.ApplicationNameInternationalizationData;
 // import com.stupidbeauty.hxlauncher.bean.ApplicationNamePair;
 // import com.stupidbeauty.hxlauncher.bean.HxShortcutInfo;
-import com.stupidbeauty.hxlauncher.callback.LauncherAppsCallback;
+// import com.stupidbeauty.hxlauncher.callback.LauncherAppsCallback;
 // import com.stupidbeauty.hxlauncher.datastore.LauncherIconType;
 // import com.stupidbeauty.hxlauncher.datastore.RuntimeInformationStore;
 // import com.stupidbeauty.hxlauncher.datastore.VoiceCommandSourceType;
