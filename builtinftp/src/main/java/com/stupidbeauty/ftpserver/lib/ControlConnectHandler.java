@@ -87,7 +87,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
   // private DataServerManager dataServerManager=null; //!< Data server manager
   private DataServerManager dataServerManager=new DataServerManager(); //!< The data server manager.
 
-//   private File writingFile; //!< 当前正在写入的文件。
   private DocumentFile writingFile; //!< 当前正在写入的文件。
 
   private boolean isUploading=false; //!< 是否正在上传。陈欣
@@ -556,15 +555,11 @@ public class ControlConnectHandler implements DataServerManagerInterface
     */
     private void processDeleCommand(String data51)
     {
-      // 删除文件
-
       String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
                   
       wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                   
-      //         FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
       DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve file
-
         
       String replyString="250 "; // 回复内容。
 
@@ -572,38 +567,25 @@ public class ControlConnectHandler implements DataServerManagerInterface
       {
         boolean deleteResult= photoDirecotry.delete();
             
-        Log.d(TAG, "delete result: " + deleteResult); // Debug.
-        
-
         if (deleteResult) // Delete success
         {
-          notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
+          // notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
+          notifyEvent(EventListener.DELETE, (Object)(photoDirecotry)); // Notify event, delete file.
+
           replyString="250 Delete success " + data51; // Reply, delete success.
-          
           
           // Chen xin. remove cache DocumentFile.
           
           PathDocumentFileCacheManager pathDocumentFileCacheManager = filePathInterpreter.getPathDocumentFileCacheManager(); // Get the path documetnfile cache manager.
-            // for(DocumentFile path:paths) // reply files one by one
-            {
-              // String currentLine=construct1LineListFile(path); // 构造针对这个文件的一行输出。
 
-              // String fileName=path.getName(); // 获取文件名。
-              
-              String effectiveVirtualPathForCurrentSegment=wholeDirecotoryPath; // Remember effective virtual path.
-              effectiveVirtualPathForCurrentSegment=effectiveVirtualPathForCurrentSegment.replace("//", "/"); // Remove consecutive /
-              
-              Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath  + ", effective virtual path: " + effectiveVirtualPathForCurrentSegment); // Debug.
-
-              pathDocumentFileCacheManager.remove(effectiveVirtualPathForCurrentSegment); // Remove it from the cache.
-
-            } // for(DocumentFile path:paths) // reply files one by one
-
+          String effectiveVirtualPathForCurrentSegment=wholeDirecotoryPath; // Remember effective virtual path.
+          effectiveVirtualPathForCurrentSegment=effectiveVirtualPathForCurrentSegment.replace("//", "/"); // Remove consecutive /
+          
+          pathDocumentFileCacheManager.remove(effectiveVirtualPathForCurrentSegment); // Remove it from the cache.
         } // if (deleteResult) // Delete success
         else // Delete fail
         {
           replyString="550 File delete failed"; // File delete failed.
-  //         replyString="250 "; // 回复内容。
 
           checkFileManagerPermission(Constants.Permission.Write, photoDirecotry); // Check permission of write.
         } // else // Delete fail
@@ -612,10 +594,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
       {
         replyString="550 File delete failed " + data51; // File delete failed.
       } // else // The doucmentfile object does not exist
-      
 
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString); // Debug.
-        
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
     } // private void processDeleCommand(String data51)
     
