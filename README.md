@@ -31,6 +31,13 @@ To support more FTP clients
 
 If your FTP client did not work well with this FTP server, please report an issue: https://github.com/hxcan/ftpserver/issues
 
+Build this project yourself
+===
+
+The oldest version of jdk supported by this project is openjdk11. The latest version of jdk supported by this project is openjdk19. You need a jdk who's version is in this range, to compile this project successfully.
+
+How to set the jdk version in Android Studio: https://stackoverflow.com/a/75114912
+
 Mysterious text
 ===
 
