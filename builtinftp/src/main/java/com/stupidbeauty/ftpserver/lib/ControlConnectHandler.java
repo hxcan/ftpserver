@@ -84,20 +84,14 @@ public class ControlConnectHandler implements DataServerManagerInterface
   private int clientDataPort; //!< Client data port to connect to.
   private int retryConnectClientDataPortAmount=0; //!< the time retried for connecting client data port.
   private boolean allowActiveMode=true; //!< Whether to allow active mode.
-  // private DataServerManager dataServerManager=null; //!< Data server manager
+  private DisconnectIntervalManager disconnectIntervalManager=new DisconnectIntervalManager(); //!< Disconnect interval manager
   private DataServerManager dataServerManager=new DataServerManager(); //!< The data server manager.
-
+  private Timer disconnectTimer=null; //!< The timer of automatically disconnect from possible stuck connections.
   private DocumentFile writingFile; //!< 当前正在写入的文件。
-
   private boolean isUploading=false; //!< 是否正在上传。陈欣
   private InetAddress host;
   private File rootDirectory=null; //!< 根目录。
   
-  // public void setDataServerManager(DataServerManager dataServerManager)
-  // {
-  //   this.dataServerManager=dataServerManager;
-  // } // public void setDataServerManager(DataServerManager dataServerManager)
-
   /**
   * Set the user manager.
   */
@@ -259,6 +253,46 @@ public class ControlConnectHandler implements DataServerManagerInterface
     } // private void notifyFileNotExist()
     
     /**
+    * Cancel the disconnect tiemr.
+    */
+    private void cancelDisconnectTimer() 
+    {
+      if (disconnectTimer!=null) // The disconnect timer exists
+      {
+        disconnectTimer.cancel(); // Cancel the timer.
+      } // if (disconnectTimer!=null) // The disconnect timer exists
+      
+    } // private void cancelDisconnectTimer()
+    
+    /**
+    * Schedule disconnect.
+    */
+    private void scheduleDisconnect() // Schedule disconnect.
+    {
+      Timer timerObj = new Timer();
+      
+      cancelDisconnectTimer(); // Cancel the disconnect tiemr.
+      
+      disconnectTimer=timerObj; // Remember timer.
+      
+      TimerTask timerTaskObj = new TimerTask() 
+      {
+        public void run() 
+        {
+          // notifyFileSendCompleted(); // Notify file send completed.
+          // Chen xin.
+          socket.close(); // close the connection.
+        }
+      };
+      
+      long suggestedInterfal20=disconnectIntervalManager.getSuggestedDisconnectInterval(); // Get suggested disconnect interval.
+      
+      timerObj.schedule(timerTaskObj, suggestedInterfal20); // delay and run.
+
+      disconnectIntervalManager.markScheduleDisconnect(); // mark scheduled disconnect.
+    } // private void scheduleDisconnect()
+    
+    /**
     * Delay and notify the file send completed.
     */
     public void delayednotifyFileSendCompleted()
@@ -288,6 +322,8 @@ public class ControlConnectHandler implements DataServerManagerInterface
       Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString  + ", this: " + this); // Debug.
         
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送。
+      
+      scheduleDisconnect(); // Schedule disconnect.
       
       notifyEvent(EventListener.DOWNLOAD_FINISH); // Notify event, file download finished.
     } // private void notifyFileSendCompleted()
@@ -634,7 +670,9 @@ public class ControlConnectHandler implements DataServerManagerInterface
      */
     public void processCommand(String command, String content, boolean hasFolloingCommand)
     {
-      // Log.d(TAG, "command: " + command + ", content: " + content); //Debug.
+      cancelDisconnectTimer(); // Cancelt he disconnect timer.
+      disconnectIntervalManager.markNewCommand(); // mark new command.
+
       Log.d(TAG, CodePosition.newInstance().toString()+  ", command: " + command + ", content: " + content); // Debug.
 
       if (command.equals("SYST")) // 系统信息
