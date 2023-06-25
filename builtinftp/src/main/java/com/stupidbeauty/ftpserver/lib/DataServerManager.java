@@ -84,9 +84,7 @@ public class DataServerManager
   private String ip; //!< ip
   private boolean allowActiveMode=true; //!< 是否允许主动模式。
   private DataServerManager dataServerManager=null; //!< Data server manager
-
-//   private File writingFile; //!< 当前正在写入的文件。
-  private DocumentFile writingFile; //!< 当前正在写入的文件。
+  private DocumentFile writingFile; //!< The file currently writing into.
 
   private boolean isUploading=false; //!< 是否正在上传。陈欣
   private InetAddress host;
@@ -97,7 +95,10 @@ public class DataServerManager
   */
   public void stopServerSockets()
   {
-    listeningServerSocket.stop(); // Stop.
+    if (listeningServerSocket!=null) // The socket exists
+    {
+      listeningServerSocket.stop(); // Stop.
+    } // if (listeningServerSocket!=null) // The socket exists
   } // public void stopServerSockets()
   
   /**
