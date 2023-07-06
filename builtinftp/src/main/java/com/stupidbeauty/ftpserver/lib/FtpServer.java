@@ -453,6 +453,8 @@ public class FtpServer
         handler.setFilePathInterpreter(filePathInterpreter); // Set the file path interpreter.
         // handler.setDataServerManager(dataServerManager); // Set the data server manager.
         handler.setFileNameTolerant(fileNameTolerant); // Set the file name tolerant mode.
+        
+        notifyEvent(EventListener.CLIENT_CONNECTED); // report event , client connected.
       } // public void onAccepted(final AsyncSocket socket)
 
       @Override
