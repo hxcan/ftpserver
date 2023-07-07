@@ -420,31 +420,39 @@ public class ControlConnectHandler implements DataServerManagerInterface
       writingFile=photoDirecotry; // 记录文件。
       isUploading=true; // 记录，处于上传状态。
       Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry ); // Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() ); // Debug.
 
       if (photoDirecotry!=null && photoDirecotry.exists()) // The file exists
       {
         photoDirecotry.delete();
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() ); // Debug.
       } // if (photoDirecotry.exists()) // The file exists
         
       try // Create the file.
       {
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() ); // Debug.
         File virtualFile=new File(data51);
         
         File parentVirtualFile=virtualFile.getParentFile();
         
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() + ", parent virtual file: " + parentVirtualFile.getName() ); // Debug.
         String currentTryingPath=parentVirtualFile.getPath();
 
         DocumentFile parentDocuemntFile=filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, currentTryingPath); // Resolve parent path.
 //         FileUtils.touch(photoDirecotry); //创建文件。
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() + ", parent document file : " + parentDocuemntFile.getUri().toString()); // Debug.
 
         String fileNameOnly=virtualFile.getName(); // Get the file name.
 
         writingFile=parentDocuemntFile.createFile("", fileNameOnly); // Creat eh file.
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() + ", writing fiel: " + writingFile.getUri().toString()); // Debug.
       } // try // Create the file.
       catch (Exception e) // Catch any exception.
       {
         e.printStackTrace();
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() ); // Debug.
       } // catch (Exception e) // Catch any exception.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() ); // Debug.
     } // private void startStor(String data51, String currentWorkingDirectory) // 上传文件内容。
     
     /**
