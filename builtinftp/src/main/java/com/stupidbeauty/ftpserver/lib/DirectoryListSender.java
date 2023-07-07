@@ -357,7 +357,7 @@ public class DirectoryListSender
       } //if (data_socket!=null) // 数据连接存在。
       else // The data socket does not exist yet
       {
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", directory : " + photoDirecotry + ", working directory: " + currentWorkingDirectory + ", directory uri: " + photoDirecotry.getUri().toString() + ", whole directory path: " + wholeDirecotoryPath + ", data socket not exist, skip"); // Debug.
+        // Log.d(TAG, CodePosition.newInstance().toString()+  ", directory : " + photoDirecotry + ", working directory: " + currentWorkingDirectory + ", directory uri: " + photoDirecotry.getUri().toString() + ", whole directory path: " + wholeDirecotoryPath + ", data socket not exist, skip"); // Debug.
       } // else // The data socket does not exist yet
     } // private void sendFileContent(String data51, String currentWorkingDirectory)
     
