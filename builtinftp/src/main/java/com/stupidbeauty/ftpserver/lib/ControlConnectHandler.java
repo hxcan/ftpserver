@@ -503,38 +503,34 @@ public class ControlConnectHandler implements DataServerManagerInterface
 //       String fullPath="";
       String fullPath=filePathInterpreter.resolveWholeDirectoryPath( rootDirectory, currentWorkingDirectory, targetWorkingDirectory); // resolve 完整路径。
 
-      if (photoDirecotry.isDirectory()) // 是个目录
+      if (photoDirecotry!=null) // The object exists
       {
-//         fullPath=photoDirecotry.getPath(); // 获取当前工作目录的完整路径。
-//         Uri directoryUri=photoDirecotry.getUri(); // Get the uri.
-//         String directyoryUriPath=directoryUri.getPath(); // Get the string of the uri.
-//         String directoryPurePath=directyoryUriPath.replaceAll("file://", ""); // Replace prefix.
-//         currentVersionName=currentVersionName.replaceAll("[a-zA-Z]|\\s", "");
-
-//         File directoryFileObject=new File()
-        
-//         fullPath=directyoryUriPath; // 获取当前工作目录的完整路径。
-
-        
-        String rootPath=rootDirectory.getPath(); // 获取根目录的完整路径。
-        
-        currentWorkingDirectory=fullPath.substring(rootPath.length()); // 去掉开头的根目录路径。
-        
-        if (currentWorkingDirectory.isEmpty()) // 是空白的了
+        if (photoDirecotry.isDirectory()) // It is a directory. 07-07 09:51:11.419 21116 21153 E AndroidRuntime: java.lang.NullPointerException: Attempt to invoke virtual method 'boolean androidx.documentfile.provider.DocumentFile.isDirectory()' on a null object reference
         {
-          currentWorkingDirectory="/"; // 当前工作目录是根目录。
-        } // if (currentWorkingDirectory.isEmpty()) // 是空白的了
-        
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", fullPath: " + fullPath ); // Debug.
-        Log.d(TAG, "processCwdCommand, rootPath: " + rootPath ); // Debug.
-        Log.d(TAG, "processCwdCommand, currentWorkingDirectory: " + currentWorkingDirectory ); // Debug.
+          String rootPath=rootDirectory.getPath(); // 获取根目录的完整路径。
+          
+          currentWorkingDirectory=fullPath.substring(rootPath.length()); // 去掉开头的根目录路径。
+          
+          if (currentWorkingDirectory.isEmpty()) // 是空白的了
+          {
+            currentWorkingDirectory="/"; // 当前工作目录是根目录。
+          } // if (currentWorkingDirectory.isEmpty()) // 是空白的了
+          
+          Log.d(TAG, CodePosition.newInstance().toString()+  ", fullPath: " + fullPath ); // Debug.
+          Log.d(TAG, "processCwdCommand, rootPath: " + rootPath ); // Debug.
+          Log.d(TAG, "processCwdCommand, currentWorkingDirectory: " + currentWorkingDirectory ); // Debug.
 
-        replyString="250 cwd succeed" ; // 回复内容。
-      } //if (photoDirecotry.isDirectory()) // 是个目录
-      else //不是个目录
+          replyString="250 cwd succeed" ; // 回复内容。
+        } //if (photoDirecotry.isDirectory()) // 是个目录
+        else //不是个目录
+        {
+          replyString="550 not a directory: " + targetWorkingDirectory; // 回复内容。
+        }
+      } // if (photoDirecotry!=null) // The object exists
+      else // The object does not exist
       {
-        replyString="550 not a directory: " + targetWorkingDirectory; // 回复内容。
-      }
+        replyString="550 File not exist " + targetWorkingDirectory; // File does not exist.
+      } // else // The object does not exist
 
       Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString); //Debug.
         
