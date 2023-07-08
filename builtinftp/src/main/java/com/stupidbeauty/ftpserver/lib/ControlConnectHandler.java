@@ -405,16 +405,27 @@ public class ControlConnectHandler implements DataServerManagerInterface
     {
       String replyString="150 "; // 回复内容。
 
-      binaryStringSender.sendStringInBinaryMode(replyString);
+      boolean storStartResult = startStor(data51, currentWorkingDirectory); // Start stor process.
+      
+      if (storStartResult) // Start stor successfully
+      {
+      } // if (storStartResult) // Start stor successfully
+      else // Failed to start stor
+      {
+        // replyString="150 "; // 回复内容。
+        replyString="550 it is a directory: " + data51; // The reply content. Do not allow to replace a directory with a normal file.
+      } // else // Failed to start stor
 
-      startStor(data51, currentWorkingDirectory); // 发送文件内容。
+      binaryStringSender.sendStringInBinaryMode(replyString);
     } // private void processStorCommand(String data51)
 
     /**
     * 上传文件内容。
     */
-    private void startStor(String data51, String currentWorkingDirectory) 
+    private boolean startStor(String data51, String currentWorkingDirectory) 
     {
+      boolean result = true; // Stor start result.
+      
       DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // Resolve file path.
 
       writingFile=photoDirecotry; // 记录文件。
@@ -424,35 +435,49 @@ public class ControlConnectHandler implements DataServerManagerInterface
 
       if (photoDirecotry!=null && photoDirecotry.exists()) // The file exists
       {
-        photoDirecotry.delete();
+        if (photoDirecotry.isDirectory()) // It is an existing directory
+        {
+          result = false;
+        } //  if (photoDirecotry.isDirectory()) // It is an existing directory
+        else // It is a normal file.
+        {
+          // result = true;
+          photoDirecotry.delete();
+          Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() ); // Debug.
+        } // else // It is a normal file.
         Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() ); // Debug.
       } // if (photoDirecotry.exists()) // The file exists
-        
-      try // Create the file.
+
+      if (result) // We can proceed so far
       {
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() ); // Debug.
-        File virtualFile=new File(data51);
-        
-        File parentVirtualFile=virtualFile.getParentFile();
-        
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() + ", parent virtual file: " + parentVirtualFile.getName() ); // Debug.
-        String currentTryingPath=parentVirtualFile.getPath();
+        try // Create the file.
+        {
+          Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() ); // Debug.
+          File virtualFile=new File(data51);
+          
+          File parentVirtualFile=virtualFile.getParentFile();
+          
+          Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() + ", parent virtual file: " + parentVirtualFile.getName() ); // Debug.
+          String currentTryingPath=parentVirtualFile.getPath();
 
-        DocumentFile parentDocuemntFile=filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, currentTryingPath); // Resolve parent path.
-//         FileUtils.touch(photoDirecotry); //创建文件。
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() + ", parent document file : " + parentDocuemntFile.getUri().toString()); // Debug.
+          DocumentFile parentDocuemntFile=filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, currentTryingPath); // Resolve parent path.
+  //         FileUtils.touch(photoDirecotry); //创建文件。
+          Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() + ", parent document file : " + parentDocuemntFile.getUri().toString()); // Debug.
 
-        String fileNameOnly=virtualFile.getName(); // Get the file name.
+          String fileNameOnly=virtualFile.getName(); // Get the file name.
 
-        writingFile=parentDocuemntFile.createFile("", fileNameOnly); // Creat eh file.
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() + ", writing fiel: " + writingFile.getUri().toString()); // Debug.
-      } // try // Create the file.
-      catch (Exception e) // Catch any exception.
-      {
-        e.printStackTrace();
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() ); // Debug.
-      } // catch (Exception e) // Catch any exception.
+          writingFile=parentDocuemntFile.createFile("", fileNameOnly); // Creat eh file.
+          Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() + ", writing fiel: " + writingFile.getUri().toString()); // Debug.
+        } // try // Create the file.
+        catch (Exception e) // Catch any exception.
+        {
+          e.printStackTrace();
+          Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() ); // Debug.
+        } // catch (Exception e) // Catch any exception.
+      } // if (result) // We can proceed so far
       Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() ); // Debug.
+      
+      return result;
     } // private void startStor(String data51, String currentWorkingDirectory) // 上传文件内容。
     
     /**
