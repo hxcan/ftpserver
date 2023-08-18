@@ -19,7 +19,6 @@ import android.os.LocaleList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-// import com.stupidbeauty.hxlauncher.interfaces.LocalServerListLoadListener;
 import 	android.provider.DocumentsContract;
 import java.util.Locale;
 import java.time.ZoneId;
@@ -569,7 +568,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
         
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
       
-//       if (fullPath.equals(Constants.FilePath.AndroidData)) // It is /Android/data
       if (filePathInterpreter.isSamePath (fullPath, Constants.FilePath.AndroidData)) // It is /Android/data, same path.
       {
         Log.d(TAG, CodePosition.newInstance().toString()+  ", full path : " + fullPath + ", other path: " + Constants.FilePath.AndroidData + ", checking /Android/data permission"); // Debug.
@@ -610,8 +608,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
         } // else // Directory
       } //else // 文件不 存在
 
-      Log.d(TAG, "reply string: " + replyString); //Debug.
-      
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
     } //private void processSizeCommand(String data51)
     
@@ -1268,8 +1264,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
           if (isUploading) // 是处于上传状态。
           {
             notifyStorCompleted(); // 告知上传完成。
-            
-            
                   
             isUploading=false; // 不再处于上传状态了。
           } //if (isUploading) // 是处于上传状态。
@@ -1330,23 +1324,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
 // 
 //             for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
 //             {
-//               String currentLine=lines[lineCounter]; // 获取当前命令。
-//                   
-//               String command = currentLine.split(" ")[0]; // Get the command.
-// 
-//               command=command.trim();
-//               
-//               boolean hasFolloingCommand=true; // 是否还有后续命令。
-//               
-//               if ((lineCounter+1)==(lineAmount)) // 是最后一条命令了。
-//               {
-//                 hasFolloingCommand=false; // 没有后续命令。
-//               } // if ((lineCounter+1)==(lineAmount)) // 是最后一条命令了。
-// 
-//               processCommand(command, currentLine, hasFolloingCommand); // 处理命令。
-//             } // for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
-//           } // public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) 
-//         });
 
         socket.setClosedCallback(new CompletedCallback() 
         {

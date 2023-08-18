@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-// import com.stupidbeauty.hxlauncher.interfaces.LocalServerListLoadListener;
 import java.util.Map;
 import java.util.List;
 import android.os.Process;
@@ -154,30 +153,6 @@ public class DataServerManager
       e.printStackTrace();
     } // catch (Exception e) // Catch exception.
   } // private void                         receiveDataSocket( ByteBufferList bb)
-
-    /**
-    * 打开指向客户端特定端口的连接。
-    */
-    private void openDataConnectionToClient(String content)
-    {
-      String portString=content.split(" ")[1].trim(); // 端口字符串。
-    
-      String[] addressStringList= portString.split(","); //获取地址字符串。
-    
-      String ip=addressStringList[0]+"."+addressStringList[1]+"."+addressStringList[2]+"."+addressStringList[3]; // 构造IP。陈欣
-      int port=Integer.parseInt(addressStringList[4])*256+Integer.parseInt(addressStringList[5]); // 计算出端口号。
-    
-      //连接：陈欣
-    
-      AsyncServer.getDefault().connectSocket(new InetSocketAddress(ip, port), new ConnectCallback() 
-      {
-        @Override
-        public void onConnectCompleted(Exception ex, final AsyncSocket socket) 
-        {
-          handleConnectCompleted(ex, socket);
-        } // public void onConnectCompleted(Exception ex, final AsyncSocket socket) 
-      });
-    } //private void openDataConnectionToClient(String content)
 
     /**
     * 告知上传完成。

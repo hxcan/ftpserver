@@ -12,10 +12,7 @@ buildscript
   }
   dependencies 
   {
-    //         classpath 'com.android.tools.build:gradle:4.0.1'
     classpath 'com.android.tools.build:gradle:7.4.1'
-//    classpath 'com.android.tools.build:gradle:7.5'
-//     classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
   }
 }
 
@@ -23,6 +20,7 @@ allprojects
 {
   repositories 
   {
+    maven { url "https://jitpack.io" }
     jcenter()
     maven 
     {
@@ -30,7 +28,6 @@ allprojects
       name 'Google'
     }
         
-    maven { url "https://jitpack.io" }
     google()
   }
 }
