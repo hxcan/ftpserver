@@ -1,5 +1,6 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -191,55 +192,6 @@ public class DataServerManager
 
       Log.d(TAG, "reply string: " + replyString); //Debug.
     } // private void processQuitCommand()
-    
-    /**
-    *  处理上传文件命令。
-    */
-    private void processStorCommand(String data51)
-    {
-      String replyString="150 "; // 回复内容。
-
-      binaryStringSender.sendStringInBinaryMode(replyString);
-
-      startStor(data51, currentWorkingDirectory); // 发送文件内容。
-    } // private void processStorCommand(String data51)
-
-    /**
-    * 上传文件内容。
-    */
-    private void startStor(String data51, String currentWorkingDirectory) 
-    {
-      DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // Resolve file path.
-
-      writingFile=photoDirecotry; // 记录文件。
-      isUploading=true; // 记录，处于上传状态。
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry ); // Debug.
-
-      if (photoDirecotry!=null && photoDirecotry.exists()) // The file exists
-      {
-        photoDirecotry.delete();
-      } // if (photoDirecotry.exists()) // The file exists
-        
-      try // Create the file.
-      {
-        File virtualFile=new File(data51);
-        
-        File parentVirtualFile=virtualFile.getParentFile();
-        
-        String currentTryingPath=parentVirtualFile.getPath();
-
-        DocumentFile parentDocuemntFile=filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, currentTryingPath); // Resolve parent path.
-//         FileUtils.touch(photoDirecotry); //创建文件。
-
-        String fileNameOnly=virtualFile.getName(); // Get the file name.
-
-        writingFile=parentDocuemntFile.createFile("", fileNameOnly); // Creat eh file.
-      } // try // Create the file.
-      catch (Exception e) // Catch any exception.
-      {
-        e.printStackTrace();
-      } // catch (Exception e) // Catch any exception.
-    } // private void startStor(String data51, String currentWorkingDirectory) // 上传文件内容。
     
     /**
     * Process user command.
@@ -502,7 +454,8 @@ public class DataServerManager
               System.out.println("[Server] Successfully shutdown server");
             }
             
-            dataPortPool.remove(data_port); // Remove from data port pool.
+            // dataPortPool.remove(data_port); // Remove from data port pool.
+            dataPortPool.removeAll(Arrays.asList(data_port)); // Remvoe the data port.
           } // public void onCompleted(Exception ex) 
         });
       } // else // not found existing port
