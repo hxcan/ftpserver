@@ -429,15 +429,11 @@ public class DataServerManager
           public void onListening(AsyncServerSocket socket)
           {
             listeningServerSocket = socket; // Remember listening server socket.
-            // System.out.println("[Server] Server started listening for data connections");
-            // Log.d(TAG, CodePosition.newInstance().toString()+  ", [Server] Server started listening for data connections, port: " + data_port); // Debug.
             
             dataPortPool.add(data_port); // Add to data port pool.
             
-            // boolean dataPortUsageCounter=false; // Not used.
             int dataPortUsageCounter=0;
             dataPortUsageMap.put(data_port, dataPortUsageCounter); // put back.
-            Log.d(TAG, CodePosition.newInstance().toString()+  ", [Server] Server started listening for data connections, port: " + data_port + ", data port pool size: " + dataPortPool.size()); // Debug.
           } // public void onListening(AsyncServerSocket socket)
 
           @Override
