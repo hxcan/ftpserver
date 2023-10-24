@@ -1,5 +1,10 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.HashMap;
+import java.util.List;
 import com.stupidbeauty.codeposition.CodePosition;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
@@ -95,7 +100,8 @@ public class FtpServer
   private boolean fileNameTolerant=false; //!< Set the file name tolerant mode.
   private File rootDirectory=null; //!< 根目录。
   private WIFIConnectChangeReceiver wifiConnectChangeReceiver=new WIFIConnectChangeReceiver(this); //!< 无线网络改变事件接收器。
-  // private DataServerManager dataServerManager=new DataServerManager(); //!< The data server manager.
+  private AsyncServerSocket listeningServerSocket = null; //!< Remembered listening server socket.
+  private List<ControlConnectHandler> controlConnectHandlerList = new ArrayList<>(); //!< Control conenct handler list.
 
   /**
   * Get the actual ip.
@@ -436,6 +442,24 @@ public class FtpServer
   { 
     this.userManager=userManager;
   } // public void setUserManager(UserManager userManager)
+  
+  /**
+  * Stop the ftp server.
+  */
+  public void stop()
+  {
+    if (listeningServerSocket!=null) // The socket exists
+    {
+      listeningServerSocket.stop(); // Stop.
+    } // if (listeningServerSocket!=null) // The socket exists
+    
+    for(ControlConnectHandler currentPortInPool: controlConnectHandlerList) // Close the existing control connections.
+    {
+      currentPortInPool.stop(); // Stop the control connectin.
+    } // for(int currentPortInPool: dataPortPool) // Check exisintg port pool
+    
+    controlConnectHandlerList.clear(); // forget all of them.
+  } // public void stop()
 
   private void setup()
   {
@@ -444,14 +468,17 @@ public class FtpServer
       @Override
       public void onAccepted(final AsyncSocket socket)
       {
-        ControlConnectHandler handler=new ControlConnectHandler(context, allowActiveMode, host, ip); // 创建处理器。
+        ControlConnectHandler handler = new ControlConnectHandler(context, allowActiveMode, host, ip); // 创建处理器。
+        
+        controlConnectHandlerList.add(handler); // Add into the list.
+        
         handler.handleAccept(socket);
         handler.setRootDirectory(rootDirectory); // 设置根目录。
         handler.setEventListener(eventListener); // 设置事件监听器。
         handler.setErrorListener(errorListener); // Set error listener.
         handler.setUserManager(userManager); // set user manager.
         handler.setFilePathInterpreter(filePathInterpreter); // Set the file path interpreter.
-        // handler.setDataServerManager(dataServerManager); // Set the data server manager.
+
         handler.setFileNameTolerant(fileNameTolerant); // Set the file name tolerant mode.
         
         notifyEvent(EventListener.CLIENT_CONNECTED); // report event , client connected.
@@ -460,8 +487,9 @@ public class FtpServer
       @Override
       public void onListening(AsyncServerSocket socket)
       {
+        listeningServerSocket = socket; // Remember listening server socket.
         System.out.println("[Server] Server started listening for connections");
-      }
+      } // public void onListening(AsyncServerSocket socket)
 
       @Override
       public void onCompleted(Exception ex) 
@@ -488,6 +516,6 @@ public class FtpServer
           }
           System.out.println("[Server] Successfully shutdown server");
         }
-    });
+    }); // AsyncServer.getDefault().listen(host, port, new ListenCallback() 
   }
 }

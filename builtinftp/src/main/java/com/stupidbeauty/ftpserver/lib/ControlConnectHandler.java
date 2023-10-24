@@ -168,16 +168,12 @@ public class ControlConnectHandler implements DataServerManagerInterface
 
   public ControlConnectHandler(Context context, boolean allowActiveMode, InetAddress host, String ip)
   {
-    Log.d(TAG, CodePosition.newInstance().toString()+  ", constructing new ControlConnectHandler: " + this); // Debug.
     this.context=context;
     this.allowActiveMode=allowActiveMode;
     this.host=host;
     this.ip=ip; // Remember ip for data server.
 
     fileContentSender.setContext(context); // Set the context.
-//     filePathInterpreter
-
-    // setupDataServer(); // 启动数据传输服务器。
   } // public ControlConnectHandler(Context context, boolean allowActiveMode, InetAddress host, String ip)
   
   /**
@@ -1298,7 +1294,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
      */
     public void handleAccept(final AsyncSocket socket)
     {
-      this.socket=socket;
+      this.socket = socket;
       binaryStringSender.setSocket(socket); // set the socket object.
       
       Log.d(TAG, CodePosition.newInstance().toString()+  ", [Server] New Connection " + socket.toString() +  ", this: " + this); // Debug.
@@ -1306,24 +1302,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
       ControlConnectionDataCallback dataCallback = new ControlConnectionDataCallback(this); // Creat e the control connection data callback.
       
       socket.setDataCallback(dataCallback); // SEt the data call back.
-
-//       socket.setDataCallback
-//       (
-//         new DataCallback()
-//         {
-//           @Override
-//           public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) 
-//           {
-//             String content = new String(bb.getAllByteArray());
-// 
-//             Log.d(TAG, CodePosition.newInstance().toString()+  ", [Server] Received Message " + content + ", this: " + this); // Debug.
-// 
-//             String[] lines=content.split("\r\n"); // 分割成一行行的命令。
-//                 
-//             int lineAmount=lines.length; // 获取行数
-// 
-//             for(int lineCounter=0; lineCounter< lineAmount; lineCounter++)
-//             {
 
         socket.setClosedCallback(new CompletedCallback() 
         {
@@ -1367,6 +1345,15 @@ public class ControlConnectHandler implements DataServerManagerInterface
 
         binaryStringSender.sendStringInBinaryMode("220 StupidBeauty FtpServer"); // 发送回复内容。
     } //private void handleAccept(final AsyncSocket socket)
+    
+    /**
+    * Stop the control connectin.
+    */
+    public void stop()
+    {
+      socket.close(); // Stop the control connectin.
+      dataServerManager.stopServerSockets(); // Stop server sockets.
+    } //  public void stop()
 
     @Override
     /**
@@ -1374,8 +1361,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
      */
     public void setupDataServer()
     {
-      // setupDataServerListen(); // Set up data server by listening.
-
       setupDataServerByManager(); // Set up data server by manager.
     } //private void setupDataServer()
     
@@ -1384,7 +1369,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     */
     private void setupDataServerByManager()
     {
-      data_port=dataServerManager.setupDataServer(this); // Set up data server.
+      data_port = dataServerManager.setupDataServer(this); // Set up data server.
     } // private void setupDataServerByManager()
 
     /**
