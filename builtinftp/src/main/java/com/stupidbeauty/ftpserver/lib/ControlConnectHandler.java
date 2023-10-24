@@ -1352,6 +1352,13 @@ public class ControlConnectHandler implements DataServerManagerInterface
     public void stop()
     {
       socket.close(); // Stop the control connectin.
+      
+      if (data_socket!=null) // The data socket exists
+      {
+        data_socket.close(); // Stop the running data socket.
+        data_socket = null; // Forget it.
+      } // if (data_socket!=null) // The data socket exists
+      
       dataServerManager.stopServerSockets(); // Stop server sockets.
     } //  public void stop()
 
