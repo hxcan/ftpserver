@@ -87,6 +87,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
   private DataServerManager dataServerManager=new DataServerManager(); //!< The data server manager.
   private Timer disconnectTimer=null; //!< The timer of automatically disconnect from possible stuck connections.
   private DocumentFile writingFile; //!< 当前正在写入的文件。
+  private DocumentFile renamingFile; //!< The file being renamed.
   private boolean isUploading=false; //!< 是否正在上传。陈欣
   private InetAddress host;
   private File rootDirectory=null; //!< 根目录。
@@ -608,6 +609,104 @@ public class ControlConnectHandler implements DataServerManagerInterface
     } //private void processSizeCommand(String data51)
     
     /**
+    * Procee the rnto command
+    */
+    private void processRntoCommand(String data51)
+    {
+      DocumentFile photoDirecotry = renamingFile; // resolve file
+        
+      String replyString="250 "; // 回复内容。
+
+      if (photoDirecotry!=null) // The documentfile object exists
+      {
+        String originalName = photoDirecotry.getName(); // Get the original name.
+        String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory + originalName; // 构造完整路径。
+                    
+        wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
+                  
+        {
+          // notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
+          // notifyEvent(EventListener.DELETE, (Object)(photoDirecotry)); // Notify event, delete file.
+
+          boolean renameResult = photoDirecotry.renameTo(data51); // Try to rename.
+          
+          if (renameResult) // Success
+          {
+            replyString="250 Requested file action okay, completed. " + data51; // Reply, delete success.
+            
+            PathDocumentFileCacheManager pathDocumentFileCacheManager = filePathInterpreter.getPathDocumentFileCacheManager(); // Get the path documetnfile cache manager.
+
+            String effectiveVirtualPathForCurrentSegment=wholeDirecotoryPath; // Remember effective virtual path.
+            effectiveVirtualPathForCurrentSegment=effectiveVirtualPathForCurrentSegment.replace("//", "/"); // Remove consecutive /
+          
+            pathDocumentFileCacheManager.remove(effectiveVirtualPathForCurrentSegment); // Remove it from the cache.
+          } // if (renameResult) // Success
+          else // rename failed
+          {
+            replyString="550 File rename failed " + data51; // File delete failed.
+          } // else // rename failed
+          
+          
+          // Chen xin. remove cache DocumentFile.
+          
+          // Chen xin
+          
+          // renamingFile = photoDirecotry; // Remember the renaming file.
+          
+        } // if (deleteResult) // Delete success
+      } // if (photoDirecotry!=null) // The documentfile object exists
+      else // The doucmentfile object does not exist
+      {
+        replyString="550 File rename failed " + data51; // File delete failed.
+      } // else // The doucmentfile object does not exist
+
+      binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
+    } // private void processRntoCommand(String data51)
+    
+    /**
+    * Procee the rnfr command
+    */
+    private void processRnfrCommand(String data51)
+    {
+      String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory+data51; // 构造完整路径。
+                  
+      wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
+                  
+      DocumentFile photoDirecotry = filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve file
+        
+      String replyString="350 "; // 回复内容。
+
+      if (photoDirecotry!=null) // The documentfile object exists
+      {
+        {
+          // notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
+          // notifyEvent(EventListener.DELETE, (Object)(photoDirecotry)); // Notify event, delete file.
+
+          replyString="350 Requested file action pending further information. " + data51; // Reply, delete success.
+          
+          // Chen xin. remove cache DocumentFile.
+          
+          // Chen xin
+          
+          renamingFile = photoDirecotry; // Remember the renaming file.
+          
+//           PathDocumentFileCacheManager pathDocumentFileCacheManager = filePathInterpreter.getPathDocumentFileCacheManager(); // Get the path documetnfile cache manager.
+// 
+//           String effectiveVirtualPathForCurrentSegment=wholeDirecotoryPath; // Remember effective virtual path.
+//           effectiveVirtualPathForCurrentSegment=effectiveVirtualPathForCurrentSegment.replace("//", "/"); // Remove consecutive /
+//           
+//           pathDocumentFileCacheManager.remove(effectiveVirtualPathForCurrentSegment); // Remove it from the cache.
+        } // if (deleteResult) // Delete success
+      } // if (photoDirecotry!=null) // The documentfile object exists
+      else // The doucmentfile object does not exist
+      {
+        replyString="550 File rename failed " + data51; // File delete failed.
+      } // else // The doucmentfile object does not exist
+
+      binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
+    } // private void processRnfrCommand(String data51)
+    
+    /**
     *  Process the dele command
     */
     private void processDeleCommand(String data51)
@@ -852,6 +951,28 @@ public class ControlConnectHandler implements DataServerManagerInterface
         Log.d(TAG, CodePosition.newInstance().toString()+  ", file name to delete: " + data51 + ", lnegth: " + data51.length()); // Debug.
 
         processDeleCommand(data51); // Procee the dele command
+      } //else if (command.equals("DELE")) // 删除文件
+      else if (command.equals("RNFR")) // Source file name of the inplace rename operation.
+      {
+        String data51= content.substring(5);
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file name to rename: " + data51 + ", lnegth: " + data51.length()); // Debug.
+
+        data51=data51.trim(); // 去掉末尾换行
+        
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file name to rename: " + data51 + ", lnegth: " + data51.length()); // Debug.
+
+        processRnfrCommand(data51); // Procee the rnfr command
+      } //else if (command.equals("DELE")) // 删除文件
+      else if (command.equals("RNTO")) // Destination file name of the inplace rename operation.
+      {
+        String data51= content.substring(5);
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", target file name to rename: " + data51 + ", lnegth: " + data51.length()); // Debug.
+
+        data51=data51.trim(); // 去掉末尾换行
+        
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", target file name to rename: " + data51 + ", lnegth: " + data51.length()); // Debug.
+
+        processRntoCommand(data51); // Procee the rnto command
       } //else if (command.equals("DELE")) // 删除文件
       else if (command.equals("RMD")) // 删除目录
       {
