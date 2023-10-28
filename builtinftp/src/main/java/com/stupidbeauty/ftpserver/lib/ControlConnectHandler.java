@@ -625,9 +625,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
         wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                   
         {
-          // notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
-          // notifyEvent(EventListener.DELETE, (Object)(photoDirecotry)); // Notify event, delete file.
-          
           File virtualFile=new File(data51);
           
 
@@ -639,6 +636,9 @@ public class ControlConnectHandler implements DataServerManagerInterface
           
           if (renameResult) // Success
           {
+            // notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
+            notifyEvent(EventListener.RENAME, (Object)(photoDirecotry)); // Notify event, rename file.
+          
             replyString="250 Requested file action okay, completed. " + data51; // Reply, delete success.
             
             PathDocumentFileCacheManager pathDocumentFileCacheManager = filePathInterpreter.getPathDocumentFileCacheManager(); // Get the path documetnfile cache manager.
