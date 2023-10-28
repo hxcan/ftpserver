@@ -68,6 +68,14 @@ public class RenameInformationObject
 
   private String originalName = null; //!< The original file name.
   private DocumentFile file; //!< the file object.
+  
+  /**
+  * Get the original name.
+  */
+  public String getOriginalName()
+  {
+    return originalName;
+  } // public String getOriginalName()
 
   /**
   * SEt the original name.
@@ -76,6 +84,14 @@ public class RenameInformationObject
   {
     this.originalName = originalName;
   } // public void setOriginalName(String originalName)
+  
+  /**
+  * Gett he file object.
+  */
+  public DocumentFile getFile()
+  {
+    return file;
+  } // public DocumentFile getFile()
   
   /**
   * SEt the file object.
