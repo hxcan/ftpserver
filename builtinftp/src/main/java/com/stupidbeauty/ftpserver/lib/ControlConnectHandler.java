@@ -637,7 +637,12 @@ public class ControlConnectHandler implements DataServerManagerInterface
           if (renameResult) // Success
           {
             // notifyEvent(EventListener.DELETE); // 报告事件，删除文件。
-            notifyEvent(EventListener.RENAME, (Object)(photoDirecotry)); // Notify event, rename file.
+            // notifyEvent(EventListener.RENAME, (Object)(photoDirecotry)); // Notify event, rename file.
+            RenameInformationObject renameInformationObjecttry = new RenameInformationObject(); // Creathe the reuname information object.
+            renameInformationObjecttry.setFile(photoDirecotry); // SEt the file object.
+            renameInformationObjecttry.setOriginalName(originalName); // SEt the original name.
+            
+            notifyEvent(EventListener.RENAME, (Object)(renameInformationObjecttry)); // Notify event, rename file.
           
             replyString="250 Requested file action okay, completed. " + data51; // Reply, delete success.
             
