@@ -578,7 +578,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     private void processSizeCommand(String data51)
     {
       Log.d(TAG, "processSizeCommand: filesdir: " + rootDirectory.getPath()); // Debug.
-      // Log.d(TAG, "processSizeCommand: workding directory: " + currentWorkingDirectory); // Debug.
+
       Log.d(TAG, "processSizeCommand: data51: " + data51); // Debug.
     
       DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve file path.

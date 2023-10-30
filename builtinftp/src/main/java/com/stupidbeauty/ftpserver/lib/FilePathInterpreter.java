@@ -159,16 +159,16 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
   {
     boolean result=false;
 
-    String currentTryingPath=wholeDirecotoryPath;
+    String currentTryingPath = wholeDirecotoryPath;
 
-    // Log.d(TAG, CodePosition.newInstance().toString()+  ", curent trying Path : " + currentTryingPath + ", result: " + result); // Debug.
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", curent trying Path : " + currentTryingPath + ", result: " + result); // Debug.
 
     String theFinalPath=null; // The final path.
     
     while((!currentTryingPath.equals("/")) && (!result)) // Not to root
     {
       result=virtualPathMap.containsKey(currentTryingPath);
-      // Log.d(TAG, CodePosition.newInstance().toString()+  ", curent trying Path : " + currentTryingPath + ", result: " + result); // Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", curent trying Path : " + currentTryingPath + ", result: " + result); // Debug.
       
       if (result) // Found it
       {
@@ -186,8 +186,7 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
       } // if (currentTryingPath.endsWith("/")) // Ends iwth /
       else // NOt end with /
       {
-//         currentTryingPath.append("/"); // Append /
-        currentTryingPath=currentTryingPath+"/"; // Append /
+        currentTryingPath = currentTryingPath + "/"; // Append /
       } // else // NOt end with /
       // Log.d(TAG, CodePosition.newInstance().toString()+  ", curent trying Path : " + currentTryingPath + ", result: " + result); // Debug.
     } // while(!currentTryingPath.equals("/")) // Not to root
@@ -196,7 +195,7 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
     {
       theFinalPath=currentTryingPath;
     } // if (result) // Found virtual path
-    // Log.d(TAG, CodePosition.newInstance().toString()+  ", the final Path : " + theFinalPath + ", result: " + result); // Debug.
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", the final Path : " + theFinalPath + ", result: " + result); // Debug.
 
     return theFinalPath;
   } // private String getParentVirtualPathByVirtualPathMap(String wholeDirecotoryPath)
@@ -206,9 +205,10 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
   */
   public boolean virtualPathExists(String ConstantsFilePathAndroidData)
   {
-    boolean result=false;
-    
-    String currentTryingPath=getParentVirtualPathByVirtualPathMap(ConstantsFilePathAndroidData); // Get the paretn virtual path map.
+    boolean result = false;
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", checking path : " + ConstantsFilePathAndroidData  ); // Debug.
+
+    String currentTryingPath = getParentVirtualPathByVirtualPathMap(ConstantsFilePathAndroidData); // Get the paretn virtual path map.
     
     if (currentTryingPath!=null) // The virtual path exists
     {
@@ -254,17 +254,14 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
     
     String wholeDirecotoryPath = resolveWholeDirectoryPath( rootDirectory, currentWorkingDirectory, data51); // resolve 完整路径。
 
-    // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory); // Debug.
-
     File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
 
-    // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ", check virtual exists"); // Debug.
     if (virtualPathExists(wholeDirecotoryPath)) // It is in the virtual path map
     {
-//       Uri uri=virtualPathMap.get(wholeDirecotoryPath); // Get the uri.
-      // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  virtual path exists"); // Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  virtual path exists"); // Debug.
+      
       Uri uri=  getParentUriByVirtualPathMap(wholeDirecotoryPath); // Get the uri.
-      // DocumentFile documentFile=DocumentFile.fromTreeUri(context, uri); // 04-08 18:22:04.279 15010 15045 W System.err: java.lang.IllegalArgumentException: Invalid URI: file:///storage/emulated/0/DCIM/GoddessCamera
+
       DocumentFile documentFile=getDocumentFileFromUri(context, uri); // 04-08 18:22:04.279 15010 15045 W System.err: java.lang.IllegalArgumentException: Invalid URI: file:///storage/emulated/0/DCIM/GoddessCamera
       
       Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  parent document file: " + documentFile); // Debug.
