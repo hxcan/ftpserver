@@ -357,6 +357,16 @@ public class FtpServer
   */
   public void mountVirtualPath(String path , Uri uri)
   {
+    boolean takePermission = true; // Take the permission.
+    
+    mountVirtualPath(path , uri, takePermission); // mount it.
+  } // public void mountVirtualPath(String path , Uri uri)
+  
+  /**
+  * Mount virtual path.
+  */
+  public void mountVirtualPath(String path , Uri uri, boolean takePermission)
+  {
     Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + path + ", uri to use: " + uri.toString()); // Debug.
 //     ftpServer.answerBrowseDocumentTreeReqeust(requestCode, uri);
 //     Chen xin
@@ -365,10 +375,13 @@ public class FtpServer
 
     filePathInterpreter.mountVirtualPath(fullPath, uri); // Mount virtual path.
     
-//     int takeFlags = intent.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-    int takeFlags = (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-    // Check for the freshest data.
-    context.getContentResolver().takePersistableUriPermission(uri, takeFlags);
+    if (takePermission) // We shoudl take the permisison.
+    {
+      //     int takeFlags = intent.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+      int takeFlags = (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+      // Check for the freshest data.
+      context.getContentResolver().takePersistableUriPermission(uri, takeFlags);
+    } // if (takePermission) // We shoudl take the permisison.
   } // public void mountVirtualPath(String path , Uri uri)
   
   /**

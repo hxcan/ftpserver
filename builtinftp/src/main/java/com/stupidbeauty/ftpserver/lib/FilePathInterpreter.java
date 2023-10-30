@@ -334,40 +334,13 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
         } // if (currentSegmetn.isEmpty())
       } // //       DocumentFile documentFile=DocumentFile.fromTreeUri(context, uri);
       
-//       Chen xin.
-      // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory + ", uri to use: " + uri.toString()); // Debug.
-      // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory + ", uri to use: " + uri.toString()  + ", target documetn file: " + targetdocumentFile); // Debug.
-
-//       DocumentFile documentFile=DocumentFile.fromTreeUri(context, uri);
-//       DocumentFile documentFile=DocumentFile.fromTreeUri(context, targetPathuri);
-      
       result=targetdocumentFile;
     } // if (virtualPathMap.contains(wholeDirecotoryPath)) // It is in the virtual path map
     else // Not in the virtual path map
     {
-      if (photoDirecotry.exists()) // 文件存在
-      {
-      } // if (photoDirecotry.exists()) // 文件存在
-      else // 文件不 存在
-      {
-        //       wholeDirecotoryPath = rootDirectory.getPath() + data51; // 构造完整路径。
-        // 
-        //       wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
-        // 
-        //       photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
-      } //else // 文件不 存在
-      
-//       result=photoDirecotry;
       result=DocumentFile.fromFile(photoDirecotry);
     } // else // Not in the virtual path map
     
-    Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory + ", result object: " + result); // Debug.
-
-    if (result!=null) // The result exists
-    {
-      // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory + ", uri to use: " + result.getUri().toString()); // Debug.
-    } // if (result!=null) // The result exists
-
     return result;
   } // public DocumentFile getFile(File rootDirectory, String currentWorkingDirectory, String data51) 
   
