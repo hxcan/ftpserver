@@ -238,7 +238,7 @@ public class DirectoryListSender
 
             String fileName=path.getName(); // 获取文件名。
             
-            // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", target document: " + path.getUri().toString()+ ", file name length: " + fileName.length() + ", file name conrent: " + fileName); // Debug.
+            Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", target document: " + path.getUri().toString()+ ", file name length: " + fileName.length() + ", file name conrent: " + fileName + ", root directory: " + rootDirectory); // Debug.
 
             String effectiveVirtualPathForCurrentSegment=wholeDirecotoryPath+ "/" + fileName; // Remember effective virtual path.
             effectiveVirtualPathForCurrentSegment=effectiveVirtualPathForCurrentSegment.replace("//", "/"); // Remove consecutive /

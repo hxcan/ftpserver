@@ -608,7 +608,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
         } // else // Directory
       } //else // 文件不 存在
 
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", file name: " + data51); // Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", file name: " + data51 + ", reply content: " + replyString); // Debug.
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
     } //private void processSizeCommand(String data51)
     
@@ -1248,17 +1248,13 @@ public class ControlConnectHandler implements DataServerManagerInterface
     */
     private void processListCommand(String content) 
     {
-      //陈欣
-      String replyString="150 Opening BINARY mode data connection for file list, ChenXin"; // 回复内容。
+      String replyString="150 Opening BINARY mode data connection for file list, Ch"; // 回复内容。
 
       Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString + ", list command content: " + content); // Debug.
-//       Log.d(TAG, CodePosition.newInstance().toString()+ ", installer type: "+ installerType + ", file path: " + downloadFilePath ); //Debug.
 
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
 
       sendListContentBySender(content, currentWorkingDirectory); // 发送目录列表数据。
-
-//       checkFileManagerPermission(); // CheCK THE permission of file manager.
     } //private void processListCommand(String content)
 
     /**
