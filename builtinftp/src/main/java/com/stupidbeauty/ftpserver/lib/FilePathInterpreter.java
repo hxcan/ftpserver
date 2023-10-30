@@ -83,7 +83,18 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
   */
   public void  setVoicePackageNameMap (HashMap<String, Uri> voicePackageNameMap)
   {
-    virtualPathMap=voicePackageNameMap;
+    if (this.virtualPathMap==null)
+    {
+      this.virtualPathMap = voicePackageNameMap;
+    }
+    else // NOt null
+    {
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", existing map : " + virtualPathMap ); // Debug.
+      this.virtualPathMap.putAll(voicePackageNameMap);
+    } // else // NOt null
+
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", map : " + virtualPathMap ); // Debug.
+    // virtualPathMap = voicePackageNameMap;
   } // public void  setVoicePackageNameMap (HashMap<String, Uri> voicePackageNameMap)
   
   /**
@@ -207,6 +218,9 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
   public boolean virtualPathExists(String ConstantsFilePathAndroidData)
   {
     boolean result = false;
+    
+    ConstantsFilePathAndroidData = ConstantsFilePathAndroidData.replace("//", "/"); // 双斜杠替换成单斜杠
+
     Log.d(TAG, CodePosition.newInstance().toString()+  ", checking path : " + ConstantsFilePathAndroidData  ); // Debug.
 
     String currentTryingPath = getParentVirtualPathByVirtualPathMap(ConstantsFilePathAndroidData); // Get the paretn virtual path map.

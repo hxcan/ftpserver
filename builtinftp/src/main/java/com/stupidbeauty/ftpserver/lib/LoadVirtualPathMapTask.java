@@ -38,7 +38,6 @@ import java.util.HashMap;
 import android.view.View;
 import android.os.AsyncTask;
 import java.util.HashMap;
-// import com.stupidbeauty.hxlauncher.bean.ApplicationNamePair;
 import java.util.List;
 import android.content.pm.PackageItemInfo;
 import android.content.pm.PackageManager;
@@ -109,7 +108,6 @@ public class LoadVirtualPathMapTask extends AsyncTask<Object, Void, Object>
           {
             byte[] photoBytes= FileUtils.readFileToByteArray(photoFile); //将照片文件内容全部读取。
             Log.d(TAG, CodePosition.newInstance().toString()+  ", byte array length: " + photoBytes.length); // Debug.
-//             Log.d(TAG, CodePosition.newInstance().toString()+  ", byte array content: " + photoBytes.toString()); // Debug.
             
             CBORObject videoStreamMessage= CBORObject.DecodeFromBytes(photoBytes); // 解析消息。
             String jsonString = videoStreamMessage.ToJSONString(); // Get the json string.
@@ -129,7 +127,6 @@ public class LoadVirtualPathMapTask extends AsyncTask<Object, Void, Object>
                 String currentRelationshipgetVoiceRecognizeResult=virtualPathObject.AsString(); // Get virutal path.
                 String uriString=currentSubFile.get("uri").AsString(); // Get the uri.
 
-                //               String informationUrl=currentSubFile.get("informationUrl").AsString(); // 获取信息页面地址。
                 Uri currentPackageItemInfo=Uri.parse(uriString); // Parse the uri.
                       
                 Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + currentRelationshipgetVoiceRecognizeResult + ", uri: " + currentPackageItemInfo); // Debug.
@@ -137,38 +134,7 @@ public class LoadVirtualPathMapTask extends AsyncTask<Object, Void, Object>
               } // if (virtualPathObject!=null) // The object exists
             } //for (FileMessageContainer.FileMessage currentSubFile:videoStreamMessage.getSubFilesList()) //一个个子文件地比较其
 
-            //     Log.d(TAG, "loadVoicePackageUrlMapCbor, packageNameApplicationNameMap list size: "+ packageNameApplicationNameMap.size()); //Debug.
             Log.d(TAG, CodePosition.newInstance().toString()+  ", voicePackageNameMap size: " + voicePackageNameMap.size()); // Debug.
-
-            
-            
-            // Old:
-            
-            //             VoicePackageMapMessageProtos.VoicePackageMapMessage translateRequestMessage=VoicePackageMapMessageProtos.VoicePackageMapMessage.parseFrom(photoBytes); //创建一个消息对象。
-            // 
-            //             List<VoicePackageMapItemMessageProtos.VoicePackageMapItemMessage> relationships=translateRequestMessage.getMapList(); //获取关系列表。
-            // 
-            //             for(VoicePackageMapItemMessageProtos.VoicePackageMapItemMessage currentRelationship: relationships) //一个个地加入映射中。
-            //             {
-            //               PackageItemInfo currentPackageItemInfo=new PackageItemInfo(); //当前的包条目信息对象。
-            // 
-            //               currentPackageItemInfo.packageName=currentRelationship.getPackageName();
-            //               currentPackageItemInfo.name=currentRelationship.getActivityName(); //记录活动名字。
-            // 
-            //               voicePackageNameMap.put(currentRelationship.getVoiceRecognizeResult(), currentPackageItemInfo); //加入映射。
-            // 
-            //               List<AndroidApplicationMessage> applicationMessages=currentRelationship.getApplicationInformationList(); //获取多映射目标列表
-            // 
-            //               for(AndroidApplicationMessage currentApplicationMessage: applicationMessages) //一个个地加入映射目标
-            //               {
-            //                 PackageItemInfo currentPackageItemInfoA=new PackageItemInfo(); //当前的包条目信息对象。
-            // 
-            //                 currentPackageItemInfoA.packageName=currentApplicationMessage.getPackageName();
-            //                 currentPackageItemInfoA.name=currentApplicationMessage.getActivityName(); //记录活动名字。
-            // 
-            //                 voicePackageNameMap.put(currentRelationship.getVoiceRecognizeResult(), currentPackageItemInfoA); //加入映射。
-            //               } //for(AndroidApplicationMessage currentApplicationMessage: applicationMessages) //一个个地加入映射目标
-            //             } //for(TranslateRequestMessageProtos.TranslateRequestMessage currentRelationship: relationships) //一个个地加入映射中。
           }
           catch (IOException e)
           {
@@ -186,20 +152,15 @@ public class LoadVirtualPathMapTask extends AsyncTask<Object, Void, Object>
     protected Object doInBackground(Object... params)
     {
       //参数顺序：
-      //            private MultiMap<String, PackageItemInfo> voicePackageNameMap; //!<语音识别结果与包条目信息之间的映射关系。本设备独有的
-      //            voiceRecognizeResultString, packageName, activityName, recordSoundFilePath, iconType, iconTitle
+      // launcherActivity, context
 
       Boolean result=false; //结果，是否成功。
 
-      //            String subject=(String)(params[0]); //获取识别结果文字内容。
-      //             SetValuedMap<String, PackageItemInfo> voicePackageNameMap=(SetValuedMap<String, PackageItemInfo>)(params[0]); //获取映射对象
       launcherActivity=(VirtualPathLoadInterface)(params[0]); // 获取映射对象
       context= (Context)(params[1]); // 获取上下文
 
       loadVoicePackageNameMap(); // 载入映射。
         
-      //             buildInternationalizationDataPackageNameMap(); // 构造映射。
-
       boolean addPhotoFile=false; //Whether to add photo file
 
       return voicePackageNameMap;

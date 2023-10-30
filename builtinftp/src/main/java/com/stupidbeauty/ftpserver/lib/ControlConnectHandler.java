@@ -303,7 +303,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
         }
       };
       timerObj.schedule(timerTaskObj, 20); // delay and run.
-
     } // public void delayednotifyFileSendCompleted()
 
     /**
@@ -311,10 +310,8 @@ public class ControlConnectHandler implements DataServerManagerInterface
     */
     public void notifyFileSendCompleted() 
     {
-      // String replyString="216 File sent. " + "ChenXin" + " 嘴巴上挂着价签吗" + " 并不好吃，感觉它本身的味道没调好"; // The reply message.
-      String replyString="226 File sent. " + "ChenXin" + " 嘴巴上挂着价签吗" + " 并不好吃，感觉它本身的味道没调好" + " 你还是去闻熏村那种吧[微笑]"; // The reply message.
+      String replyString="226 File sent. " + "ChenXin" + " 嘴巴上挂着价签吗" + " 并不好吃，感觉它本身的味道没调好" + " 你还是去闻熏村那种"; // The reply message.
 
-      // Log.d(TAG, "reply string: " + replyString); //Debug.
       Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString  + ", this: " + this); // Debug.
         
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送。
@@ -342,7 +339,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     private void sendListContentBySender(String fileName, String currentWorkingDirectory) 
     {
       directoryListSender.setControlConnectHandler(this); // 设置控制连接处理器。
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", setting data socket: " + data_socket ); // Debug.
+
       directoryListSender.setDataSocket(data_socket); // 设置数据连接套接字。
       directoryListSender.sendDirectoryList(fileName, currentWorkingDirectory); // 让目录列表发送器来发送。
     } // private void sendListContentBySender(String fileName, String currentWorkingDirectory)
