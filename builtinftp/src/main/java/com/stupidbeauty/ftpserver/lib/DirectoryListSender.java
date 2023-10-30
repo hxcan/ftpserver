@@ -234,11 +234,16 @@ public class DirectoryListSender
           PathDocumentFileCacheManager pathDocumentFileCacheManager = filePathInterpreter.getPathDocumentFileCacheManager(); // Get the path documetnfile cache manager.
           for(DocumentFile path:paths) // reply files one by one
           {
-            String currentLine=construct1LineListFile(path); // 构造针对这个文件的一行输出。
 
             String fileName=path.getName(); // 获取文件名。
             
             Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", target document: " + path.getUri().toString()+ ", file name length: " + fileName.length() + ", file name conrent: " + fileName + ", root directory: " + rootDirectory); // Debug.
+            
+            path = filePathInterpreter.getFile(rootDirectory, wholeDirecotoryPath, fileName); // Replace with the resolved file path object.
+
+            Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", target document: " + path.getUri().toString()+ ", file name length: " + fileName.length() + ", file name conrent: " + fileName + ", root directory: " + rootDirectory); // Debug.
+
+            String currentLine=construct1LineListFile(path); // 构造针对这个文件的一行输出。
 
             String effectiveVirtualPathForCurrentSegment=wholeDirecotoryPath+ "/" + fileName; // Remember effective virtual path.
             effectiveVirtualPathForCurrentSegment=effectiveVirtualPathForCurrentSegment.replace("//", "/"); // Remove consecutive /
