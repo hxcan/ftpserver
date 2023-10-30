@@ -59,6 +59,7 @@ public class DirectoryListSender
   private String subDirectoryName=null; //!< 要列出的子目录名字。
   private static final String TAG ="DirectoryListSender"; //!<  输出调试信息时使用的标记。
   private BinaryStringSender binaryStringSender=new BinaryStringSender(); //!< 以二进制方式发送字符串的工具。
+  private String workingDirectory ; //!< Workding directory.
     
   /**
   * Set the file path interpreter.
@@ -237,9 +238,10 @@ public class DirectoryListSender
 
             String fileName=path.getName(); // 获取文件名。
             
-            Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", target document: " + path.getUri().toString()+ ", file name length: " + fileName.length() + ", file name conrent: " + fileName + ", root directory: " + rootDirectory); // Debug.
+            Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", target document: " + path.getUri().toString()+ ", file name length: " + fileName.length() + ", file name conrent: " + fileName + ", root directory: " + rootDirectory + ", working directory: " + workingDirectory); // Debug.
             
-            path = filePathInterpreter.getFile(rootDirectory, wholeDirecotoryPath, fileName); // Replace with the resolved file path object.
+            // Chen xin.
+            path = filePathInterpreter.getFile(rootDirectory, workingDirectory, fileName); // Replace with the resolved file path object.
 
             Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", target document: " + path.getUri().toString()+ ", file name length: " + fileName.length() + ", file name conrent: " + fileName + ", root directory: " + rootDirectory); // Debug.
 
@@ -333,6 +335,9 @@ public class DirectoryListSender
     public void sendDirectoryList(String data51, String currentWorkingDirectory) 
     {
       Log.d(TAG, CodePosition.newInstance().toString()+  ", directory to list: " + data51 + ", working directory: " + currentWorkingDirectory); // Debug.
+      
+      workingDirectory = currentWorkingDirectory; // Remember working directory.
+      
       String parameter=""; // 要列出的目录。
       
       int directoryIndex=5; // 要找的下标。
