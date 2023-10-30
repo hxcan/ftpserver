@@ -593,7 +593,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
       } //if (photoDirecotry.exists()) // 文件存在
       else // Not an existing file
       {
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", file name: " + data51); // Debug.
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file name: " + data51 + ", file object: " + photoDirecotry); // Debug.
         if ((photoDirecotry==null) || (!photoDirecotry.exists())) // not exist
         {
           // Chen xin.

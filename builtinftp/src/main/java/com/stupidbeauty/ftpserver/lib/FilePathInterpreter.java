@@ -275,7 +275,7 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
 
     if (virtualPathExists(wholeDirecotoryPath)) // It is in the virtual path map
     {
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  virtual path exists"); // Debug.
+      // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  virtual path exists"); // Debug.
       
       Uri uri=  getParentUriByVirtualPathMap(wholeDirecotoryPath); // Get the uri.
       Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  virtual path exists, uri: " + uri); // Debug.
