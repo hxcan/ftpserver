@@ -355,7 +355,14 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
     } // if (uri.getScheme().equals("file")) // it is a raw file
     else // Not a raw file
     {
-      result=DocumentFile.fromTreeUri(context, uri); // 04-08 18:22:04.279 15010 15045 W System.err: java.lang.IllegalArgumentException: Invalid URI: file:///storage/emulated/0/DCIM/GoddessCamera
+      try
+      {
+        result=DocumentFile.fromTreeUri(context, uri); // 04-08 18:22:04.279 15010 15045 W System.err: java.lang.IllegalArgumentException: Invalid URI: file:///storage/emulated/0/DCIM/GoddessCamera
+      }
+      catch(IllegalArgumentException e)
+      {
+        result=DocumentFile.fromSingleUri(context, uri); // 04-08 18:22:04.279 15010 15045 W System.err: java.lang.IllegalArgumentException: Invalid URI: file:///storage/emulated/0/DCIM/GoddessCamera
+      }
     } // else // Not a raw file
 
     return result;
