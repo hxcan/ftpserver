@@ -270,12 +270,15 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
     String wholeDirecotoryPath = resolveWholeDirectoryPath( rootDirectory, currentWorkingDirectory, data51); // resolve 完整路径。
 
     File photoDirecotry= new File(wholeDirecotoryPath); //照片目录。
+    
+    wholeDirecotoryPath = wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
 
     if (virtualPathExists(wholeDirecotoryPath)) // It is in the virtual path map
     {
       Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  virtual path exists"); // Debug.
       
       Uri uri=  getParentUriByVirtualPathMap(wholeDirecotoryPath); // Get the uri.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  virtual path exists, uri: " + uri); // Debug.
 
       DocumentFile documentFile=getDocumentFileFromUri(context, uri); // 04-08 18:22:04.279 15010 15045 W System.err: java.lang.IllegalArgumentException: Invalid URI: file:///storage/emulated/0/DCIM/GoddessCamera
       
@@ -361,24 +364,28 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
   */
   private DocumentFile getDocumentFileFromUri(Context context, Uri uri)
   {
-    DocumentFile result;
+    DocumentFile result = null;
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", uri : " + uri); // Debug.
 
-    if (uri.getScheme().equals("file")) // it is a raw file
+    if (uri!=null) // The uri exists
     {
-      File photoDirecotry=new File(uri.getPath()); // Create a file object from the path.
-      result=DocumentFile.fromFile(photoDirecotry);
-    } // if (uri.getScheme().equals("file")) // it is a raw file
-    else // Not a raw file
-    {
-      try
+      if (uri.getScheme().equals("file")) // it is a raw file
       {
-        result=DocumentFile.fromTreeUri(context, uri); // 04-08 18:22:04.279 15010 15045 W System.err: java.lang.IllegalArgumentException: Invalid URI: file:///storage/emulated/0/DCIM/GoddessCamera
-      }
-      catch(IllegalArgumentException e)
+        File photoDirecotry=new File(uri.getPath()); // Create a file object from the path.
+        result=DocumentFile.fromFile(photoDirecotry);
+      } // if (uri.getScheme().equals("file")) // it is a raw file
+      else // Not a raw file
       {
-        result=DocumentFile.fromSingleUri(context, uri); // 04-08 18:22:04.279 15010 15045 W System.err: java.lang.IllegalArgumentException: Invalid URI: file:///storage/emulated/0/DCIM/GoddessCamera
-      }
-    } // else // Not a raw file
+        try
+        {
+          result=DocumentFile.fromTreeUri(context, uri); // 04-08 18:22:04.279 15010 15045 W System.err: java.lang.IllegalArgumentException: Invalid URI: file:///storage/emulated/0/DCIM/GoddessCamera
+        }
+        catch(IllegalArgumentException e)
+        {
+          result=DocumentFile.fromSingleUri(context, uri); // 04-08 18:22:04.279 15010 15045 W System.err: java.lang.IllegalArgumentException: Invalid URI: file:///storage/emulated/0/DCIM/GoddessCamera
+        }
+      } // else // Not a raw file
+    } // if (uri!=null) // The uri exists
 
     return result;
   } // private DocumentFile getDocumentFileFromUri(Context context, Uri uri)
