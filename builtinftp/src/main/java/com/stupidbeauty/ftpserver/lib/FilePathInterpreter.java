@@ -169,6 +169,7 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
     {
       result=virtualPathMap.containsKey(currentTryingPath);
       Log.d(TAG, CodePosition.newInstance().toString()+  ", curent trying Path : " + currentTryingPath + ", result: " + result); // Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", virtual path map: " + virtualPathMap); // Debug.
       
       if (result) // Found it
       {
