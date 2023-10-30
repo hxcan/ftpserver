@@ -577,31 +577,38 @@ public class ControlConnectHandler implements DataServerManagerInterface
       Log.d(TAG, "processSizeCommand: filesdir: " + rootDirectory.getPath()); // Debug.
 
       Log.d(TAG, "processSizeCommand: data51: " + data51); // Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", file name: " + data51); // Debug.
     
       DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve file path.
 
       String replyString=""; // 回复字符串。
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", file name: " + data51); // Debug.
 
       if  ((photoDirecotry!=null) && (photoDirecotry.exists() && (photoDirecotry.isFile()))) // The path exists. And it is a file.
       {
         long fileSize= photoDirecotry.length(); //文件尺寸。 陈欣
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file name: " + data51); // Debug.
             
         replyString="213 " + fileSize + " "; // 文件尺寸。
       } //if (photoDirecotry.exists()) // 文件存在
       else // Not an existing file
       {
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file name: " + data51); // Debug.
         if ((photoDirecotry==null) || (!photoDirecotry.exists())) // not exist
         {
           // Chen xin.
           replyString="550 File not exist " + data51; // File does not exist.
+          Log.d(TAG, CodePosition.newInstance().toString()+  ", file name: " + data51); // Debug.
           // replyString="550 No directory traversal allowed in SIZE param"; // File does not exist.
         } // if ((photoDirecotry==null) || (!photoDirecotry.exists())) // not exist
         else // Directory
         {
+          Log.d(TAG, CodePosition.newInstance().toString()+  ", file name: " + data51); // Debug.
           replyString="550 No directory traversal allowed in SIZE param"; // File does not exist.
         } // else // Directory
       } //else // 文件不 存在
 
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", file name: " + data51); // Debug.
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
     } //private void processSizeCommand(String data51)
     
