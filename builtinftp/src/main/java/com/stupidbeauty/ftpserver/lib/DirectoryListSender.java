@@ -240,8 +240,17 @@ public class DirectoryListSender
             
             Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", target document: " + path.getUri().toString()+ ", file name length: " + fileName.length() + ", file name conrent: " + fileName + ", root directory: " + rootDirectory + ", working directory: " + workingDirectory); // Debug.
             
+            String wholeFilePath = filePathInterpreter.resolveWholeDirectoryPath( rootDirectory, workingDirectory, fileName); // resolve 完整路径。
+
+            wholeFilePath = wholeFilePath.replace("//", "/"); // 双斜杠替换成单斜杠
+
             // Chen xin.
-            path = filePathInterpreter.getFile(rootDirectory, workingDirectory, fileName); // Replace with the resolved file path object.
+            boolean isAVirtualPath = filePathInterpreter.isExactVirtualPath(wholeFilePath); // Check for exact virtual path.
+            
+            if (isAVirtualPath) // It is a virtual path. Exactly virtual path.
+            {
+              path = filePathInterpreter.getFile(rootDirectory, workingDirectory, fileName); // Replace with the resolved file path object.
+            } // if (isAVirtualPath) // It is a virtual path
 
             Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", target document: " + path.getUri().toString()+ ", file name length: " + fileName.length() + ", file name conrent: " + fileName + ", root directory: " + rootDirectory); // Debug.
 

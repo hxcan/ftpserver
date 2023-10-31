@@ -213,6 +213,16 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
   } // private String getParentVirtualPathByVirtualPathMap(String wholeDirecotoryPath)
   
   /**
+  * Check for exact virtual path.
+  */
+  public boolean isExactVirtualPath(String wholeFilePath)
+  {
+    boolean result=virtualPathMap.containsKey(wholeFilePath);
+    
+    return result;
+  } // public boolean isExactVirtualPath(String wholeFilePath)
+
+  /**
   * Does virtual path exist
   */
   public boolean virtualPathExists(String ConstantsFilePathAndroidData)
