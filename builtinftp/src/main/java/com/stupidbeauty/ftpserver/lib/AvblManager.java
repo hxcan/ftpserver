@@ -59,7 +59,7 @@ import android.os.Environment;
 /**
 * The handler of control connection.
 */
-public class ControlConnectHandler implements DataServerManagerInterface
+public class AvblManager
 {
   private FilePathInterpreter filePathInterpreter=null; //!< the file path interpreter.
   private String passWord=null; //!< Pass word provided.
@@ -70,7 +70,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
   private EventListener eventListener=null; //!< 事件监听器。
   private ErrorListener errorListener=null; //!< Error listener. Chen xin. 
   private AsyncSocket socket; //!< 当前的客户端连接。
-  private static final String TAG ="ControlConnectHandler"; //!<  输出调试信息时使用的标记。
+  private static final String TAG = "AvblManager"; //!<  输出调试信息时使用的标记。
   private Context context; //!< 执行时使用的上下文。
   private AsyncSocket data_socket; //!< 当前的数据连接。
   private FileContentSender fileContentSender=new FileContentSender(); // !< 文件内容发送器。
@@ -91,6 +91,11 @@ public class ControlConnectHandler implements DataServerManagerInterface
   private boolean isUploading=false; //!< 是否正在上传。陈欣
   private InetAddress host;
   private File rootDirectory=null; //!< 根目录。
+  
+  AvblManager(Context context)
+  {
+    this.context = context;
+  }
   
   /**
   * Set the user manager.
@@ -167,16 +172,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
     } // catch (Exception e) // Catch exception.
   } // private void                         receiveDataSocket( ByteBufferList bb)
 
-  public ControlConnectHandler(Context context, boolean allowActiveMode, InetAddress host, String ip)
-  {
-    this.context=context;
-    this.allowActiveMode=allowActiveMode;
-    this.host=host;
-    this.ip=ip; // Remember ip for data server.
-
-    fileContentSender.setContext(context); // Set the context.
-  } // public ControlConnectHandler(Context context, boolean allowActiveMode, InetAddress host, String ip)
-  
   /**
   * Connect to client data port.
   */
@@ -322,29 +317,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
     } // private void notifyFileSendCompleted()
 
     /**
-    * 发送文件内容。
-    */
-    private void sendFileContent(String data51, String currentWorkingDirectory) 
-    {
-      fileContentSender.setControlConnectHandler(this); // 设置控制连接处理器。
-      fileContentSender.setDataSocket(data_socket); // 设置数据连接套接字。
-      fileContentSender.sendFileContent(data51, currentWorkingDirectory); // 让文件内容发送器来发送。
-      
-      notifyEvent(EventListener.DOWNLOAD_START); // 报告事件，开始下载文件。
-    } //private void sendFileContent(String data51, String currentWorkingDirectory)
-    
-    /**
-    * Send directory list content.
-    */
-    private void sendListContentBySender(String fileName, String currentWorkingDirectory) 
-    {
-      directoryListSender.setControlConnectHandler(this); // 设置控制连接处理器。
-
-      directoryListSender.setDataSocket(data_socket); // 设置数据连接套接字。
-      directoryListSender.sendDirectoryList(fileName, currentWorkingDirectory); // 让目录列表发送器来发送。
-    } // private void sendListContentBySender(String fileName, String currentWorkingDirectory)
-
-    /**
     * 告知上传完成。
     */
     private void notifyStorCompleted() 
@@ -382,14 +354,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
 
       Log.d(TAG, "reply string: " + replyString); //Debug.
     } // private void processQuitCommand()
-    
-    /**
-    * Process the retr command.
-    */
-    private void processRetrCommand(String data51)
-    {
-      sendFileContent(data51, currentWorkingDirectory); // Send file content.
-    } // private void processRetrCommand(String data51)
     
     /**
     *  处理上传文件命令。
@@ -571,56 +535,22 @@ public class ControlConnectHandler implements DataServerManagerInterface
     } // private void processCwdCommand(String targetWorkingDirectory)
     
     /**
-    * Process the avbl command.
+    * Get the avbl information.
     */
-    private void processAvblCommand()
+    public long getAvbl()
     {
-      // Chen xin.
-            Log.d(TAG, "processAvblCommand: filesdir: " + rootDirectory.getPath()); // Debug.
+      long result = 0;
+      
+      // chen xin.
+      File file = context.getFilesDir(); // The files dir.
 
-      // Log.d(TAG, "processAvblCommand: data51: " + data51); // Debug.
-      // Log.d(TAG, CodePosition.newInstance().toString()+  ", file name: " + data51); // Debug.
+      long usableSpaceBytes=file.getUsableSpace(); //获取可用的字节数。
+
+      result = usableSpaceBytes;
+      
+      return result;
+    } // public long getAvbl()
     
-      // DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve file path.
-
-      String replyString=""; // 回复字符串。
-      // Log.d(TAG, CodePosition.newInstance().toString()+  ", file name: " + data51); // Debug.
-
-      // if  ((photoDirecotry!=null) && (photoDirecotry.exists() && (photoDirecotry.isFile()))) // The path exists. And it is a file.
-      {
-        // long fileSize= photoDirecotry.length(); //文件尺寸。 陈欣
-        
-        AvblManager avblManager = new AvblManager(context); // Create the avbl manager.
-        long fileSize= avblManager.getAvbl(); // Get the avbl information.
-        
-        
-        
-        // Log.d(TAG, CodePosition.newInstance().toString()+  ", file name: " + data51); // Debug.
-            
-        replyString="213 " + fileSize + " "; // 文件尺寸。
-      } //if (photoDirecotry.exists()) // 文件存在
-      // else // Not an existing file
-      // {
-      //   Log.d(TAG, CodePosition.newInstance().toString()+  ", file name: " + data51 + ", file object: " + photoDirecotry); // Debug.
-      //   if ((photoDirecotry==null) || (!photoDirecotry.exists())) // not exist
-      //   {
-      //     // Chen xin.
-      //     replyString="550 File not exist " + data51; // File does not exist.
-      //     Log.d(TAG, CodePosition.newInstance().toString()+  ", file name: " + data51); // Debug.
-      //     // replyString="550 No directory traversal allowed in SIZE param"; // File does not exist.
-      //   } // if ((photoDirecotry==null) || (!photoDirecotry.exists())) // not exist
-      //   else // Directory
-      //   {
-      //     Log.d(TAG, CodePosition.newInstance().toString()+  ", file name: " + data51); // Debug.
-      //     replyString="550 No directory traversal allowed in SIZE param"; // File does not exist.
-      //   } // else // Directory
-      // } //else // 文件不 存在
-
-      // Log.d(TAG, CodePosition.newInstance().toString()+  ", file name: " + data51 + ", reply content: " + replyString); // Debug.
-      binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
-
-    } // private void processAvblCommand()
-
     /**
     * 处理尺寸查询命令。
     */
@@ -828,8 +758,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
     private void processPasvCommand()
     {
         data_socket=null; // Forget the used data socket.
-        setupDataServer(); // 初始化数据服务器。
-
         String ipAddress = ip;
 
 
@@ -931,19 +859,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
           binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
         } // if (shouldSend) // 应当发送回复。
       } //else if (command.equals("EPSV")) // Extended passive mode.
-      else if (command.toLowerCase().equals("list")) // 列出目录 陈欣
-      {
-        processListCommand(content); // 处理目录列表命令。
-      } //else if (command.equals("list")) // 列出目录
-      else if (command.toLowerCase().equals("retr")) // 获取文件
-      {
-        String data51= content.substring(5);
-
-        data51=data51.trim(); // 去掉末尾换行
-        
-        processRetrCommand(data51); // Process the retr command.
-
-      } //else if (command.equals("list")) // 列出目录
       else if (command.toLowerCase().equals("rest")) // 设置断点续传位置。
       {
         String data51= content.substring(5); // 跳过的长度。
@@ -1006,15 +921,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
         data51=data51.trim(); // 去掉末尾换行
 
         processSizeCommand(data51); // 处理尺寸 命令。
-      } //else if (command.equals("SIZE")) // 文件尺寸
-      else if (command.equalsIgnoreCase("AVBL")) // Available space
-      {
-        // String data51 = content.substring(5);
-
-        // data51=data51.trim(); // 去掉末尾换行
-
-        // processSizeCommand(data51); // 处理尺寸 命令。
-        processAvblCommand(); // Process the avbl command.
       } //else if (command.equals("SIZE")) // 文件尺寸
       else if (command.equals("DELE")) // 删除文件
       {
@@ -1303,20 +1209,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
     } // private void CheckAndroidDataPermission()
     
     /**
-    * 处理目录列表命令。
-    */
-    private void processListCommand(String content) 
-    {
-      String replyString="150 Opening BINARY mode data connection for file list, Ch"; // 回复内容。
-
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString + ", list command content: " + content); // Debug.
-
-      binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
-
-      sendListContentBySender(content, currentWorkingDirectory); // 发送目录列表数据。
-    } //private void processListCommand(String content)
-
-    /**
     * Handle connect completed. Connect to port specified by the client.
     */
     private void handleConnectCompleted(Exception ex, final AsyncSocket socket) 
@@ -1398,146 +1290,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
       } //else // 无异常。
     }
 
-    @Override
-    /**
-     * Accept data connection.
-     * @param socket 连接对象。
-     */
-    public void handleDataAccept(final AsyncSocket socket)
-    {
-      Log.d(TAG, CodePosition.newInstance().toString() + ", handleDataAccept, [Server] data New Connection " + socket.toString());
-      this.data_socket=socket;
-      fileContentSender.setDataSocket(socket); // 设置数据连接套接字。
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", setting data socket: " + socket ); // Debug.
-      directoryListSender.setDataSocket(socket); // 设置数据连接套接字。
-
-      // Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry ); // Debug.
-        
-      socket.setDataCallback(
-        new DataCallback()
-        {
-          @Override
-          public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) 
-          {
-            receiveDataSocket(bb);
-          }
-        }); // socket.setDataCallback(
-
-      socket.setClosedCallback(new CompletedCallback() 
-      {
-        @Override
-        public void onCompleted(Exception ex) 
-        {
-//             if (ex != null) throw new RuntimeException(ex);
-            
-          if(ex != null) // 有异常。陈欣。
-          {
-            if ( ex instanceof IOException ) // java.lang.RuntimeException: java.io.IOException: Software caused connection abort
-            {
-              ex.printStackTrace();
-            }
-            else // Other exceptions
-            {
-              throw new RuntimeException(ex);
-            }
-          }
-            
-          System.out.println("[Server] data Successfully closed connection");
-              
-          data_socket=null;
-          fileContentSender.setDataSocket(data_socket); // 将数据连接清空
-          Log.d(TAG, CodePosition.newInstance().toString()+  ", setting data socket: " + data_socket ); // Debug.
-          directoryListSender.setDataSocket(data_socket); // 将数据连接清空。
-              
-          if (isUploading) // 是处于上传状态。
-          {
-            notifyStorCompleted(); // 告知上传完成。
-                  
-            isUploading=false; // 不再处于上传状态了。
-          } //if (isUploading) // 是处于上传状态。
-        }
-      });
-
-//       socket.setEndCallback(new CompletedCallback() 
-//       {
-//         @Override
-//         public void onCompleted(Exception ex) 
-//         {
-//           if(ex != null) // 有异常。陈欣。
-//           {
-//             if ( ex instanceof IOException ) // java.lang.RuntimeException: java.io.IOException: Software caused connection abort
-//             {
-//               ex.printStackTrace();
-//             }
-//             else // Other exceptions
-//             {
-//               throw new RuntimeException(ex);
-//             }
-//           }
-//                 
-//           Log.d(TAG, CodePosition.newInstance().toString() + ", [Server] data Successfully end connection " + socket.toString());
-//         }
-//       });
-    } //private void handleDataAccept(final AsyncSocket socket)
-
-    /**
-     * 接受新连接
-     * @param socket 新连接的套接字对象
-     */
-    public void handleAccept(final AsyncSocket socket)
-    {
-      this.socket = socket;
-      binaryStringSender.setSocket(socket); // set the socket object.
-      
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", [Server] New Connection " + socket.toString() +  ", this: " + this); // Debug.
-      
-      ControlConnectionDataCallback dataCallback = new ControlConnectionDataCallback(this); // Creat e the control connection data callback.
-      
-      socket.setDataCallback(dataCallback); // SEt the data call back.
-
-        socket.setClosedCallback(new CompletedCallback() 
-        {
-          @Override
-          public void onCompleted(Exception ex) 
-          {
-            if (ex != null) 
-            {
-              ex.printStackTrace(); // 报告错误。
-            }
-            else
-            {
-              System.out.println("[Server] Successfully closed connection");
-            }
-          }
-        });
-
-        socket.setEndCallback(new CompletedCallback() 
-        {
-          @Override
-          public void onCompleted(Exception ex) 
-          {
-            if (ex != null) // There was an exception
-            {
-              Log.d(TAG, CodePosition.newInstance().toString()+  ", control connection ended unexpected: " + this + ", chance to clean up"); // Debug.
-              
-              // Chenx in
-              notifyError(Constants.ErrorCode.ControlConnectionEndedUnexpectedly); // Notify error. Control connection ended unexpectedly.
-              
-              ex.printStackTrace(); // Report the exeception.
-            } // if (ex != null) // There was an exception
-            else // 无异常
-            {
-              // Log.d(TAG, "ftpmodule [Server] Successfully end connection");
-              Log.d(TAG, CodePosition.newInstance().toString()+  ", ftpmodule [Server] Successfully end connection: " + this + ", chance to clean up"); // Debug.
-              
-              dataServerManager.stopServerSockets(); // Stop server sockets.
-            } //else // 无异常
-          } // public void onCompleted(Exception ex) 
-        });
-
-        binaryStringSender.sendStringInBinaryMode("220 StupidBeauty FtpServer"); // 发送回复内容。
-    } //private void handleAccept(final AsyncSocket socket)
-    
     /**
     * Stop the control connectin.
     */
@@ -1554,23 +1306,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
       dataServerManager.stopServerSockets(); // Stop server sockets.
     } //  public void stop()
 
-    @Override
-    /**
-     * 启动数据传输服务器。
-     */
-    public void setupDataServer()
-    {
-      setupDataServerByManager(); // Set up data server by manager.
-    } //private void setupDataServer()
-    
-    /**
-    * Set up data server by manager.
-    */
-    private void setupDataServerByManager()
-    {
-      data_port = dataServerManager.setupDataServer(this); // Set up data server.
-    } // private void setupDataServerByManager()
-
     /**
      * 启动数据传输服务器。
      */
@@ -1581,35 +1316,5 @@ public class ControlConnectHandler implements DataServerManagerInterface
       int randomIndex=random.nextInt(65535-1025)+1025; //随机选择一个端口。
 
       data_port=randomIndex; 
-
-      AsyncServer.getDefault().listen(host, data_port, new ListenCallback() 
-      {
-        @Override
-        public void onAccepted(final AsyncSocket socket)
-        {
-          handleDataAccept(socket);
-        } //public void onAccepted(final AsyncSocket socket)
-
-        @Override
-        public void onListening(AsyncServerSocket socket)
-        {
-          System.out.println("[Server] Server started listening for data connections");
-        }
-
-        @Override
-        public void onCompleted(Exception ex) 
-        {
-          if(ex != null) 
-          {
-            ex.printStackTrace();
-
-            setupDataServer(); // 重新初始化。
-          }
-          else
-          {
-            System.out.println("[Server] Successfully shutdown server");
-          }
-        } // public void onCompleted(Exception ex) 
-      });
     } //private void setupDataServer()
 }
