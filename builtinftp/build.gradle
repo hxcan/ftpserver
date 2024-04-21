@@ -2,15 +2,13 @@ apply plugin: 'com.android.library'
 
 android 
 {
-  compileSdkVersion 30
-
-  resourcePrefix "stupidbeauty__"
+  compileSdkVersion 33
 
   defaultConfig 
   {
     buildToolsVersion = "30.0.3"
     minSdkVersion 14
-    targetSdkVersion 30
+    targetSdkVersion 33
     versionCode 757
   }
 
