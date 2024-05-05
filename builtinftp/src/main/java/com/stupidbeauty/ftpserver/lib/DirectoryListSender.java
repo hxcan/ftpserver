@@ -1,5 +1,10 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import android.os.Build;
+import android.os.Bundle;
+import android.os.LocaleList;
+import java.util.HashMap;
+import java.util.List;
 import java.text.SimpleDateFormat;
 import com.stupidbeauty.codeposition.CodePosition;
 import java.io.FileDescriptor;
@@ -162,23 +167,32 @@ public class DirectoryListSender
       String directyoryUriPath=directoryUri.getPath(); // Get the string of the uri.
 
 //       Path filePathObject=path.toPath(); // Get the associated nio Path object.
-      File fileObject=new File(directyoryUriPath);
-      Path filePathObject=fileObject.toPath(); // Get the associated nio Path object.
 
-      if (directoryUri.getScheme().equals("file")) // It is a native file
+      // if (Build.VERSION.)
+      // if (Build.VERSION.SDK_INT >= 29) // The sdk version is equal to or larger than 29
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) // Android sdk vresion 26. File.toPath
       {
-        try // get the owner name
+        File fileObject=new File(directyoryUriPath);
+        Path filePathObject=fileObject.toPath(); // Get the associated nio Path object.
+
+        if (directoryUri.getScheme().equals("file")) // It is a native file
         {
-          UserPrincipal userPrincipal= Files.getOwner(filePathObject);
-          user=userPrincipal.getName(); // get the name of the user.
-        } // try // get the owner name
-        catch(IOException e)
-        {
-          Log.d(TAG, "construct1LineListFile, failed to get owner name:"); // Debug.
-          
-          e.printStackTrace();
-        } // catch(IOException e)
-      } // if (path.getScheme().equals("file")) // It is a native file
+          try // get the owner name
+          {
+            UserPrincipal userPrincipal= Files.getOwner(filePathObject);
+            user=userPrincipal.getName(); // get the name of the user.
+          } // try // get the owner name
+          catch(IOException e)
+          {
+            Log.d(TAG, "construct1LineListFile, failed to get owner name:"); // Debug.
+            
+            e.printStackTrace();
+          } // catch(IOException e)
+        } // if (path.getScheme().equals("file")) // It is a native file
+      } // if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) // Android sdk vresion 26. File.toPath
+      
+
+
                             
       String linkNumber="1";
                             
