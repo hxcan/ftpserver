@@ -1,5 +1,10 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import android.os.Build;
+import android.os.Bundle;
+import android.os.LocaleList;
+import java.util.HashMap;
+import java.util.List;
 import com.stupidbeauty.codeposition.CodePosition;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
@@ -108,11 +113,42 @@ public class FileContentSender
     } //public void setDataSocket(AsyncSocket socket)
     
     /**
+    * Check if The file exists.
+    */
+    private boolean checkFileExists(DocumentFile fileToSend )
+    {
+      boolean result = false; // The reult/.
+      
+      if (Build.VERSION.SDK_INT >= 29) // The sdk version is equal to or larger than 29
+      {
+        result = fileToSend.exists(); // Check existence.
+      } // if (Build.VERSION.SDK_INT >= 29) // The sdk version is equal to or larger than 29
+      else // It's old
+      {
+        try
+        {
+          Uri fileUri=fileToSend.getUri(); // Get the uri.
+          
+          final InputStream is  = context.getContentResolver().openInputStream(fileUri);     
+
+          result = true;
+        }
+        catch(FileNotFoundException e)
+        {
+          result = false;
+        } // catch(FileNotFoundException e)
+      } // else // It's old
+      
+      return result;
+    } // private boolean checkFileExists(DocumentFile fileToSend )
+    
+    /**
     * Start send file for large file. And also small files.
     */
     private void startSendFileContentForLarge()
     {
-      if (fileToSend.exists()) // The file exists.
+      if (checkFileExists( fileToSend )) // The file exists.
+      // if (fileToSend.exists()) // The file exists.
       {
         Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
         
