@@ -130,30 +130,37 @@ public class FileContentSender
         {
           Uri fileUri = fileToSend.getUri(); // Get the uri.
           
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
       String scheme= fileUri.getScheme();
       
       if (scheme.equals("file")) // It is a file
       {
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
         String path = fileUri.getPath();
 
         File rawFile=new File(path);
 
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
         File parentVirtualFile=rawFile.getParentFile();
           
         String currentTryingPath=parentVirtualFile.getPath();
 
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
         // File parentDirectory = 
         // String oroiginalFilePath = currentTryingPath + "/" + oroiginalName; // Construct the original ifle path.
         
         // File OroiginalFile = new File(oroiginalFilePath);
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
         
         if (rawFile.exists()) // The raw file exists.
         {
           result = true;
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
         } // if (OroiginalFile.exists()) // The raw file exists.
           else // Not exist
           {
           result = false;
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
           } // else // Not exist
       } // if (scheme.equals("file")) // It is a file
       else // NOt a raw file
