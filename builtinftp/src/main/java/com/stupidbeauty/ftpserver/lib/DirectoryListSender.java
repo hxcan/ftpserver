@@ -134,7 +134,7 @@ public class DirectoryListSender
             
       time = formatter.format(dateOfFile); // 获取时间字符串。
 
-      DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM");
+      // DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM");
             
       // DateTimeFormatter yearFormatter = DateTimeFormatter.ofPattern("yyyy").withLocale(Locale.US);
       SimpleDateFormat yearFormatter = new SimpleDateFormat("yyyy", localEnUs);
