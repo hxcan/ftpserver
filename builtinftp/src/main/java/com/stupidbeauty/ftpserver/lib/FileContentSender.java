@@ -128,12 +128,41 @@ public class FileContentSender
         Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
         try
         {
-          Uri fileUri=fileToSend.getUri(); // Get the uri.
+          Uri fileUri = fileToSend.getUri(); // Get the uri.
           
+      String scheme= fileUri.getScheme();
+      
+      if (scheme.equals("file")) // It is a file
+      {
+        String path = fileUri.getPath();
+
+        File rawFile=new File(path);
+
+        File parentVirtualFile=rawFile.getParentFile();
+          
+        String currentTryingPath=parentVirtualFile.getPath();
+
+        // File parentDirectory = 
+        // String oroiginalFilePath = currentTryingPath + "/" + oroiginalName; // Construct the original ifle path.
+        
+        // File OroiginalFile = new File(oroiginalFilePath);
+        
+        if (rawFile.exists()) // The raw file exists.
+        {
+          result = true;
+        } // if (OroiginalFile.exists()) // The raw file exists.
+          else // Not exist
+          {
+          result = false;
+          } // else // Not exist
+      } // if (scheme.equals("file")) // It is a file
+      else // NOt a raw file
+      {
         Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
           final InputStream is  = context.getContentResolver().openInputStream(fileUri);     
 
           result = true;
+      } // else // NOt a raw file
         }
         catch(FileNotFoundException e)
         {
