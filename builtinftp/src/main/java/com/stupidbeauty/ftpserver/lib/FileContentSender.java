@@ -119,26 +119,30 @@ public class FileContentSender
     {
       boolean result = false; // The reult/.
       
-      if (Build.VERSION.SDK_INT >= 29) // The sdk version is equal to or larger than 29
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) // The sdk version is equal to or larger than 29
       {
         result = fileToSend.exists(); // Check existence.
       } // if (Build.VERSION.SDK_INT >= 29) // The sdk version is equal to or larger than 29
       else // It's old
       {
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
         try
         {
           Uri fileUri=fileToSend.getUri(); // Get the uri.
           
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
           final InputStream is  = context.getContentResolver().openInputStream(fileUri);     
 
           result = true;
         }
         catch(FileNotFoundException e)
         {
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
           result = false;
         } // catch(FileNotFoundException e)
       } // else // It's old
       
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
       return result;
     } // private boolean checkFileExists(DocumentFile fileToSend )
     
