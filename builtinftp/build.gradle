@@ -4,6 +4,8 @@ android
 {
   compileSdkVersion 33
 
+  namespace 'com.stupidbeauty.ftpserver'
+
   defaultConfig 
   {
     buildToolsVersion = "30.0.3"

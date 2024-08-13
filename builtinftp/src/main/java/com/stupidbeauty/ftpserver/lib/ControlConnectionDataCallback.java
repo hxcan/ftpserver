@@ -256,16 +256,6 @@ public class ControlConnectionDataCallback implements DataCallback
     } // private void processPassCommand(String targetWorkingDirectory)
 
     /**
-    * Process feat command.
-    */
-    private void processFeatCommand()
-    {
-      binaryStringSender.sendStringInBinaryMode("211-Feature list"); //  Start feature list.
-      binaryStringSender.sendStringInBinaryMode(" UTF8"); //  support utf8
-      binaryStringSender.sendStringInBinaryMode("211 end"); //  end feature list
-    } // private void processFeatCommand()
-    
-    /**
     * Process user command.
     */
     private void processUserCommand(String userName)

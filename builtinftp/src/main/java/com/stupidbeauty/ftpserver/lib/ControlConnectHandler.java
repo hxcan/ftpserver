@@ -74,6 +74,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
   private Context context; //!< 执行时使用的上下文。
   private AsyncSocket data_socket; //!< 当前的数据连接。
   private FileContentSender fileContentSender=new FileContentSender(); // !< 文件内容发送器。
+  private ThumbnailSender thumbnailSender = new ThumbnailSender(); // !< Thumbnail sender.
   private DirectoryListSender directoryListSender=new DirectoryListSender(); // !< 目录列表发送器。
   private byte[] dataSocketPendingByteArray=null; //!< 数据套接字数据内容 排队。
   private String currentWorkingDirectory="/"; //!< 当前工作目录
@@ -109,6 +110,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     
     directoryListSender.setFilePathInterpreter(filePathInterpreter);
     fileContentSender.setFilePathInterpreter(filePathInterpreter); // SEt the file path interpreter.
+    thumbnailSender.setFilePathInterpreter(filePathInterpreter); // SEt the file path interpreter.
     
     this.filePathInterpreter.setContext(context); // Set context.
   } // public void setFilePathInterpreter(FilePathInterpreter filePathInterpreter)
@@ -130,6 +132,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
         
     fileContentSender.setRootDirectory(rootDirectory); // 设置根目录。
     directoryListSender.setRootDirectory(rootDirectory); // 设置根目录。
+    thumbnailSender.setRootDirectory(rootDirectory); // Set the root directory.
   } // public void setRootDirectory(File root)
 
   /**
@@ -175,6 +178,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     this.ip=ip; // Remember ip for data server.
 
     fileContentSender.setContext(context); // Set the context.
+    thumbnailSender.setContext(context); // Set the context.
   } // public ControlConnectHandler(Context context, boolean allowActiveMode, InetAddress host, String ip)
   
   /**
@@ -382,7 +386,39 @@ public class ControlConnectHandler implements DataServerManagerInterface
 
       Log.d(TAG, "reply string: " + replyString); //Debug.
     } // private void processQuitCommand()
-    
+
+/**
+* Handle the command thmb.
+*/
+private void processThmbCommand(String data51) {
+  String[] parts = data51.split(" ");
+  if (parts.length < 3) {
+    String replyString = "501 Syntax error in parameters or arguments.";
+    binaryStringSender.sendStringInBinaryMode(replyString);
+    return;
+  }
+  
+  // Extract max-width, max-height, and pathname from parts array
+  String maxWidthStr = parts[1];
+  String maxHeightStr = parts[2];
+  
+  int maxWidth = Integer.parseInt(maxWidthStr);
+  int maxHeight = Integer.parseInt(maxHeightStr);
+  
+  sendThumbnail(data51, currentWorkingDirectory, maxWidth, maxHeight); // Use the same method as for file retrieval.
+} // private void processThmbCommand(String data51)
+
+
+/**
+* Generate thumbnail and send it.
+*/
+private void sendThumbnail(String pathname, String currentWorkingDirectory, int maxWidth, int maxHeight) {
+      thumbnailSender.setControlConnectHandler(this); // 设置控制连接处理器。
+      thumbnailSender.setDataSocket(data_socket); // 设置数据连接套接字。
+      thumbnailSender.sendThumbnail(pathname, currentWorkingDirectory, maxWidth, maxHeight); // Adding width and height parameters.
+      
+} // private void sendThumbnail(String pathname, String currentWorkingDirectory, int maxWidth, int maxHeight)
+
     /**
     * Process the retr command.
     */
@@ -504,6 +540,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
       binaryStringSender.sendStringInBinaryMode("211-Feature list"); //  Start feature list.
       binaryStringSender.sendStringInBinaryMode(" UTF8"); //  support utf8
       binaryStringSender.sendStringInBinaryMode(" AVBL"); //  support avbl. available space.
+      binaryStringSender.sendStringInBinaryMode(" THMB JPEG|PNG"); //  support thmb. thumbnail
       binaryStringSender.sendStringInBinaryMode("211 end"); //  end feature list
     } // private void processFeatCommand()
     
@@ -990,6 +1027,14 @@ public class ControlConnectHandler implements DataServerManagerInterface
         data51=data51.trim(); // 去掉末尾换行
         
         processStorCommand(data51); // 处理上传文件命令。
+      } //else if (command.equals("stor")) // 上传文件
+      else if (command.equalsIgnoreCase("thmb")) // Get a thumbnail
+      {
+        String data51= content.substring(5);
+
+        data51=data51.trim(); // 去掉末尾换行
+        
+        processThmbCommand(data51); // Handle the command thmb.
       } //else if (command.equals("stor")) // 上传文件
       else if (command.equalsIgnoreCase("quit")) // Quit
       {
