@@ -1,8 +1,11 @@
 apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
 
 android 
 {
   compileSdkVersion 33
+
+  namespace 'com.stupidbeauty.ftpserver'
 
   defaultConfig 
   {
@@ -18,6 +21,32 @@ android
     {
       minifyEnabled false
       proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+    }
+  }
+  
+  publishing
+  {
+    singleVariant('release')
+    {
+      withSourcesJar()
+    }
+  }
+
+}
+
+afterEvaluate 
+{
+  publishing 
+  {
+    publications
+    {
+      release(MavenPublication)
+      {
+        from components.release
+        groupId = 'com.github.hxcan'
+        artifactId = 'ftpserver'
+        version = '2024.8.15'
+      }
     }
   }
 }
