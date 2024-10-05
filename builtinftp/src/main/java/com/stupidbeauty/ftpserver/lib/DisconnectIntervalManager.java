@@ -1,10 +1,5 @@
 package com.stupidbeauty.ftpserver.lib;
 
-import android.os.Build;
-import android.os.Bundle;
-import android.os.LocaleList;
-import java.util.HashMap;
-import java.util.List;
 import com.stupidbeauty.codeposition.CodePosition;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
@@ -52,11 +47,12 @@ import java.time.format.DateTimeFormatter;
 import java.io.File;
 import com.koushikdutta.async.AsyncServerSocket;
 
-public class FileContentSender
+public class DisconnectIntervalManager
 {
   private FilePathInterpreter filePathInterpreter=null; //!< the file path interpreter.
-  private static final String TAG="FileContentSender"; //!< 输出调试信息时使用的标记
+  private static final String TAG="DisconnectIntervalManager"; //!< The tag used for debug code.
   private long restSTart=0; //!< 跳过位置。
+  private long scheduledDisconnectTimestamp=0; //!< Scheduled disconnect time stamp.
   private byte[] dataSocketPendingByteArray=null; //!< 数据套接字数据内容 排队。
   private ControlConnectHandler controlConnectHandler=null; //!< 控制连接处理器。
   private AsyncSocket data_socket=null; //!< 当前的数据连接。
@@ -64,13 +60,56 @@ public class FileContentSender
   private DocumentFile fileToSend=null; //!< 要发送的文件。
   private Context context=null; //!< Context.
   private String wholeDirecotoryPath= ""; //!< The full path of the file to send.
+  private long newCommandAmount=0; //!<  The amount of new command.
+  private long newCommandTimeDelayTotal=0; //!< The total delay of new commands.
   
   /**
-  * 设置重启位置。
+  * mark scheduled disconnect.
   */
-  public void setRestartPosition(long data51) 
+  public void markScheduleDisconnect()
   {
-    restSTart=data51; // 记录。
+    long startTimestamp=System.currentTimeMillis(); // get the curent time.
+    
+    scheduledDisconnectTimestamp=startTimestamp;
+  } // public void markScheduleDisconnect()
+  
+  /**
+  * Get suggested disconnect interval.
+  */
+  public long getSuggestedDisconnectInterval()
+  {
+    long averageNewCommandDelay=100; // Get the average delay of new command.
+    
+    if (newCommandAmount>0) // we have received new comamnds
+    {
+      averageNewCommandDelay=newCommandTimeDelayTotal/newCommandAmount; // Get the average delay of new command.
+    } // if (newCommandAmount>0) // we have received new comamnds
+
+    long result=averageNewCommandDelay*10; // Result;
+
+    return result;
+  } // public long getSuggestedDisconnectInterval()
+  
+  /**
+  * mark new command.
+  */
+  public void markNewCommand()
+  {
+    long startTimestamp=System.currentTimeMillis(); // get the curent time.
+    
+    if (scheduledDisconnectTimestamp!=0) // remembered schedule time stamp.
+    {
+      long timeDiff=startTimestamp-scheduledDisconnectTimestamp; // get the time difference.
+      
+      newCommandTimeDelayTotal+=timeDiff;
+      newCommandAmount++;
+      
+      scheduledDisconnectTimestamp=0;
+    } //       long startTimestamp=System.currentTimeMillis(); // 记录开始时间戳。
+
+
+    // Chen xin
+    // restSTart=data51; // 记录。
   } // public void setRestartPosition(long data51)
 
   /**
@@ -113,82 +152,11 @@ public class FileContentSender
     } //public void setDataSocket(AsyncSocket socket)
     
     /**
-    * Check if The file exists.
-    */
-    private boolean checkFileExists(DocumentFile fileToSend )
-    {
-      boolean result = false; // The reult/.
-      
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) // The sdk version is equal to or larger than 29
-      {
-        result = fileToSend.exists(); // Check existence.
-      } // if (Build.VERSION.SDK_INT >= 29) // The sdk version is equal to or larger than 29
-      else // It's old
-      {
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
-        try
-        {
-          Uri fileUri = fileToSend.getUri(); // Get the uri.
-          
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
-      String scheme= fileUri.getScheme();
-      
-      if (scheme.equals("file")) // It is a file
-      {
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
-        String path = fileUri.getPath();
-
-        File rawFile=new File(path);
-
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
-        File parentVirtualFile=rawFile.getParentFile();
-          
-        String currentTryingPath=parentVirtualFile.getPath();
-
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
-        // File parentDirectory = 
-        // String oroiginalFilePath = currentTryingPath + "/" + oroiginalName; // Construct the original ifle path.
-        
-        // File OroiginalFile = new File(oroiginalFilePath);
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
-        
-        if (rawFile.exists()) // The raw file exists.
-        {
-          result = true;
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
-        } // if (OroiginalFile.exists()) // The raw file exists.
-          else // Not exist
-          {
-          result = false;
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
-          } // else // Not exist
-      } // if (scheme.equals("file")) // It is a file
-      else // NOt a raw file
-      {
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
-          final InputStream is  = context.getContentResolver().openInputStream(fileUri);     
-
-          result = true;
-      } // else // NOt a raw file
-        }
-        catch(FileNotFoundException e)
-        {
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
-          result = false;
-        } // catch(FileNotFoundException e)
-      } // else // It's old
-      
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
-      return result;
-    } // private boolean checkFileExists(DocumentFile fileToSend )
-    
-    /**
     * Start send file for large file. And also small files.
     */
     private void startSendFileContentForLarge()
     {
-      if (checkFileExists( fileToSend )) // The file exists.
-      // if (fileToSend.exists()) // The file exists.
+      if (fileToSend.exists()) // The file exists.
       {
         Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send : " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
         
@@ -228,10 +196,12 @@ public class FileContentSender
 
               Log.d(TAG, "startSendFileContentForLarge, file sent."); // Debug.
                     
+              // notifyFileSendCompleted(); // 告知已经发送文件内容数据。
               delayednotifyFileSendCompleted(); // Notify the file send completed after a short delay.
 
               fileToSend=null; // 将要发送的文件对象清空。
-
+              Log.d(TAG, CodePosition.newInstance().toString()+  ", file sent. Closing data socket: " + data_socket); // Debug.
+              // Log.d(TAG, "startSendFileContentForLarge, file sent. Closing data socket: " + data_socket); // Debug.
               data_socket.close(); // Close the connection.
               data_socket=null; // Forget the data socket.
             } // public void onCompleted(Exception ex)
