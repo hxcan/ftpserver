@@ -45,7 +45,7 @@ afterEvaluate
         from components.release
         groupId = 'com.github.hxcan'
         artifactId = 'ftpserver'
-        version = '2024.8.15'
+        version = '2024.10.7'
       }
     }
   }

@@ -66,6 +66,15 @@ public class DirectoryListSender
   private static final String TAG ="DirectoryListSender"; //!<  输出调试信息时使用的标记。
   private BinaryStringSender binaryStringSender=new BinaryStringSender(); //!< 以二进制方式发送字符串的工具。
   private String workingDirectory ; //!< Workding directory.
+  private boolean extraInformationEnabled = true; //!< Whether we should send extra informations other than file names only.
+  
+  /**
+  * Set the option of enabling extra information or not.
+  */
+  public void setExtraInformationEnabled(boolean enabled)
+  {
+    extraInformationEnabled = enabled;
+  } // public void setExtraInformationEnabled(boolean enabled)
     
   /**
   * Set the file path interpreter.
@@ -212,8 +221,15 @@ public class DirectoryListSender
       {
         timeOrYear=year; // 年份。
       } // else // 不是相同的年份。
-            
-      String currentLine = permission + " " + linkNumber + " " + user + " " + group + " " + fileSize + " " + month + " " + dateString + " " + timeOrYear + " " + fileName; // 构造当前行。
+
+      String currentLine = ""; // The current line.
+      
+      if (extraInformationEnabled) // Send extra informations
+      {
+        currentLine = permission + " " + linkNumber + " " + user + " " + group + " " + fileSize + " " + month + " " + dateString + " " + timeOrYear + " " ; // 构造当前行。
+      } // if (extraInformationEnabled) // Send extra informations
+      
+      currentLine = currentLine + fileName; // 构造当前行。
 
       return currentLine;
     } // private String construct1LineListFile(File photoDirecotry)

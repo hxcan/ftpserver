@@ -340,12 +340,22 @@ public class ControlConnectHandler implements DataServerManagerInterface
     /**
     * Send directory list content.
     */
-    private void sendListContentBySender(String fileName, String currentWorkingDirectory) 
+    private void sendListContentBySender(String fileName, String currentWorkingDirectory, boolean extraInformation)
     {
       directoryListSender.setControlConnectHandler(this); // 设置控制连接处理器。
 
       directoryListSender.setDataSocket(data_socket); // 设置数据连接套接字。
+      directoryListSender.setExtraInformationEnabled(extraInformation); // Set the option of sending extra inforamtion.
       directoryListSender.sendDirectoryList(fileName, currentWorkingDirectory); // 让目录列表发送器来发送。
+    } // private void sendListContentBySender(String fileName, String currentWorkingDirectory, boolean extraInformation) 
+    
+    /**
+    * Send directory list content.
+    */
+    private void sendListContentBySender(String fileName, String currentWorkingDirectory) 
+    {
+      boolean extraInformation = true; // Send extra informations.
+      sendListContentBySender(fileName, currentWorkingDirectory, extraInformation) ;
     } // private void sendListContentBySender(String fileName, String currentWorkingDirectory)
 
     /**
@@ -972,6 +982,10 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
       {
         processListCommand(content); // 处理目录列表命令。
       } //else if (command.equals("list")) // 列出目录
+      else if (command.toLowerCase().equals("nlst")) // List directory with file name only.
+      {
+        processNlstCommand(); // Process the command of nlst.
+      } //else if (command.equals("list")) // 列出目录
       else if (command.toLowerCase().equals("retr")) // 获取文件
       {
         String data51= content.substring(5);
@@ -1346,6 +1360,25 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
         } // else // Virtual path does not exist
       } // if (paths.length==0) // Unable to list files
     } // private void CheckAndroidDataPermission()
+
+    /**
+    * Process the command of nlst.
+    */
+    private void processNlstCommand()
+    {
+      String replyString="150 Opening BINARY mode data connection for file list, Ch"; // 回复内容。
+      
+      String content = ""; // Target directory.
+
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString + ", list command content: " + content); // Debug.
+
+      binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
+
+      boolean extraFileInformation = false; // Do not send extra file information.
+
+      sendListContentBySender(content, currentWorkingDirectory, extraFileInformation); // 发送目录列表数据。
+    } // private void processNlstCommand()
+
     
     /**
     * 处理目录列表命令。
