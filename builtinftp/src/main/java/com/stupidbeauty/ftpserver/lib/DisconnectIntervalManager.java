@@ -1,5 +1,7 @@
 package com.stupidbeauty.ftpserver.lib;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 import com.stupidbeauty.codeposition.CodePosition;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
@@ -78,12 +80,15 @@ public class DisconnectIntervalManager
   */
   public long getSuggestedDisconnectInterval()
   {
-    long averageNewCommandDelay=100; // Get the average delay of new command.
+    // long averageNewCommandDelay = 100; // Get the average delay of new command.
+    long averageNewCommandDelay = ThreadLocalRandom.current().nextLong(100, 1001); // [100, 1000]
     
     if (newCommandAmount>0) // we have received new comamnds
     {
       averageNewCommandDelay=newCommandTimeDelayTotal/newCommandAmount; // Get the average delay of new command.
     } // if (newCommandAmount>0) // we have received new comamnds
+
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", averageNewCommandDelay : " + averageNewCommandDelay); // Debug.
 
     long result=averageNewCommandDelay*10; // Result;
 
