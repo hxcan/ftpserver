@@ -347,17 +347,21 @@ public class DirectoryListSender
     /**
     * 获取文件或目录的权限。
     */
-    private String  getPermissionForFile(DocumentFile path)
+    private String getPermissionForFile(DocumentFile path)
     {
-      String permission="-rw-r--r--"; // 默认权限。
-        
-      if (path.isDirectory()) // It is a directory
+      String permission = "-rw-r--r--"; // 默认文件权限
+
+      if (path.isDirectory())   // 如果是目录
       {
-        permission="drw-r--r--"; // 目录默认权限。
-      } // if (path.isDirectory()) // It is a directory
-        
+        permission = "drwxrwxrwx"; // 最宽松的目录权限
+      }
+      else
+      {
+        permission = "-rw-rw-rw-"; // 最宽松的文件权限
+      }
+
       return permission;
-    } //private String  getPermissionForFile(File path)
+    }
 
     private void startSendFileContentForLarge()
     {
