@@ -92,6 +92,23 @@ public class ControlConnectHandler implements DataServerManagerInterface
   private boolean isUploading=false; //!< 是否正在上传。陈欣
   private InetAddress host;
   private File rootDirectory=null; //!< 根目录。
+
+  /**
+  * 是否启用 Dolphin bug #474238 的绕过方案。
+  */
+  private boolean enableDolphinBug474238Placeholder = false;
+
+  public void setEnableDolphinBug474238Placeholder(boolean enable)
+  {
+    this.enableDolphinBug474238Placeholder = enable;
+
+    directoryListSender.setEnableDolphinBug474238Placeholder(enable);
+  }
+
+  public boolean isEnableDolphinBug474238Placeholder()
+  {
+    return enableDolphinBug474238Placeholder;
+  }
   
   /**
   * Set the user manager.

@@ -103,6 +103,19 @@ public class FtpServer
   private AsyncServerSocket listeningServerSocket = null; //!< Remembered listening server socket.
   private List<ControlConnectHandler> controlConnectHandlerList = new ArrayList<>(); //!< Control conenct handler list.
 
+  private static boolean enableDolphinBug474238Placeholder = false;
+
+  public static void setEnableDolphinBug474238Placeholder(boolean enable)
+  {
+      enableDolphinBug474238Placeholder = enable;
+  }
+
+  public static boolean isDolphinBug474238PlaceholderEnabled()
+  {
+      return enableDolphinBug474238Placeholder;
+  }
+
+
   /**
   * Get the actual ip.
   */
@@ -476,59 +489,50 @@ public class FtpServer
 
   private void setup()
   {
-    AsyncServer.getDefault().listen(host, port, new ListenCallback() 
-    {
-      @Override
-      public void onAccepted(final AsyncSocket socket)
-      {
-        ControlConnectHandler handler = new ControlConnectHandler(context, allowActiveMode, host, ip); // 创建处理器。
-        
-        controlConnectHandlerList.add(handler); // Add into the list.
-        
-        handler.handleAccept(socket);
-        handler.setRootDirectory(rootDirectory); // 设置根目录。
-        handler.setEventListener(eventListener); // 设置事件监听器。
-        handler.setErrorListener(errorListener); // Set error listener.
-        handler.setUserManager(userManager); // set user manager.
-        handler.setFilePathInterpreter(filePathInterpreter); // Set the file path interpreter.
+    AsyncServer.getDefault().listen(host, port, new ListenCallback() {
+        @Override
+        public void onAccepted(final AsyncSocket socket) {
+            ControlConnectHandler handler = new ControlConnectHandler(context, allowActiveMode, host, ip); // 创建处理器。
 
-        handler.setFileNameTolerant(fileNameTolerant); // Set the file name tolerant mode.
-        
-        notifyEvent(EventListener.CLIENT_CONNECTED); // report event , client connected.
-      } // public void onAccepted(final AsyncSocket socket)
+            controlConnectHandlerList.add(handler); // Add into the list.
 
-      @Override
-      public void onListening(AsyncServerSocket socket)
-      {
-        listeningServerSocket = socket; // Remember listening server socket.
-        System.out.println("[Server] Server started listening for connections");
-      } // public void onListening(AsyncServerSocket socket)
+            handler.handleAccept(socket);
+            handler.setRootDirectory(rootDirectory); // 设置根目录。
+            handler.setEventListener(eventListener); // 设置事件监听器。
+            handler.setErrorListener(errorListener); // Set error listener.
+            handler.setUserManager(userManager); // set user manager.
+            handler.setFilePathInterpreter(filePathInterpreter); // Set the file path interpreter.
 
-      @Override
-      public void onCompleted(Exception ex) 
-      {
-        if(ex != null) 
-        {
-          if ( ex instanceof BindException )
-          {
-            if (errorListener!=null) // 指定的错误监听器。
-            {
-              errorListener.onError(Constants.ErrorCode.ADDRESS_ALREADY_IN_USE); // Report error. Chen xin.
-            } // if (errorListener!=null) // 指定的错误监听器。
-            else // No error listener
-            {
-              Log.d(TAG, "onCompleted, no error listener set, throwing exception."); // Debug.
-                
-                throw new RuntimeException(ex);
-              } //else // No error listener
-            }
-            else // Other exceptions
-            {
-              throw new RuntimeException(ex);
-            }
-          }
-          System.out.println("[Server] Successfully shutdown server");
+            handler.setFileNameTolerant(fileNameTolerant); // Set the file name tolerant mode.
+
+            // 👇 新增：设置 Dolphin bug #474238 的绕过选项
+            handler.setEnableDolphinBug474238Placeholder(FtpServer.isDolphinBug474238PlaceholderEnabled());
+
+            notifyEvent(EventListener.CLIENT_CONNECTED); // report event , client connected.
         }
-    }); // AsyncServer.getDefault().listen(host, port, new ListenCallback() 
+
+        @Override
+        public void onListening(AsyncServerSocket socket) {
+            listeningServerSocket = socket; // Remember listening server socket.
+            System.out.println("[Server] Server started listening for connections");
+        }
+
+        @Override
+        public void onCompleted(Exception ex) {
+            if (ex != null) {
+                if (ex instanceof BindException) {
+                    if (errorListener != null) {
+                        errorListener.onError(Constants.ErrorCode.ADDRESS_ALREADY_IN_USE); // Report error. Chen xin.
+                    } else {
+                        Log.d(TAG, "onCompleted, no error listener set, throwing exception.");
+                        throw new RuntimeException(ex);
+                    }
+                } else {
+                    throw new RuntimeException(ex);
+                }
+            }
+            System.out.println("[Server] Successfully shutdown server");
+        }
+    });
   }
 }

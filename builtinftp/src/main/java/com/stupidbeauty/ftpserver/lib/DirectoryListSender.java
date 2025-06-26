@@ -67,6 +67,15 @@ public class DirectoryListSender
   private BinaryStringSender binaryStringSender=new BinaryStringSender(); //!< 以二进制方式发送字符串的工具。
   private String workingDirectory ; //!< Workding directory.
   private boolean extraInformationEnabled = true; //!< Whether we should send extra informations other than file names only.
+  private boolean enableDolphinBug474238Placeholder = false;
+
+  public void setEnableDolphinBug474238Placeholder(boolean enable) {
+      this.enableDolphinBug474238Placeholder = enable;
+  }
+
+  public boolean isEnableDolphinBug474238Placeholder() {
+      return enableDolphinBug474238Placeholder;
+  }
   
   /**
   * Set the option of enabling extra information or not.
@@ -242,107 +251,102 @@ public class DirectoryListSender
     fileNameTolerant=toleranttrue; // Remember.
   } // public void setFileNameTolerant(boolean toleranttrue)
   
-    /**
-    *  获取目录的完整列表。
-    */
-    private String getDirectoryContentList(DocumentFile photoDirecotry, String nameOfFile)
+  /**
+  * 获取目录的完整列表。
+  */
+  private String getDirectoryContentList(DocumentFile photoDirecotry, String nameOfFile)
+  {
+    nameOfFile = nameOfFile.trim(); // 去除空白字符。陈欣
+
+    String result = ""; // 结果。
+
+    if (photoDirecotry.isFile())  // 是一个文件。
     {
-      nameOfFile=nameOfFile.trim(); // 去除空白字符。陈欣
-    
-      String result=""; // 结果。
-        
-      if (photoDirecotry.isFile()) // 是一个文件。
-      {
-        String currentLine=construct1LineListFile(photoDirecotry); // 构造针对这个文件的一行输出。
-        
-        binaryStringSender.sendStringInBinaryMode(currentLine); // 发送回复内容。
-      } // if (photoDirecotry.isFile()) // 是一个文件。
-      else // 是目录
-      {
-        DocumentFile[] paths = photoDirecotry.listFiles();
-        // Log.d(TAG, CodePosition.newInstance().toString()+  ", paths size: " + paths.length); // Debug.
+      String currentLine = construct1LineListFile(photoDirecotry); // 构造针对这个文件的一行输出。
+      binaryStringSender.sendStringInBinaryMode(currentLine); // 发送回复内容。
+    }
+    else  // 是目录
+    {
+      DocumentFile[] paths = photoDirecotry.listFiles();
 
-        if (paths.length==0) // No content listed
+      if (paths.length == 0)  // 空目录
+      {
+        controlConnectHandler.checkFileManagerPermission(Constants.Permission.Read, null); // 检查权限
+
+        // 👇 新增：如果启用了 Dolphin bug #474238 的绕过选项，则插入一个占位文件
+        if (isEnableDolphinBug474238Placeholder())
         {
-          controlConnectHandler.checkFileManagerPermission(Constants.Permission.Read, null); // Check file manager permission.
-        } // if (paths.length==0) // No conet listed
-        else // Listed Successfully
+          String placeholderLine = "-rw-r--r-- 1 user group 0 Jan 01 00:00 .dolphin_placeholder\r\n";
+          binaryStringSender.sendStringInBinaryMode(placeholderLine);
+        }
+      }
+      else  // 列出成功
+      {
+        PathDocumentFileCacheManager pathDocumentFileCacheManager = filePathInterpreter.getPathDocumentFileCacheManager(); // 获取缓存管理器
+
+        for (DocumentFile path : paths)  // 遍历每个文件
         {
-          PathDocumentFileCacheManager pathDocumentFileCacheManager = filePathInterpreter.getPathDocumentFileCacheManager(); // Get the path documetnfile cache manager.
-          for(DocumentFile path:paths) // reply files one by one
+          String fileName = path.getName(); // 获取文件名
+
+          Log.d(TAG, CodePosition.newInstance().toString() + ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", target document: " + path.getUri().toString() + ", file name length: " + fileName.length() + ", file name content: " + fileName + ", root directory: " + rootDirectory + ", working directory: " + workingDirectory); // Debug.
+
+          String wholeFilePath = filePathInterpreter.resolveWholeDirectoryPath(rootDirectory, workingDirectory, fileName); // 解析完整路径
+          wholeFilePath = wholeFilePath.replace("//", "/"); // 替换双斜杠
+
+          boolean isAVirtualPath = filePathInterpreter.isExactVirtualPath(wholeFilePath); // 是否是虚拟路径
+
+          if (isAVirtualPath)  // 是虚拟路径
           {
+            path = filePathInterpreter.getFile(rootDirectory, workingDirectory, fileName); // 替换为实际路径
+          }
 
-            String fileName=path.getName(); // 获取文件名。
-            
-            Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", target document: " + path.getUri().toString()+ ", file name length: " + fileName.length() + ", file name conrent: " + fileName + ", root directory: " + rootDirectory + ", working directory: " + workingDirectory); // Debug.
-            
-            String wholeFilePath = filePathInterpreter.resolveWholeDirectoryPath( rootDirectory, workingDirectory, fileName); // resolve 完整路径。
+          String currentLine = construct1LineListFile(path); // 构造一行输出
 
-            wholeFilePath = wholeFilePath.replace("//", "/"); // 双斜杠替换成单斜杠
+          String effectiveVirtualPathForCurrentSegment = wholeDirecotoryPath + "/" + fileName; // 构建虚拟路径
+          effectiveVirtualPathForCurrentSegment = effectiveVirtualPathForCurrentSegment.replace("//", "/"); // 去掉多余斜杠
 
-            // Chen xin.
-            boolean isAVirtualPath = filePathInterpreter.isExactVirtualPath(wholeFilePath); // Check for exact virtual path.
-            
-            if (isAVirtualPath) // It is a virtual path. Exactly virtual path.
+          pathDocumentFileCacheManager.put(effectiveVirtualPathForCurrentSegment, path); // 存入缓存
+
+          if (fileNameTolerant)  // 容错文件名特殊字符
+          {
+            String tolerantEffectiveVirtualPath = effectiveVirtualPathForCurrentSegment.trim();
+
+            if (!tolerantEffectiveVirtualPath.equals(effectiveVirtualPathForCurrentSegment))
             {
-              path = filePathInterpreter.getFile(rootDirectory, workingDirectory, fileName); // Replace with the resolved file path object.
-            } // if (isAVirtualPath) // It is a virtual path
+              DocumentFile documentFileForTolerantPath = pathDocumentFileCacheManager.get(tolerantEffectiveVirtualPath);
 
-            Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", target document: " + path.getUri().toString()+ ", file name length: " + fileName.length() + ", file name conrent: " + fileName + ", root directory: " + rootDirectory); // Debug.
-
-            String currentLine=construct1LineListFile(path); // 构造针对这个文件的一行输出。
-
-            String effectiveVirtualPathForCurrentSegment=wholeDirecotoryPath+ "/" + fileName; // Remember effective virtual path.
-            effectiveVirtualPathForCurrentSegment=effectiveVirtualPathForCurrentSegment.replace("//", "/"); // Remove consecutive /
-            
-            // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", target document: " + path.getUri().toString()+ ", effective virtual path: " + effectiveVirtualPathForCurrentSegment); // Debug.
-
-            pathDocumentFileCacheManager.put(effectiveVirtualPathForCurrentSegment, path); // Put it into the cache.
-            
-            if (fileNameTolerant) // tolerant special characters in file name
-            {
-              String tolerantEffectiveVirtualPath=effectiveVirtualPathForCurrentSegment.trim(); // Trim to get alternative path.
-              
-              if (tolerantEffectiveVirtualPath.equals(effectiveVirtualPathForCurrentSegment)) // No special characters
+              if (documentFileForTolerantPath == null)
               {
-              } // if (tolerantEffectiveVirtualPath.equals(effectiveVirtualPathForCurrentSegment)) // No special characters
-              else // Special characters trimmed
-              {
-                DocumentFile documentFileForTolerantPath=pathDocumentFileCacheManager.get(tolerantEffectiveVirtualPath); // Try to get a document for the tolerant path.
-                
-                if (documentFileForTolerantPath==null) // NOt exist
-                {
-                  pathDocumentFileCacheManager.put(tolerantEffectiveVirtualPath, path); // Add a map for this entry.
-                } // if (documentFileForTolerantPath==null) // NOt exist
-              } // else // Special characters trimmed
-            } // if (fileNameTolerant) // tolerant special characters in file name
+                pathDocumentFileCacheManager.put(tolerantEffectiveVirtualPath, path); // 添加容错映射
+              }
+            }
+          }
 
-            if (fileName.equals(nameOfFile)  || (nameOfFile.isEmpty())) // 名字匹配。
-            {
-              binaryStringSender.sendStringInBinaryMode(currentLine); // 发送回复内容。
-            } //if (fileName.equals(nameOfFile)) // 名字匹配。
-          } // for(DocumentFile path:paths) // reply files one by one
-        } // else // Listed Successfully
-      } // else // 是目录
-         
-      Util.writeAll(data_socket, ( "\r\n").getBytes(), new CompletedCallback() 
+          if (fileName.equals(nameOfFile) || nameOfFile.isEmpty())  // 匹配或全部列出
+          {
+            binaryStringSender.sendStringInBinaryMode(currentLine); // 发送当前行
+          }
+        }
+      }
+    }
+
+    Util.writeAll(data_socket, "\r\n".getBytes(), new CompletedCallback()
+    {
+      @Override
+      public void onCompleted(Exception ex)
       {
-        @Override
-        public void onCompleted(Exception ex) 
-        {
-          if (ex != null) throw new RuntimeException(ex);
-          // System.out.println("[Server] data Successfully wrote message");
-          Log.d(TAG, CodePosition.newInstance().toString()+  ", [Server] data Successfully wrote message: " + fileToSend + ", going to close data_socket: " + data_socket); // Debug.
+        if (ex != null) throw new RuntimeException(ex);
 
-          notifyLsCompleted(); // 告知已经发送目录数据。
-          // Log.d(TAG, CodePosition.newInstance().toString()+  ", going to set file to send : " + null); // Debug.
-          fileToSend=null; // 将要发送的文件对象清空。
-          data_socket.close(); // 关闭连接。
-        } // public void onCompleted(Exception ex) 
-      });
+        Log.d(TAG, CodePosition.newInstance().toString() + ", [Server] data Successfully wrote message: " + fileToSend + ", going to close data_socket: " + data_socket); // Debug.
 
-      return result;
-    } //private String getDirectoryContentList(String wholeDirecotoryPath)
+        notifyLsCompleted(); // 通知已发送完成
+        fileToSend = null; // 清空文件对象
+        data_socket.close(); // 关闭连接
+      }
+    });
+
+    return result;
+  }
 
     /**
     * 获取文件或目录的权限。
