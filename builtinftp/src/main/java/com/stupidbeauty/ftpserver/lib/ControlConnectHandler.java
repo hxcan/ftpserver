@@ -1152,6 +1152,11 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
           
         binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
       } //else if (command.equals("DELE")) // 删除文件
+      else if (command.equalsIgnoreCase("MKD")) // 创建目录
+      {
+        String dirName = content.substring(4).trim(); // 提取目录名
+        processMkdCommand(dirName); // 使用统一处理函数
+      }
       else  // 其它命令
       {
         String replyString="502 " + content.trim()  +  " not implemented"; // 回复内容。未实现。
@@ -1396,6 +1401,36 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
       sendListContentBySender(content, currentWorkingDirectory, extraFileInformation); // 发送目录列表数据。
     } // private void processNlstCommand()
 
+    private void processMkdCommand(String dirName)
+    {
+      // 获取当前工作目录所对应的 DocumentFile 对象
+      DocumentFile currentDir = filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, "");
+
+      if (currentDir == null || !currentDir.exists())
+      {
+        String replyString = "550 Failed to access current directory";
+        Log.d(TAG, "reply string: " + replyString);
+        binaryStringSender.sendStringInBinaryMode(replyString);
+        return;
+      }
+
+      // 在当前目录下创建新目录
+      DocumentFile newDir = currentDir.createDirectory(dirName);
+
+      if (newDir != null && newDir.exists())
+      {
+        String fullPath = currentWorkingDirectory + "/" + dirName;
+        String replyString = "257 \"" + fullPath + "\" created";
+        Log.d(TAG, "reply string: " + replyString);
+        binaryStringSender.sendStringInBinaryMode(replyString);
+      }
+      else
+      {
+        String replyString = "550 Can't create directory: " + dirName;
+        Log.d(TAG, "reply string: " + replyString);
+        binaryStringSender.sendStringInBinaryMode(replyString);
+      }
+    }
     
     /**
     * 处理目录列表命令。
