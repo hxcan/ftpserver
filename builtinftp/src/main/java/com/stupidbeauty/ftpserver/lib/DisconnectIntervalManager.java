@@ -1,7 +1,6 @@
 package com.stupidbeauty.ftpserver.lib;
 
 import java.util.concurrent.ThreadLocalRandom;
-
 import com.stupidbeauty.codeposition.CodePosition;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;

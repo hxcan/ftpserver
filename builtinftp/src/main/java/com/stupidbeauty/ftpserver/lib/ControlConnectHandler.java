@@ -99,6 +99,74 @@ public class ControlConnectHandler implements DataServerManagerInterface
   private boolean isUploading=false; //!< 是否正在上传。陈欣
   private InetAddress host;
   private File rootDirectory=null; //!< 根目录。
+
+  /**
+  * 是否启用 Dolphin bug #474238 的绕过方案。
+  */
+  private boolean enableDolphinBug474238Placeholder = false;
+
+  public void setEnableDolphinBug474238Placeholder(boolean enable)
+  {
+    this.enableDolphinBug474238Placeholder = enable;
+
+    directoryListSender.setEnableDolphinBug474238Placeholder(enable);
+  }
+
+  public boolean isEnableDolphinBug474238Placeholder()
+  {
+    return enableDolphinBug474238Placeholder;
+  }
+
+  /**
+  * 将一个完整路径拆分为父路径和最后的目录名。
+  * @param fullPath 完整路径
+  * @return String[] { parentPath, dirName }
+  */
+  public static String[] splitPath(String fullPath) {
+    if (fullPath == null || fullPath.isEmpty()) {
+        return new String[]{"", ""};
+    }
+
+    fullPath = fullPath.trim();
+
+    boolean isAbsolute = fullPath.startsWith("/");
+    String normalizedPath;
+
+    if (isAbsolute) {
+        normalizedPath = fullPath.replaceAll("/+", "/"); // 合并多个斜杠为单个
+    } else {
+        normalizedPath = fullPath.replaceAll("/+", "/");
+    }
+
+    int lastSlashIndex = normalizedPath.lastIndexOf('/');
+
+    String parentPath;
+    String dirName;
+
+    if (isAbsolute) {
+        if (lastSlashIndex <= 0) {
+            // 如 "/abc"
+            parentPath = "/";
+            dirName = normalizedPath.substring(1);
+        } else {
+            parentPath = normalizedPath.substring(0, lastSlashIndex);
+            dirName = normalizedPath.substring(lastSlashIndex + 1);
+        }
+    } else {
+        // 相对路径
+        if (lastSlashIndex == -1) {
+            // 只有一个目录名，如 "newdir"
+            parentPath = "";
+            dirName = normalizedPath;
+        } else {
+            // 包含层级的相对路径，如 "a/b/c"
+            parentPath = normalizedPath.substring(0, lastSlashIndex);
+            dirName = normalizedPath.substring(lastSlashIndex + 1);
+        }
+    }
+
+    return new String[]{parentPath, dirName};
+  }
   
   /**
   * Set the user manager.
@@ -228,27 +296,27 @@ public class ControlConnectHandler implements DataServerManagerInterface
     
   } // private void connectToClientDataPort()
     
-    /**
-    * 打开指向客户端特定端口的连接。
-    */
-    private void openDataConnectionToClient(String content)
-    {
-      String portString=content.split(" ")[1].trim(); // 端口字符串。
-    
-      String[] addressStringList= portString.split(","); //获取地址字符串。
-    
-      String ip=addressStringList[0]+"."+addressStringList[1]+"."+addressStringList[2]+"."+addressStringList[3]; // 构造IP。陈欣
-      int port=Integer.parseInt(addressStringList[4])*256+Integer.parseInt(addressStringList[5]); // 计算出端口号。
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", connecting to port specified by client: " + port  + ", this: " + this); // Debug.
-      
-      clientIp=ip;
-      clientDataPort=port;
+  /**
+  * 打开指向客户端特定端口的连接。
+  */
+  private void openDataConnectionToClient(String content)
+  {
+    String portString=content.split(" ")[1].trim(); // 端口字符串。
 
-      // Make the connection:
+    String[] addressStringList= portString.split(","); //获取地址字符串。
 
-      retryConnectClientDataPortAmount=0; // reset the retry times.
-      connectToClientDataPort(); // Connect to client data port.
-    } //private void openDataConnectionToClient(String content)
+    String ip=addressStringList[0]+"."+addressStringList[1]+"."+addressStringList[2]+"."+addressStringList[3]; // 构造IP。陈欣
+    int port=Integer.parseInt(addressStringList[4])*256+Integer.parseInt(addressStringList[5]); // 计算出端口号。
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", connecting to port specified by client: " + port  + ", this: " + this); // Debug.
+
+    clientIp=ip;
+    clientDataPort=port;
+
+    // Make the connection:
+
+    retryConnectClientDataPortAmount=0; // reset the retry times.
+    connectToClientDataPort(); // Connect to client data port.
+  } //private void openDataConnectionToClient(String content)
 
     /**
     * Notify the file send started.
@@ -1176,6 +1244,11 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
           
         binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
       } //else if (command.equals("DELE")) // 删除文件
+      else if (command.equalsIgnoreCase("MKD")) // 创建目录
+      {
+        String dirName = content.substring(4).trim(); // 提取目录名
+        processMkdCommand(dirName); // 使用统一处理函数
+      }
       else  // 其它命令
       {
         String replyString="502 " + content.trim()  +  " not implemented"; // 回复内容。未实现。
@@ -1420,6 +1493,49 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
       sendListContentBySender(content, currentWorkingDirectory, extraFileInformation); // 发送目录列表数据。
     } // private void processNlstCommand()
 
+  private void processMkdCommand(String fullPath)
+  {
+    // 拆分路径
+    String[] parts = splitPath(fullPath);
+    String parentPath = parts[0]; // 父路径
+    String dirName = parts[1];    // 要创建的目录名
+
+    Log.d(TAG, "Parent path: " + parentPath + ", Dir name: " + dirName); // Debug.
+
+    if (dirName.isEmpty()) {
+        String replyString = "550 Invalid directory name";
+        Log.d(TAG, "reply string: " + replyString);
+        binaryStringSender.sendStringInBinaryMode(replyString);
+        return;
+    }
+
+    // 如果 parentPath 为空，则使用当前工作目录
+    String effectiveParentPath = parentPath.isEmpty() ? currentWorkingDirectory : parentPath;
+
+    // 获取父目录所对应的 DocumentFile
+    DocumentFile parentDir = filePathInterpreter.getFile(rootDirectory, effectiveParentPath, "");
+
+    if (parentDir == null || !parentDir.exists() || !parentDir.isDirectory()) {
+        String replyString = "550 Failed to resolve parent directory: " + effectiveParentPath;
+        Log.d(TAG, "reply string: " + replyString);
+        binaryStringSender.sendStringInBinaryMode(replyString);
+        return;
+    }
+
+    // 创建子目录
+    DocumentFile newDir = parentDir.createDirectory(dirName);
+
+    if (newDir != null && newDir.exists()) {
+        String fullCreatedPath = effectiveParentPath + "/" + dirName;
+        String replyString = "257 \"" + fullCreatedPath + "\" created";
+        Log.d(TAG, "reply string: " + replyString);
+        binaryStringSender.sendStringInBinaryMode(replyString);
+    } else {
+        String replyString = "550 Can't create directory: " + fullPath;
+        Log.d(TAG, "reply string: " + replyString);
+        binaryStringSender.sendStringInBinaryMode(replyString);
+    }
+  }
     
     /**
     * 处理目录列表命令。
