@@ -1652,15 +1652,15 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
                     ", 🔌 Active mode data socket closed gracefully" ); // Debug.
             }
 
-            // ✅ 统一关闭文件资源
-            finishFileWrite();
-
             // ✅ 只有 writingFile 存在时才通知完成（兼容旧逻辑）
             if (writingFile == null) {
               notifyStorCompleted();
               Log.d(TAG, CodePosition.newInstance().toString() + 
                     ", ✅ STOR completed in active mode" ); // Debug.
             }
+
+            // ✅ 统一关闭文件资源
+            finishFileWrite();
 
             // ✅ 清理 socket
             data_socket = null;
@@ -1728,16 +1728,20 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
             Log.d(TAG, CodePosition.newInstance().toString() + 
                   ", 🔌 Data socket closed gracefully" ); // Debug.
           }
+          
+          // ✅ 1. 先保存 isUploading 状态
+          boolean wasUploading = isUploading;
 
-          // ✅ 统一关闭文件资源
-          finishFileWrite();
 
           // ✅ 通知上传完成（仅当 isUploading 为 true）
-          if (isUploading) {
+          if (wasUploading) {
             notifyStorCompleted();
             Log.d(TAG, CodePosition.newInstance().toString() + 
                   ", ✅ STOR completed successfully" ); // Debug.
           }
+
+          // ✅ 统一关闭文件资源
+          finishFileWrite();
 
           // ✅ 清理 socket 引用
           data_socket = null;
