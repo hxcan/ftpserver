@@ -1,0 +1,61 @@
+apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
+
+android 
+{
+  compileSdkVersion 33
+
+  namespace 'com.stupidbeauty.ftpserver'
+
+  defaultConfig 
+  {
+    buildToolsVersion = "30.0.3"
+    minSdkVersion 14
+    targetSdkVersion 33
+    versionCode 757
+  }
+
+  buildTypes 
+  {
+    release 
+    {
+      minifyEnabled false
+      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+    }
+  }
+  
+  publishing
+  {
+    singleVariant('release')
+    {
+      withSourcesJar()
+    }
+  }
+
+}
+
+afterEvaluate 
+{
+  publishing 
+  {
+    publications
+    {
+      release(MavenPublication)
+      {
+        from components.release
+        groupId = 'com.github.hxcan'
+        artifactId = 'ftpserver'
+        version = '2024.10.7'
+      }
+    }
+  }
+}
+
+dependencies
+{
+  implementation 'com.koushikdutta.async:androidasync:2.1.7'
+  implementation 'commons-io:commons-io:2.6'
+  implementation "androidx.documentfile:documentfile:1.0.1"
+  implementation 'com.github.hxcan:CodePosition:2023.5.19'
+  implementation'com.upokecenter:cbor:4.4.4'
+}
