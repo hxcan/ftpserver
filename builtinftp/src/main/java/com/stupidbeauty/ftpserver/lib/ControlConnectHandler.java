@@ -585,7 +585,18 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
           Log.d(TAG, CodePosition.newInstance().toString() +  ", Creating new file for STOR: " + data51 ); // Debug.
           File virtualFile = new File(data51);
           File parentVirtualFile = virtualFile.getParentFile();
-          String currentTryingPath = parentVirtualFile.getPath();
+
+          String currentTryingPath = "";
+
+          if (parentVirtualFile == null) // Null, relative.
+          {
+            currentTryingPath = currentWorkingDirectory;
+          } //if (parentVirtualFile == null) // Null, relative.
+          else // valid
+          {
+            currentTryingPath = parentVirtualFile.getPath();
+          } // else // valid
+
           DocumentFile parentDocumentFile = filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, currentTryingPath);
           String fileNameOnly = virtualFile.getName();
 
