@@ -28,6 +28,7 @@ import com.koushikdutta.async.AsyncServer;
 import com.koushikdutta.async.AsyncServerSocket;
 import com.koushikdutta.async.AsyncSocket;
 import com.koushikdutta.async.ByteBufferList;
+import java.nio.ByteBuffer;
 import com.koushikdutta.async.DataEmitter;
 import java.net.InetSocketAddress;
 import com.koushikdutta.async.callback.ConnectCallback;
@@ -87,7 +88,13 @@ public class ControlConnectHandler implements DataServerManagerInterface
   private DisconnectIntervalManager disconnectIntervalManager=new DisconnectIntervalManager(); //!< Disconnect interval manager
   private DataServerManager dataServerManager=new DataServerManager(); //!< The data server manager.
   private Timer disconnectTimer=null; //!< The timer of automatically disconnect from possible stuck connections.
+  
   private DocumentFile writingFile; //!< 当前正在写入的文件。
+  private ParcelFileDescriptor pfd = null;
+  private FileOutputStream fileOutputStream = null;
+  private long totalWritten = 0;         // 用于速度统计
+  private long lastLogTime = 0;          // 用于速度统计
+
   private DocumentFile renamingFile; //!< The file being renamed.
   private boolean isUploading=false; //!< 是否正在上传。陈欣
   private InetAddress host;
@@ -213,30 +220,48 @@ public class ControlConnectHandler implements DataServerManagerInterface
   
   /**
   * 从数据套接字处接收数据。陈欣
+  * ✅ 优化版：使用持久化 FileOutputStream，避免频繁 open/close
+  * ✅ 每秒输出上传速度，便于诊断性能瓶颈
+  * ✅ 保留原有 CodePosition 日志风格
   */
-  private void receiveDataSocket( ByteBufferList bb)
+  private void receiveDataSocket(ByteBufferList bb)
   {
-    byte[] content=bb.getAllByteArray(); // 读取全部内容。
+    // ✅ 检查文件是否已打开
+    if (fileOutputStream == null) {
+      Log.d(TAG, CodePosition.newInstance().toString() +  ", ⚠️ No file open, dropping data. writingFile=" + 
+            (writingFile != null ? writingFile.getUri().toString() : "null") ); // Debug.
+      return;
+    }
 
-    boolean appendTrue=true;
+    try {
+      // ✅ 避免 getAllByteArray()，直接遍历 ByteBufferList
+      while (bb.size() > 0) {
+        ByteBuffer buffer = bb.remove();
+        byte[] array = buffer.array();
+        int len = buffer.remaining();
+        fileOutputStream.write(array, 0, len);
+        totalWritten += len;
+      }
 
-    try // Write the file
-    {
-      //       FileUtils.writeByteArrayToFile(writingFile, content, appendTrue); // 写入。
+      // ✅ 每秒输出一次上传速度（保留你的日志风格）
+      long now = System.currentTimeMillis();
+      if (now - lastLogTime >= 1000) {
+        double speedKBps = (totalWritten * 1000.0) / (now - lastLogTime) / 1024;
+        Log.d(TAG, CodePosition.newInstance().toString() + 
+              ", 📤 UPLOAD SPEED: " + String.format("%.1f", speedKBps) + " KiB/s" +
+              ", file=" + (writingFile != null ? writingFile.getName() : "unknown") +
+              ", total=" + (totalWritten / 1024) + " KiB" ); // Debug.
+        lastLogTime = now;
+        totalWritten = 0;
+      }
 
-      Uri uri=writingFile.getUri();
-      ParcelFileDescriptor pfd = context.getContentResolver(). openFileDescriptor(uri, "wa");
-      FileOutputStream fileOutputStream = new FileOutputStream(pfd.getFileDescriptor());
-
-      fileOutputStream.write( content );
-      fileOutputStream.close();
-      pfd.close();
-    } // try // Write the file
-    catch (Exception e) // Catch exception.
-    {
+    } catch (IOException e) {
       e.printStackTrace();
-    } // catch (Exception e) // Catch exception.
-  } // private void                         receiveDataSocket( ByteBufferList bb)
+      Log.d(TAG, CodePosition.newInstance().toString() +  ", ❌ Write failed: " + e.getMessage() ); // Debug.
+      finishFileWrite(); // 出错也要关闭资源
+      // notifyStorFailed(e);
+    }
+  } // private void receiveDataSocket(ByteBufferList bb)
 
   public ControlConnectHandler(Context context, boolean allowActiveMode, InetAddress host, String ip)
   {
@@ -533,59 +558,75 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
     {
       boolean result = true; // Stor start result.
       
-      DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // Resolve file path.
+      DocumentFile photoDirecotry = filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // Resolve file path.
 
-      writingFile=photoDirecotry; // 记录文件。
-      isUploading=true; // 记录，处于上传状态。
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry ); // Debug.
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() ); // Debug.
+      // writingFile = photoDirecotry; // 先不赋值，等 createFile 后再赋
+      isUploading = true; // 记录，处于上传状态。
+      Log.d(TAG, CodePosition.newInstance().toString() +  ", startStor: target path=" + data51); // Debug.
 
-      if (photoDirecotry!=null && photoDirecotry.exists()) // The file exists
+      if (photoDirecotry != null && photoDirecotry.exists()) // The file exists
       {
         if (photoDirecotry.isDirectory()) // It is an existing directory
         {
           result = false;
+          Log.d(TAG, CodePosition.newInstance().toString() +  ", STOR failed: target is a directory: " + data51); // Debug.
         } //  if (photoDirecotry.isDirectory()) // It is an existing directory
         else // It is a normal file.
         {
-          // result = true;
           photoDirecotry.delete();
-          Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() ); // Debug.
+          Log.d(TAG, CodePosition.newInstance().toString() +  ", Deleted existing file: " + photoDirecotry.getUri().toString() ); // Debug.
         } // else // It is a normal file.
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() ); // Debug.
       } // if (photoDirecotry.exists()) // The file exists
 
       if (result) // We can proceed so far
       {
         try // Create the file.
         {
-          Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() ); // Debug.
-          File virtualFile=new File(data51);
-          
-          File parentVirtualFile=virtualFile.getParentFile();
-          
-          Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() + ", parent virtual file: " + parentVirtualFile.getName() ); // Debug.
-          String currentTryingPath=parentVirtualFile.getPath();
+          Log.d(TAG, CodePosition.newInstance().toString() +  ", Creating new file for STOR: " + data51 ); // Debug.
+          File virtualFile = new File(data51);
+          File parentVirtualFile = virtualFile.getParentFile();
+          String currentTryingPath = parentVirtualFile.getPath();
+          DocumentFile parentDocumentFile = filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, currentTryingPath);
+          String fileNameOnly = virtualFile.getName();
 
-          DocumentFile parentDocuemntFile=filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, currentTryingPath); // Resolve parent path.
-  //         FileUtils.touch(photoDirecotry); //创建文件。
-          Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() + ", parent document file : " + parentDocuemntFile.getUri().toString()); // Debug.
+          writingFile = parentDocumentFile.createFile("", fileNameOnly); // Creat eh file.
+          Log.d(TAG, CodePosition.newInstance().toString() +  ", Created new file: " + writingFile.getUri().toString() ); // Debug.
 
-          String fileNameOnly=virtualFile.getName(); // Get the file name.
-
-          writingFile=parentDocuemntFile.createFile("", fileNameOnly); // Creat eh file.
-          Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() + ", writing fiel: " + writingFile.getUri().toString()); // Debug.
+          if (writingFile == null) {
+            Log.d(TAG, CodePosition.newInstance().toString() +  ", ❌ createFile returned null!"); // Debug.
+            result = false;
+          } else {
+            // ✅ 打开文件句柄
+            Uri uri = writingFile.getUri();
+            try {
+              pfd = context.getContentResolver().openFileDescriptor(uri, "w");
+              if (pfd != null) {
+                fileOutputStream = new FileOutputStream(pfd.getFileDescriptor());
+                totalWritten = 0;
+                lastLogTime = System.currentTimeMillis();
+                Log.d(TAG, CodePosition.newInstance().toString() +  ", ✅ File opened for write: " + writingFile.getUri().toString() ); // Debug.
+              } else {
+                Log.d(TAG, CodePosition.newInstance().toString() +  ", ❌ openFileDescriptor returned null!"); // Debug.
+                result = false;
+              }
+            } catch (Exception e) {
+              Log.d(TAG, CodePosition.newInstance().toString() +  ", ❌ Exception opening file descriptor: " + e.getMessage() ); // Debug.
+              e.printStackTrace();
+              result = false;
+            }
+          }
         } // try // Create the file.
         catch (Exception e) // Catch any exception.
         {
           e.printStackTrace();
-          Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() ); // Debug.
+          Log.d(TAG, CodePosition.newInstance().toString() +  ", ❌ Exception during startStor: " + e.getMessage() ); // Debug.
+          result = false;
         } // catch (Exception e) // Catch any exception.
       } // if (result) // We can proceed so far
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", photoDirecotry: " + photoDirecotry.getUri().toString() ); // Debug.
       
+      Log.d(TAG, CodePosition.newInstance().toString() +  ", startStor result: " + result + ", writingFile=" + (writingFile != null ? writingFile.getUri().toString() : "null") ); // Debug.
       return result;
-    } // private void startStor(String data51, String currentWorkingDirectory) // 上传文件内容。
+    } // private boolean startStor
     
     /**
     * Process pass command.
@@ -1509,6 +1550,48 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
 
       sendListContentBySender(content, currentWorkingDirectory); // 发送目录列表数据。
     } //private void processListCommand(String content)
+    
+    /**
+    * 安全关闭上传文件句柄，释放资源。
+    * 必须在数据连接关闭或出错时调用。
+    * 统一处理 Passive/Active 模式下的资源清理。
+    */
+    private void finishFileWrite() {
+      Log.d(TAG, CodePosition.newInstance().toString() + 
+            ", 📁 finishFileWrite() called. isUploading=" + isUploading + 
+            ", writingFile=" + (writingFile != null ? writingFile.getUri().toString() : "null") ); // Debug.
+
+      // ✅ 关闭 FileOutputStream
+      if (fileOutputStream != null) {
+        try {
+          fileOutputStream.flush();
+          fileOutputStream.close();
+          Log.d(TAG, CodePosition.newInstance().toString() +  ", ✅ FileOutputStream closed" ); // Debug.
+        } catch (IOException e) {
+          Log.d(TAG, CodePosition.newInstance().toString() +  ", ❌ Error closing FileOutputStream: " + e.getMessage() ); // Debug.
+        } finally {
+          fileOutputStream = null;
+        }
+      }
+
+      // ✅ 关闭 ParcelFileDescriptor
+      if (pfd != null) {
+        try {
+          pfd.close();
+          Log.d(TAG, CodePosition.newInstance().toString() +  ", ✅ ParcelFileDescriptor closed" ); // Debug.
+        } catch (IOException e) {
+          Log.d(TAG, CodePosition.newInstance().toString() +  ", ❌ Error closing PFD: " + e.getMessage() ); // Debug.
+        } finally {
+          pfd = null;
+        }
+      }
+
+      // ✅ 清理状态
+      writingFile = null;
+      isUploading = false;
+
+      Log.d(TAG, CodePosition.newInstance().toString() +  ", 📁 File write session ended" ); // Debug.
+    }
 
     /**
     * Handle connect completed. Connect to port specified by the client.
@@ -1560,21 +1643,30 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
           @Override
           public void onCompleted(Exception ex) 
           {
-            if(ex != null) // There is some exception
-            {
-              // throw new RuntimeException(ex);
+            if (ex != null) {
+              Log.d(TAG, CodePosition.newInstance().toString() + 
+                    ", ⚠️ Active mode data socket error: " + ex.getMessage() ); // Debug.
               ex.printStackTrace();
-            } // if(ex != null) // There is some exception
+            } else {
+              Log.d(TAG, CodePosition.newInstance().toString() + 
+                    ", 🔌 Active mode data socket closed gracefully" ); // Debug.
+            }
 
-            System.out.println("[Client] Successfully closed connection");
-              
-            data_socket=null;
+            // ✅ 只有 writingFile 存在时才通知完成（兼容旧逻辑）
+            if (writingFile == null) {
+              notifyStorCompleted();
+              Log.d(TAG, CodePosition.newInstance().toString() + 
+                    ", ✅ STOR completed in active mode" ); // Debug.
+            }
 
-            if (writingFile!=null) // The writing file exists
-            {
-              notifyStorCompleted(); // 告知上传完成。
-            } // if (writingFile!=null) // The writing file exists
-          } // public void onCompleted(Exception ex) 
+            // ✅ 统一关闭文件资源
+            finishFileWrite();
+
+            // ✅ 清理 socket
+            data_socket = null;
+            fileContentSender.setDataSocket(null);
+            directoryListSender.setDataSocket(null);
+          }
         });
 
         socket.setEndCallback(new CompletedCallback() 
@@ -1622,56 +1714,43 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
         @Override
         public void onCompleted(Exception ex) 
         {
-//             if (ex != null) throw new RuntimeException(ex);
-            
-          if(ex != null) // 有异常。陈欣。
-          {
-            if ( ex instanceof IOException ) // java.lang.RuntimeException: java.io.IOException: Software caused connection abort
-            {
+          if (ex != null) {
+            if (ex instanceof IOException) {
+              Log.d(TAG, CodePosition.newInstance().toString() + 
+                    ", ⚠️ Data socket closed with IOException: " + ex.getMessage() ); // Debug.
               ex.printStackTrace();
-            }
-            else // Other exceptions
-            {
+            } else {
+              Log.e(TAG, CodePosition.newInstance().toString() + 
+                    ", ❌ Unexpected exception in data socket", ex ); // Error.
               throw new RuntimeException(ex);
             }
+          } else {
+            Log.d(TAG, CodePosition.newInstance().toString() + 
+                  ", 🔌 Data socket closed gracefully" ); // Debug.
           }
-            
-          System.out.println("[Server] data Successfully closed connection");
-              
-          data_socket=null;
-          fileContentSender.setDataSocket(data_socket); // 将数据连接清空
-          Log.d(TAG, CodePosition.newInstance().toString()+  ", setting data socket: " + data_socket ); // Debug.
-          directoryListSender.setDataSocket(data_socket); // 将数据连接清空。
-              
-          if (isUploading) // 是处于上传状态。
-          {
-            notifyStorCompleted(); // 告知上传完成。
-                  
-            isUploading=false; // 不再处于上传状态了。
-          } //if (isUploading) // 是处于上传状态。
+          
+          // ✅ 1. 先保存 isUploading 状态
+          boolean wasUploading = isUploading;
+
+
+          // ✅ 通知上传完成（仅当 isUploading 为 true）
+          if (wasUploading) {
+            notifyStorCompleted();
+            Log.d(TAG, CodePosition.newInstance().toString() + 
+                  ", ✅ STOR completed successfully" ); // Debug.
+          }
+
+          // ✅ 统一关闭文件资源
+          finishFileWrite();
+
+          // ✅ 清理 socket 引用
+          data_socket = null;
+          fileContentSender.setDataSocket(null);
+          directoryListSender.setDataSocket(null);
+          Log.d(TAG, CodePosition.newInstance().toString() + 
+                ", setting data socket: null" ); // Debug.
         }
       });
-
-//       socket.setEndCallback(new CompletedCallback() 
-//       {
-//         @Override
-//         public void onCompleted(Exception ex) 
-//         {
-//           if(ex != null) // 有异常。陈欣。
-//           {
-//             if ( ex instanceof IOException ) // java.lang.RuntimeException: java.io.IOException: Software caused connection abort
-//             {
-//               ex.printStackTrace();
-//             }
-//             else // Other exceptions
-//             {
-//               throw new RuntimeException(ex);
-//             }
-//           }
-//                 
-//           Log.d(TAG, CodePosition.newInstance().toString() + ", [Server] data Successfully end connection " + socket.toString());
-//         }
-//       });
     } //private void handleDataAccept(final AsyncSocket socket)
 
     /**
