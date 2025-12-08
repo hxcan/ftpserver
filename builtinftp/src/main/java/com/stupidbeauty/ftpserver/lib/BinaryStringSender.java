@@ -25,27 +25,33 @@ public class BinaryStringSender
     socket=socketToSet;
   } // public void setSocket(AsyncSocket socketToSet)
 
-    /**
-    * 以二进制模式发送字符串内容。
-    */
-    public void sendStringInBinaryMode(String stringToSend)
+  /**
+  * 以二进制模式发送字符串内容。
+  */
+  public void sendStringInBinaryMode(String stringToSend)
+  {
+    if (socket == null)
     {
-      byte[] contentToSend= (stringToSend+"\r\n").getBytes(StandardCharsets.UTF_8);
-      
-      // Log.d(TAG, CodePosition.newInstance().toString()+  ", sending content size: " + contentToSend.length + ", original string length: " + stringToSend.length() + ", original string: " + stringToSend); // Debug.
-      
-      Util.writeAll(socket, contentToSend, new CompletedCallback() 
+      // 客户端连接已断开，不发送数据
+      return;
+    }
+
+    byte[] contentToSend = (stringToSend + "\r\n").getBytes(StandardCharsets.UTF_8);
+
+    // Log.d(TAG, CodePosition.newInstance().toString() + ", sending content size: " + contentToSend.length + ", original string length: " + stringToSend.length() + ", original string: " + stringToSend); // Debug.
+
+    Util.writeAll(socket, contentToSend, new CompletedCallback()
+    {
+      @Override
+      public void onCompleted(Exception ex)
       {
-        @Override
-        public void onCompleted(Exception ex) 
+        if (ex != null) // Some exception happened
         {
-          if (ex != null) // Some exceptin happend
-          {
-            throw new RuntimeException(ex);
-          } // if (ex != null) // Some exceptin happend
-        }
-      });
-    } //private sendStringInBinaryMode(String stringToSend)
-    
+          // 不抛出异常，避免崩溃
+          Log.e(TAG, "Failed to send data: " + ex.getMessage());
+        } // if (ex != null) // Some exception happened
+      }
+    });
+  } // public void sendStringInBinaryMode(String stringToSend)
 }
  
