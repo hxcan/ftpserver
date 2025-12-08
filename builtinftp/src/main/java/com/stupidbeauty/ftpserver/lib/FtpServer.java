@@ -335,9 +335,18 @@ public class FtpServer
   */
   public Uri getVirtualPath(String path)
   {
-    String fullPath=Constants.FilePath.ExternalRoot + path; // Construct full path.
-    return filePathInterpreter.getVirtualPath(fullPath);
-  } // public Uri getVirtualPath(String path)
+    if (rootDirectory != null)
+    {
+      String fullPath = rootDirectory.getAbsolutePath() + path;
+      return filePathInterpreter.getVirtualPath(fullPath);
+    }
+    else
+    {
+      String fullPath = Constants.FilePath.ExternalRoot + path;
+      return filePathInterpreter.getVirtualPath(fullPath);
+    }
+  }
+
 
   /**
   * File name tolerant. For example: /Android/data/com.client.xrxs.com.xrxsapp/files/XrxsSignRecordLog/Zw40VlOyfctCQCiKL_63sg==, with a trailing <LF> (%0A).
@@ -360,10 +369,18 @@ public class FtpServer
   */
   public void unmountVirtualPath(String path)
   {
-    String fullPath=Constants.FilePath.ExternalRoot + path; // Construct full path.
+    if (rootDirectory != null)
+    {
+      String fullPath = rootDirectory.getAbsolutePath() + path;
+      filePathInterpreter.unmountVirtualPath(fullPath); // un Mount virtual path.
+    }
+    else
+    {
+      String fullPath = Constants.FilePath.ExternalRoot + path;
+      filePathInterpreter.unmountVirtualPath(fullPath); // un Mount virtual path.
+    }
+  }
 
-    filePathInterpreter.unmountVirtualPath(fullPath); // un Mount virtual path.
-  } // public void unmountVirtualPath(String path)
   
   /**
   * Mount virtual path.
@@ -378,24 +395,31 @@ public class FtpServer
   /**
   * Mount virtual path.
   */
-  public void mountVirtualPath(String path , Uri uri, boolean takePermission)
+  public void mountVirtualPath(String path, Uri uri, boolean takePermission)
   {
-    Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + path + ", uri to use: " + uri.toString()); // Debug.
-//     ftpServer.answerBrowseDocumentTreeReqeust(requestCode, uri);
-//     Chen xin
+    Log.d(TAG, CodePosition.newInstance().toString() + ", path: " + path + ", uri to use: " + uri.toString()); // Debug.
 
-    String fullPath=Constants.FilePath.ExternalRoot + path; // Construct full path.
-
-    filePathInterpreter.mountVirtualPath(fullPath, uri); // Mount virtual path.
-    
-    if (takePermission) // We shoudl take the permisison.
+    // 使用设置的根目录，而不是固定使用ExternalRoot
+    if (rootDirectory != null)
     {
-      //     int takeFlags = intent.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+      String fullPath = rootDirectory.getAbsolutePath() + path;
+      filePathInterpreter.mountVirtualPath(fullPath, uri); // Mount virtual path.
+    }
+    else
+    {
+      // 如果没有设置根目录，使用默认的ExternalRoot
+      String fullPath = Constants.FilePath.ExternalRoot + path;
+      filePathInterpreter.mountVirtualPath(fullPath, uri); // Mount virtual path.
+    }
+
+    if (takePermission) // We should take the permission.
+    {
       int takeFlags = (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
       // Check for the freshest data.
       context.getContentResolver().takePersistableUriPermission(uri, takeFlags);
-    } // if (takePermission) // We shoudl take the permisison.
-  } // public void mountVirtualPath(String path , Uri uri)
+    } // if (takePermission) // We should take the permission.
+  }
+
   
   /**
   * Answ4er the browse docuembnt tree reqeust.
