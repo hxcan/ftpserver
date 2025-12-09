@@ -1,9 +1,7 @@
 package com.stupidbeauty.ftpserver.lib;
 
-// import com.stupidbeauty.hxlauncher.asynctask.LoadVoicePackageNameMapTask;
 import java.util.Timer;
 import java.util.TimerTask;
-// import android.Manifest;
 import android.annotation.SuppressLint;
 import com.stupidbeauty.codeposition.CodePosition;
 import java.io.FileDescriptor;
@@ -31,7 +29,6 @@ import java.util.HashMap;
 import android.view.View;
 import android.os.AsyncTask;
 import java.util.HashMap;
-// import com.stupidbeauty.hxlauncher.asynctask.VirtualPathLoadInterface;
 
 public class FilePathInterpreter implements VirtualPathLoadInterface
 {
@@ -285,15 +282,13 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
 
     if (virtualPathExists(wholeDirecotoryPath)) // It is in the virtual path map
     {
-      // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  virtual path exists"); // Debug.
-      
       Uri uri=  getParentUriByVirtualPathMap(wholeDirecotoryPath); // Get the uri.
       Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  virtual path exists, uri: " + uri); // Debug.
 
       DocumentFile documentFile=getDocumentFileFromUri(context, uri); // 04-08 18:22:04.279 15010 15045 W System.err: java.lang.IllegalArgumentException: Invalid URI: file:///storage/emulated/0/DCIM/GoddessCamera
       
       Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  parent document file: " + documentFile); // Debug.
-      // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  parent uri: " + uri); // Debug.
+
       String parentVirtualPath=getParentVirtualPathByVirtualPathMap(wholeDirecotoryPath); // Get the paretn virtual path map.
       
       Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  parent virtual path: " + parentVirtualPath); // Debug.
@@ -311,10 +306,8 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
       
       for(String currentSegmetn: trialingPathSegments)
       {
-        // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn); // Debug.
         if (currentSegmetn.isEmpty()) // Skip empty segment
         {
-          // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn + ", skip"); // Debug.
         } // if (currentSegmetn.isEmpty()) // Skip empty segment
         else
         {
@@ -324,9 +317,7 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
             effectiveVirtualPathForCurrentSegment=effectiveVirtualPathForCurrentSegment.replace("//", "/"); // Remove consecutive /
 
             Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn + ", current segment length: " + currentSegmetn.length()); // Debug.
-            // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn + ", target document: " + targetdocumentFile+ ", effective virtual path: " + effectiveVirtualPathForCurrentSegment); // Debug.
-            // Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn + ", target document: " + targetdocumentFile.getUri().toString()+ ", effective virtual path: " + effectiveVirtualPathForCurrentSegment); // Debug.
-            // DocumentFile cachedtargetdocumentFile=pathDocumentFileMap.get(effectiveVirtualPathForCurrentSegment); // Get it from cache.
+
             DocumentFile cachedtargetdocumentFile=pathDocumentFileCacheManager.get(effectiveVirtualPathForCurrentSegment); // Get it from cache.
             
             if (cachedtargetdocumentFile!=null) // It exists
@@ -336,7 +327,6 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
             } // if (targetdocumentFile!=null) // It exists
             else // Not exist. Need to find
             {
-            
               targetdocumentFile=targetdocumentFile.findFile(currentSegmetn);
               
               Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn + ", target document object: " + targetdocumentFile); // Debug.
@@ -344,11 +334,9 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
               {
                 Log.d(TAG, CodePosition.newInstance().toString()+  ", wholeDirecotoryPath : " + wholeDirecotoryPath + ", working directory: " + currentWorkingDirectory+ ",  trailing path: " + trailingPath + ", current segment: " + currentSegmetn + ", target document: " + targetdocumentFile.getUri().toString()); // Debug.
                 
-                // pathDocumentFileMap.put(effectiveVirtualPathForCurrentSegment, targetdocumentFile); // Put it into the cache.
                 pathDocumentFileCacheManager.put(effectiveVirtualPathForCurrentSegment, targetdocumentFile); // Put it into the cache.
               } // if (targetdocumentFile!=null) // Target document exists
             } // else // Not exist
-
           } // if (targetdocumentFile!=null) // Got sub documentfile from last iteration.
           else // Failed to get sub document file from last iteration.
           {

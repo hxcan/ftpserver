@@ -93,156 +93,110 @@ public class DirectoryListSender
     this.filePathInterpreter=filePathInterpreter;
   } // public void setFilePathInterpreter(FilePathInterpreter filePathInterpreter)
   
-    /**
-    * 设置根目录。
-    */
-    public void setRootDirectory(File rootDirectory)
+  /**
+  * 设置根目录。
+  */
+  public void setRootDirectory(File rootDirectory)
+  {
+      this.rootDirectory=rootDirectory;
+  } //public void  setRootDirectory(File rootDirectory)
+
+  public void setControlConnectHandler(ControlConnectHandler controlConnectHandler) // 设置控制连接处理器。
+  {
+      this.controlConnectHandler=controlConnectHandler;
+  } //public void setControlConnectHandler(ControlConnectHandler controlConnectHandler)
+
+  /**
+  * 设置数据连接套接字。
+  */
+  public void setDataSocket(AsyncSocket socket)
+  {
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", data socket: " + socket ); // Debug.
+    data_socket=socket; // 记录。
+
+    binaryStringSender.setSocket(data_socket); // 设置套接字。
+
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send: " + fileToSend); // Debug.
+    if ((fileToSend!=null) && (data_socket!=null)) // 有等待发送的内容。
     {
-        this.rootDirectory=rootDirectory;
-    } //public void  setRootDirectory(File rootDirectory)
-    
-    public void setControlConnectHandler(ControlConnectHandler controlConnectHandler) // 设置控制连接处理器。
-    {
-        this.controlConnectHandler=controlConnectHandler;
-    } //public void setControlConnectHandler(ControlConnectHandler controlConnectHandler)
-    
-    /**
-    * 设置数据连接套接字。
-    */
-    public void setDataSocket(AsyncSocket socket) 
-    {
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", data socket: " + socket ); // Debug.
-      data_socket=socket; // 记录。
-      
-      binaryStringSender.setSocket(data_socket); // 设置套接字。
-      
       Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send: " + fileToSend); // Debug.
-      if ((fileToSend!=null) && (data_socket!=null)) // 有等待发送的内容。
-      {
-        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send: " + fileToSend); // Debug.
-        startSendFileContentForLarge(); // 开始发送文件内容。
-      } // if (dataSocketPendingByteArray!=null)
-    } //public void setDataSocket(AsyncSocket socket)
-    
-    /**
-    * 构造针对这个文件的一行输出。
-    */
-    private String construct1LineListFile(DocumentFile photoDirecotry) 
+      startSendFileContentForLarge(); // 开始发送文件内容。
+    } // if (dataSocketPendingByteArray!=null)
+  } //public void setDataSocket(AsyncSocket socket)
+
+  /**
+  * 构造针对这个文件的一行输出。
+  * @param path 真实的 DocumentFile 对象，用于获取文件大小、时间、权限等信息。
+  * @param virtualFileName 虚拟路径名，用于在 FTP 响应中显示。
+  */
+  private String construct1LineListFile(DocumentFile path, String virtualFileName)
+  {
+    String fileName = virtualFileName;
+
+    Date dateOfFile = new Date(path.lastModified());
+    Date dateNow = new Date();
+    boolean sameYear = false;
+
+    if (dateOfFile.getYear() == dateNow.getYear())
     {
-      // Log.d(TAG, CodePosition.newInstance().toString()+  ", path: " + photoDirecotry); // Debug.
-//       File path=photoDirecotry;
-      DocumentFile path=photoDirecotry;
-    
-      // -rw-r--r-- 1 nobody nobody     35179727 Oct 16 07:31 VID_20201015_181816.mp4
+      sameYear = true;
+    }
 
-      String fileName=path.getName(); // 获取文件名。
+    Locale localEnUs = new Locale("en", "US");
+    SimpleDateFormat formatter = new SimpleDateFormat("HH:mm", localEnUs);
+    String time = formatter.format(dateOfFile);
 
-      Date dateOfFile = new Date(path.lastModified());  
-      Date dateNow=new Date();
-      boolean sameYear=false; // 是不是相同年份。
-            
-      if (dateOfFile.getYear() == dateNow.getYear()) // 年份相等
+    SimpleDateFormat yearFormatter = new SimpleDateFormat("yyyy", localEnUs);
+    String year = yearFormatter.format(dateOfFile);
+
+    SimpleDateFormat monthFormatter = new SimpleDateFormat("MMM", localEnUs);
+    SimpleDateFormat dayFormatter = new SimpleDateFormat("dd", localEnUs);
+    String dateString = dayFormatter.format(dateOfFile);
+
+    long fileSize = path.length();
+    String group = "cx";
+    String user = "ChenXin";
+
+    Uri directoryUri = path.getUri();
+    String directyoryUriPath = directoryUri.getPath();
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+    {
+      File fileObject = new File(directyoryUriPath);
+      Path filePathObject = fileObject.toPath();
+
+      if (directoryUri.getScheme().equals("file"))
       {
-        sameYear=true; // 是相同年份。
-      } // if (dateCompareYear.getYear() == dateNow.getYear()) // 年份相等
-            
-      // LocalDateTime date = LocalDateTime.ofInstant(Instant.ofEpochMilli(path.lastModified()), ZoneId.systemDefault());
-      
-      Locale localEnUs = new Locale("en", "US"); // The en_US locale.
-
-      // DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-      SimpleDateFormat formatter = new SimpleDateFormat("HH:mm", localEnUs);
-
-      String time="8:00";
-            
-      time = formatter.format(dateOfFile); // 获取时间字符串。
-
-      // DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM");
-            
-      // DateTimeFormatter yearFormatter = DateTimeFormatter.ofPattern("yyyy").withLocale(Locale.US);
-      SimpleDateFormat yearFormatter = new SimpleDateFormat("yyyy", localEnUs);
-
-      String year = yearFormatter.format(dateOfFile);  // 年份字符串。
-
-      // DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMM").withLocale(Locale.US);
-      SimpleDateFormat monthFormatter = new SimpleDateFormat("MMM", localEnUs);
-
-      // DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("dd").withLocale(Locale.US);
-      SimpleDateFormat dayFormatter = new SimpleDateFormat("dd", localEnUs);
-
-      String dateString="30";
-            
-      dateString = dayFormatter.format(dateOfFile); // 获取日期。
-                            
-      long fileSize=path.length(); // 文件尺寸。
-                            
-      String group="cx";
-                            
-      String user = "ChenXin";
-      
-      
-      Uri directoryUri=path.getUri(); // Get the uri.
-      String directyoryUriPath=directoryUri.getPath(); // Get the string of the uri.
-
-//       Path filePathObject=path.toPath(); // Get the associated nio Path object.
-
-      // if (Build.VERSION.)
-      // if (Build.VERSION.SDK_INT >= 29) // The sdk version is equal to or larger than 29
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) // Android sdk vresion 26. File.toPath
-      {
-        File fileObject=new File(directyoryUriPath);
-        Path filePathObject=fileObject.toPath(); // Get the associated nio Path object.
-
-        if (directoryUri.getScheme().equals("file")) // It is a native file
+        try
         {
-          try // get the owner name
-          {
-            UserPrincipal userPrincipal= Files.getOwner(filePathObject);
-            user=userPrincipal.getName(); // get the name of the user.
-          } // try // get the owner name
-          catch(IOException e)
-          {
-            Log.d(TAG, "construct1LineListFile, failed to get owner name:"); // Debug.
-            
-            e.printStackTrace();
-          } // catch(IOException e)
-        } // if (path.getScheme().equals("file")) // It is a native file
-      } // if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) // Android sdk vresion 26. File.toPath
-      
+          UserPrincipal userPrincipal = Files.getOwner(filePathObject);
+          user = userPrincipal.getName();
+        }
+        catch (IOException e)
+        {
+          Log.d(TAG, "construct1LineListFile, failed to get owner name:");
+          e.printStackTrace();
+        }
+      }
+    }
 
+    String linkNumber = "1";
+    String permission = getPermissionForFile(path);
+    String month = monthFormatter.format(dateOfFile);
+    String timeOrYear = sameYear ? time : year;
 
-                            
-      String linkNumber="1";
-                            
-//             String permission="-rw-r--r--"; // 权限。
-      String permission=getPermissionForFile(path); // 权限。
+    String currentLine = "";
 
-      String month="Jan"; // 月份 。
-            
-      month = monthFormatter.format(dateOfFile); // 序列化月份。
-            
-      String timeOrYear=time; // 时间或年份。
-            
-      if (sameYear) // 相同的年份。
-      {
-      } // if (sameYear) // 相同的年份。
-      else // 不是相同的年份。
-      {
-        timeOrYear=year; // 年份。
-      } // else // 不是相同的年份。
+    if (extraInformationEnabled)
+    {
+      currentLine = permission + " " + linkNumber + " " + user + " " + group + " " + fileSize + " " + month + " " + dateString + " " + timeOrYear + " ";
+    }
 
-      String currentLine = ""; // The current line.
-      
-      if (extraInformationEnabled) // Send extra informations
-      {
-        currentLine = permission + " " + linkNumber + " " + user + " " + group + " " + fileSize + " " + month + " " + dateString + " " + timeOrYear + " " ; // 构造当前行。
-      } // if (extraInformationEnabled) // Send extra informations
-      
-      currentLine = currentLine + fileName; // 构造当前行。
+    currentLine = currentLine + fileName;
 
-      return currentLine;
-    } // private String construct1LineListFile(File photoDirecotry)
-    
+    return currentLine;
+  }
+
   /**
   * File name tolerant. For example: /Android/data/com.client.xrxs.com.xrxsapp/files/XrxsSignRecordLog/Zw40VlOyfctCQCiKL_63sg==, with a trailing <LF> (%0A).
   */
@@ -262,7 +216,7 @@ public class DirectoryListSender
 
     if (photoDirecotry.isFile())  // 是一个文件。
     {
-      String currentLine = construct1LineListFile(photoDirecotry); // 构造针对这个文件的一行输出。
+      String currentLine = construct1LineListFile(photoDirecotry, photoDirecotry.getName()); // 构造针对这个文件的一行输出。
       binaryStringSender.sendStringInBinaryMode(currentLine); // 发送回复内容。
     }
     else  // 是目录
@@ -295,12 +249,25 @@ public class DirectoryListSender
 
           boolean isAVirtualPath = filePathInterpreter.isExactVirtualPath(wholeFilePath); // 是否是虚拟路径
 
-          if (isAVirtualPath)  // 是虚拟路径
+          String currentLine;
+          if (isAVirtualPath)
           {
-            path = filePathInterpreter.getFile(rootDirectory, workingDirectory, fileName); // 替换为实际路径
+            // 如果是虚拟路径，使用虚拟路径名，但真实信息从 DocumentFile 获取
+            currentLine = construct1LineListFile(path, fileName); // 👈 传入虚拟路径名
+          }
+          else
+          {
+            // 否则，正常调用
+            currentLine = construct1LineListFile(path, path.getName()); // 传入真实文件名
           }
 
-          String currentLine = construct1LineListFile(path); // 构造一行输出
+
+          // if (isAVirtualPath)  // 是虚拟路径
+          // {
+          //   path = filePathInterpreter.getFile(rootDirectory, workingDirectory, fileName); // 替换为实际路径
+          // }
+          //
+          // String currentLine = construct1LineListFile(path); // 构造一行输出
 
           String effectiveVirtualPathForCurrentSegment = wholeDirecotoryPath + "/" + fileName; // 构建虚拟路径
           effectiveVirtualPathForCurrentSegment = effectiveVirtualPathForCurrentSegment.replace("//", "/"); // 去掉多余斜杠
