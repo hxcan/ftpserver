@@ -154,24 +154,27 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
   /**
   * Get the uri. of a virtual path.
   */
-  private Uri getParentUriByVirtualPathMap(String wholeDirecotoryPath) 
+  private Uri getParentUriByVirtualPathMap(String wholeDirecotoryPath)
   {
-    String currentTryingPath=getParentVirtualPathByVirtualPathMap(wholeDirecotoryPath); // Get the paretn virtual path map.
-    
-    Uri result=null;
-    
-    result=virtualPathMap.get(currentTryingPath); // Get the uri.
-    
+    String currentTryingPath = getParentVirtualPathByVirtualPathMap(wholeDirecotoryPath); // Get the paretn virtual path map.
+
+    // 👇 关键修改：标准化路径，去掉末尾的斜杠
+    String normalizedPath = currentTryingPath.endsWith("/") ? currentTryingPath.substring(0, currentTryingPath.length() - 1) : currentTryingPath;
+
+    Uri result = null;
+
+    result = virtualPathMap.get(normalizedPath); // Get the uri.
+
     if (externalStoragePerformanceOptimize) // Need to do external storage performance optimize
     {
-      result=externalStorageUriGuessor.guessUri(result); // Guess the uri.
+      result = externalStorageUriGuessor.guessUri(result); // Guess the uri.
     } // if (externalStoragePerformanceOptimize) // Need to do external storage performance optimize
-    
+
     //       Uri uri=virtualPathMap.get(wholeDirecotoryPath); // Get the uri.
 
     return result;
   } // private Uri getParentUriByVirtualPathMap(String wholeDirecotoryPath)
-  
+
   /**
   * Get the paretn virtual path map.
   */
