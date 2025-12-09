@@ -126,9 +126,21 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
   */
   public void mountVirtualPath(String fullPath, Uri uri)
   {
-    Log.d(TAG, CodePosition.newInstance().toString()+  ", full path : " + fullPath + ", uri to use: " + uri.toString()); // Debug.
-    virtualPathMap.put(fullPath, uri); // Put it into the map.
-    
+    // 👇 关键修改：特殊处理根路径
+    if (fullPath.equals("/"))
+    {
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", full path : /, uri to use: " + uri.toString()); // Debug.
+      virtualPathMap.put("/", uri); // Put it into the map.
+      saveVirtualPathMap(); // Save the virtual path map.
+      return;
+    }
+
+    // 👇 关键修改：标准化路径，去掉末尾的斜杠
+    String normalizedPath = fullPath.endsWith("/") ? fullPath.substring(0, fullPath.length() - 1) : fullPath;
+
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", full path : " + normalizedPath + ", uri to use: " + uri.toString()); // Debug.
+    virtualPathMap.put(normalizedPath, uri); // Put it into the map.
+
     saveVirtualPathMap(); // Save the virtual path map.
   } // public void mountVirtualPath(String fullPath, Uri uri)
 
@@ -165,31 +177,43 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
   */
   private String getParentVirtualPathByVirtualPathMap(String wholeDirecotoryPath)
   {
-    boolean result=false;
+    boolean result = false;
 
-    String currentTryingPath = wholeDirecotoryPath;
+    // 👇 关键修改：特殊处理根路径
+    if (wholeDirecotoryPath.equals("/"))
+    {
+      return "/";
+    }
+
+    // 👇 关键修改：标准化输入路径，去掉末尾的斜杠
+    String normalizedPath = wholeDirecotoryPath.endsWith("/") ? wholeDirecotoryPath.substring(0, wholeDirecotoryPath.length() - 1) : wholeDirecotoryPath;
+
+    String currentTryingPath = normalizedPath;
 
     Log.d(TAG, CodePosition.newInstance().toString()+  ", curent trying Path : " + currentTryingPath + ", result: " + result); // Debug.
 
-    String theFinalPath=null; // The final path.
-    
-    while((!currentTryingPath.equals("/")) && (!result)) // Not to root
+    String theFinalPath = null; // The final path.
+
+    while ((!currentTryingPath.equals("/")) && (!result)) // Not to root
     {
-      result=virtualPathMap.containsKey(currentTryingPath);
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", curent trying Path : " + currentTryingPath + ", result: " + result); // Debug.
+      // 👇 关键修改：标准化当前路径，去掉末尾的斜杠
+      String normalizedCurrentPath = currentTryingPath.endsWith("/") ? currentTryingPath.substring(0, currentTryingPath.length() - 1) : currentTryingPath;
+
+      result = virtualPathMap.containsKey(normalizedCurrentPath);
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", curent trying Path : " + normalizedCurrentPath + ", result: " + result); // Debug.
       Log.d(TAG, CodePosition.newInstance().toString()+  ", virtual path map: " + virtualPathMap); // Debug.
-      
+
       if (result) // Found it
       {
         break;
       } //  if (result) // Found it
 
-      File virtualFile=new File(currentTryingPath);
-      
-      File parentVirtualFile=virtualFile.getParentFile();
-      
-      currentTryingPath=parentVirtualFile.getPath();
-      
+      File virtualFile = new File(currentTryingPath);
+
+      File parentVirtualFile = virtualFile.getParentFile();
+
+      currentTryingPath = parentVirtualFile.getPath();
+
       if (currentTryingPath.endsWith("/")) // Ends iwth /
       {
       } // if (currentTryingPath.endsWith("/")) // Ends iwth /
@@ -199,16 +223,16 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
       } // else // NOt end with /
       // Log.d(TAG, CodePosition.newInstance().toString()+  ", curent trying Path : " + currentTryingPath + ", result: " + result); // Debug.
     } // while(!currentTryingPath.equals("/")) // Not to root
-    
+
     if (result) // Found virtual path
     {
-      theFinalPath=currentTryingPath;
+      theFinalPath = currentTryingPath;
     } // if (result) // Found virtual path
     Log.d(TAG, CodePosition.newInstance().toString()+  ", the final Path : " + theFinalPath + ", result: " + result); // Debug.
 
     return theFinalPath;
   } // private String getParentVirtualPathByVirtualPathMap(String wholeDirecotoryPath)
-  
+
   /**
   * Check for exact virtual path.
   */
@@ -225,21 +249,27 @@ public class FilePathInterpreter implements VirtualPathLoadInterface
   public boolean virtualPathExists(String ConstantsFilePathAndroidData)
   {
     boolean result = false;
-    
+
     ConstantsFilePathAndroidData = ConstantsFilePathAndroidData.replace("//", "/"); // 双斜杠替换成单斜杠
 
     Log.d(TAG, CodePosition.newInstance().toString()+  ", checking path : " + ConstantsFilePathAndroidData  ); // Debug.
 
-    String currentTryingPath = getParentVirtualPathByVirtualPathMap(ConstantsFilePathAndroidData); // Get the paretn virtual path map.
-    
-    if (currentTryingPath!=null) // The virtual path exists
+    // 👇 关键修改：特殊处理根路径
+    if (ConstantsFilePathAndroidData.equals("/"))
     {
-      result=true;
+      return virtualPathMap.containsKey("/");
+    }
+
+    String currentTryingPath = getParentVirtualPathByVirtualPathMap(ConstantsFilePathAndroidData); // Get the paretn virtual path map.
+
+    if (currentTryingPath != null) // The virtual path exists
+    {
+      result = true;
     } // if (currentTryingPath!=null) // The virtual path exists
 
     return result;
   } // public boolean virtualPathExists(String ConstantsFilePathAndroidData) // Does virtual path exist
-  
+
   /**
   * resolve 完整路径。
   */
