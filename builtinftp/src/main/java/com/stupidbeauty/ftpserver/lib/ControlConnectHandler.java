@@ -353,6 +353,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
       if (disconnectTimer!=null) // The disconnect timer exists
       {
         disconnectTimer.cancel(); // Cancel the timer.
+        disconnectTimer = null; // ✅ 避免重复取消
       } // if (disconnectTimer!=null) // The disconnect timer exists
       
     } // private void cancelDisconnectTimer()
@@ -362,13 +363,13 @@ public class ControlConnectHandler implements DataServerManagerInterface
     */
     private void scheduleDisconnect() // Schedule disconnect.
     {
-      Timer timerObj = new Timer();
+      // Timer timerObj = new Timer();
       
       cancelDisconnectTimer(); // Cancel the disconnect tiemr.
       
-      disconnectTimer=timerObj; // Remember timer.
-      
-      TimerTask timerTaskObj = new TimerTask() 
+      // disconnectTimer=timerObj; // Remember timer.
+
+      TimerTask timerTaskObj = new TimerTask()
       {
         public void run() 
         {
@@ -379,8 +380,31 @@ public class ControlConnectHandler implements DataServerManagerInterface
       };
       
       long suggestedInterfal20=disconnectIntervalManager.getSuggestedDisconnectInterval(); // Get suggested disconnect interval.
-      
-      timerObj.schedule(timerTaskObj, suggestedInterfal20); // delay and run.
+
+      if (disconnectTimer == null)
+      {
+        disconnectTimer = new Timer();
+      }
+
+      // ✅ 关键：检查 Timer 是否已取消
+      if (disconnectTimer != null )
+      {
+        try
+        {
+          disconnectTimer.schedule(timerTaskObj, suggestedInterfal20);
+        }
+        catch (IllegalStateException e)
+        {
+          // ✅ 忽略异常，连接应继续保持
+          Log.w(TAG, "Timer already cancelled, ignoring schedule", e);
+        }
+      }
+      else
+      {
+        Log.w(TAG, "Timer is null or already cancelled, not scheduling");
+      }
+
+      // timerObj.schedule(timerTaskObj, suggestedInterfal20); // delay and run.
 
       disconnectIntervalManager.markScheduleDisconnect(); // mark scheduled disconnect.
     } // private void scheduleDisconnect()
