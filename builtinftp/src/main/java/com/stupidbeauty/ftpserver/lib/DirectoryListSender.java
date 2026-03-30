@@ -217,6 +217,7 @@ public class DirectoryListSender
     if (photoDirecotry.isFile())  // 是一个文件。
     {
       String currentLine = construct1LineListFile(photoDirecotry, photoDirecotry.getName()); // 构造针对这个文件的一行输出。
+        Log.d(TAG, "DirectoryListSender [Single File], sending line: [" + currentLine + "]"); // Debug
       binaryStringSender.sendStringInBinaryMode(currentLine); // 发送回复内容。
     }
     else  // 是目录
@@ -233,6 +234,7 @@ public class DirectoryListSender
           String placeholderLine = "-rw-r--r-- 1 user group 0 Jan 01 00:00 .dolphin_placeholder\r\n";
           binaryStringSender.sendStringInBinaryMode(placeholderLine);
         }
+          Log.d(TAG, "DirectoryListSender [Empty Dir], sending placeholder line: [" + placeholderLine + "]"); // Debug
       }
       else  // 列出成功
       {
@@ -291,6 +293,7 @@ public class DirectoryListSender
 
           if (fileName.equals(nameOfFile) || nameOfFile.isEmpty())  // 匹配或全部列出
           {
+            Log.d(TAG, "DirectoryListSender [Dir Loop], sending line: [" + currentLine + "]"); // Debug
             binaryStringSender.sendStringInBinaryMode(currentLine); // 发送当前行
           }
         }
