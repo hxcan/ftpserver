@@ -1,3 +1,129 @@
+package com.stupidbeauty.ftpserver.lib;
+
+import android.os.Build;
+import android.os.Bundle;
+import android.os.LocaleList;
+import java.util.HashMap;
+import java.util.List;
+import java.text.SimpleDateFormat;
+import com.stupidbeauty.codeposition.CodePosition;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.BufferedReader;
+import android.net.Uri;
+import android.provider.Settings;
+import android.content.Intent;
+import android.os.Environment;
+import androidx.documentfile.provider.DocumentFile;
+import java.io.File;
+import com.koushikdutta.async.callback.CompletedCallback;
+import com.koushikdutta.async.callback.DataCallback;
+import com.koushikdutta.async.callback.ListenCallback;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.UserPrincipal;
+import java.util.Locale;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.LocalDateTime;
+import java.io.IOException;
+import java.time.format.DateTimeFormatter;
+import java.io.File;
+import com.koushikdutta.async.callback.CompletedCallback;
+import com.koushikdutta.async.callback.DataCallback;
+import com.koushikdutta.async.callback.ListenCallback;
+import android.util.Log;
+import android.app.Application;
+import android.content.Context;
+import android.util.Log;
+import java.util.Date;    
+import com.koushikdutta.async.AsyncSocket;
+import java.net.InetSocketAddress;
+import com.koushikdutta.async.callback.ConnectCallback;
+import android.app.Application;
+import java.io.File;
+import com.koushikdutta.async.callback.CompletedCallback;
+import com.koushikdutta.async.callback.DataCallback;
+import com.koushikdutta.async.callback.ListenCallback;
+import com.koushikdutta.async.Util;
+import com.koushikdutta.async.callback.CompletedCallback;
+import com.koushikdutta.async.callback.DataCallback;
+import com.koushikdutta.async.callback.ListenCallback;
+import org.apache.commons.io.FileUtils;
+import com.koushikdutta.async.callback.ConnectCallback;
+
+public class DirectoryListSender
+{
+  private boolean fileNameTolerant=false; //!< Set the file name tolerant mode.
+  private FilePathInterpreter filePathInterpreter=null; //!< the file path interpreter.
+  private byte[] dataSocketPendingByteArray=null; //!< 数据套接字数据内容 排队。
+  private ControlConnectHandler controlConnectHandler=null; //!< 控制连接处理器。
+  private AsyncSocket data_socket=null; //!< 当前的数据连接。
+  private File rootDirectory=null; //!< 根目录。
+  private String wholeDirecotoryPath= ""; //!< The whole directory path to be used.
+  private DocumentFile fileToSend=null; //!< 要发送的文件。
+  private String subDirectoryName=null; //!< 要列出的子目录名字。
+  private static final String TAG ="DirectoryListSender"; //!<  输出调试信息时使用的标记。
+  private BinaryStringSender binaryStringSender=new BinaryStringSender(); //!< 以二进制方式发送字符串的工具。
+  private String workingDirectory ; //!< Workding directory.
+  private boolean extraInformationEnabled = true; //!< Whether we should send extra informations other than file names only.
+  private boolean enableDolphinBug474238Placeholder = false;
+
+  public void setEnableDolphinBug474238Placeholder(boolean enable) {
+      this.enableDolphinBug474238Placeholder = enable;
+  }
+
+  public boolean isEnableDolphinBug474238Placeholder() {
+      return enableDolphinBug474238Placeholder;
+  }
+  
+  /**
+  * Set the option of enabling extra information or not.
+  */
+  public void setExtraInformationEnabled(boolean enabled)
+  {
+    extraInformationEnabled = enabled;
+  } // public void setExtraInformationEnabled(boolean enabled)
+    
+  /**
+  * Set the file path interpreter.
+  */
+  public void setFilePathInterpreter(FilePathInterpreter filePathInterpreter)
+  {
+    this.filePathInterpreter=filePathInterpreter;
+  } // public void setFilePathInterpreter(FilePathInterpreter filePathInterpreter)
+  
+  /**
+  * 设置根目录。
+  */
+  public void setRootDirectory(File rootDirectory)
+  {
+      this.rootDirectory=rootDirectory;
+  } //public void  setRootDirectory(File rootDirectory)
+
+  public void setControlConnectHandler(ControlConnectHandler controlConnectHandler) // 设置控制连接处理器。
+  {
+      this.controlConnectHandler=controlConnectHandler;
+  } //public void setControlConnectHandler(ControlConnectHandler controlConnectHandler)
+
+  /**
+  * 设置数据连接套接字。
+  */
+  public void setDataSocket(AsyncSocket socket)
+  {
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", data socket: " + socket ); // Debug.
+    data_socket=socket; // 记录。
+
+    binaryStringSender.setSocket(data_socket); // 设置套接字。
+
+    Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send: " + fileToSend); // Debug.
+    if ((fileToSend!=null) && (data_socket!=null)) // 有等待发送的内容。
+    {
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send: " + fileToSend); // Debug.
+      startSendFileContentForLarge(); // 开始发送文件内容。
+    } // if (dataSocketPendingByteArray!=null)
+  } //public void setDataSocket(AsyncSocket socket)
+
   /**
   * 构造针对这个文件的一行输出。
   * @param path 真实的 DocumentFile 对象，用于获取文件大小、时间、权限等信息。
@@ -217,3 +343,117 @@
 
     return result;
   }
+
+    /**
+    * 获取文件或目录的权限。
+    */
+    private String getPermissionForFile(DocumentFile path)
+    {
+      String permission = "-rw-r--r--"; // 默认文件权限
+
+      if (path.isDirectory())   // 如果是目录
+      {
+        permission = "drwxrwxrwx"; // 最宽松的目录权限
+      }
+      else
+      {
+        permission = "-rw-rw-rw-"; // 最宽松的文件权限
+      }
+
+      return permission;
+    }
+
+    private void startSendFileContentForLarge()
+    {
+      // Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send: " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
+      if ( (fileToSend!=null) && fileToSend.exists()) // The file exists
+      {
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", file to send: " + fileToSend + ", uri: " + fileToSend.getUri().toString()); // Debug.
+        getDirectoryContentList(fileToSend, subDirectoryName); // Get the whole directory list.
+      } //if (fileToSend.exist()) // 文件存在
+      else // The file exist
+      {
+        Log.d(TAG, CodePosition.newInstance().toString()+  ", not exist "); // Debug.
+        notifyFileNotExist(); // Notify , file does not exist.
+      } // else // The file exist
+    } //private void startSendFileContentForLarge()
+    
+    /**
+    * 发送文件内容。
+    */
+    public void sendDirectoryList(String data51, String currentWorkingDirectory) 
+    {
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", directory to list: " + data51 + ", working directory: " + currentWorkingDirectory); // Debug.
+      
+      workingDirectory = currentWorkingDirectory; // Remember working directory.
+      
+      String parameter=""; // 要列出的目录。
+      
+      int directoryIndex=5; // 要找的下标。
+      
+      if (directoryIndex<=(data51.length()-1)) // 有足够的字符串长度。
+      {
+        parameter=data51.substring(directoryIndex).trim(); // 获取额外参数。
+      } // if (directoryIndex<=(data51.length()-1)) // 有足够的字符串长度。
+        
+      if (parameter.equals("-la")) // 忽略
+      {
+        parameter=""; // 忽略成空白。
+      } //if (parameter.equals("-la")) // 忽略
+        
+      subDirectoryName=parameter; // 记录可能的子目录名字。
+
+      wholeDirecotoryPath = filePathInterpreter.resolveWholeDirectoryPath( rootDirectory, currentWorkingDirectory, parameter); // resolve whole directory path.
+      DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, parameter); // resolve 目录。
+      // Log.d(TAG, CodePosition.newInstance().toString()+  ", directory : " + photoDirecotry + ", working directory: " + currentWorkingDirectory + ", directory uri: " + photoDirecotry.getUri().toString() + ", whole directory path: " + wholeDirecotoryPath); // Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+  ", going to set file to send : " + photoDirecotry); // Debug.
+
+      fileToSend=photoDirecotry; // 记录，要发送的文件对象。
+        
+      if (data_socket!=null) // 数据连接存在。
+      {
+        startSendFileContentForLarge(); // 开始发送文件内容。
+      } //if (data_socket!=null) // 数据连接存在。
+      else // The data socket does not exist yet
+      {
+        // Log.d(TAG, CodePosition.newInstance().toString()+  ", directory : " + photoDirecotry + ", working directory: " + currentWorkingDirectory + ", directory uri: " + photoDirecotry.getUri().toString() + ", whole directory path: " + wholeDirecotoryPath + ", data socket not exist, skip"); // Debug.
+      } // else // The data socket does not exist yet
+    } // private void sendFileContent(String data51, String currentWorkingDirectory)
+    
+    private void notifyLsCompleted()
+    {
+      controlConnectHandler.notifyLsCompleted();
+    } //private void notifyLsCompleted()
+
+    /**
+    * 告知已经发送文件内容数据。
+    */
+    private void notifyFileSendCompleted() 
+    {
+      controlConnectHandler.notifyFileSendCompleted(); // 告知文件内容发送完毕。
+    } //private void notifyFileSendCompleted()
+    
+    /**
+    * Notify that the file does not exist
+    */
+    private void notifyFileNotExist()
+    {
+      controlConnectHandler.notifyFileNotExist(wholeDirecotoryPath); // 告知文件不存在。
+    } //private void notifyFileNotExist()
+
+    /**
+    * 将回复数据排队。
+    */
+    private void queueForDataSocket(byte[] output) 
+    {
+        dataSocketPendingByteArray=output; // 排队。
+    } //private void queueForDataSocket(String output)
+
+    /**
+    * 将回复数据排队。
+    */
+    private void queueForDataSocket(String output) 
+    {
+        dataSocketPendingByteArray=output.getBytes(); // 排队。
+    } //private void queueForDataSocket(String output)
+}
