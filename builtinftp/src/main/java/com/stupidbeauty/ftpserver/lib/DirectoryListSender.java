@@ -233,8 +233,8 @@ public class DirectoryListSender
         {
           String placeholderLine = "-rw-r--r-- 1 user group 0 Jan 01 00:00 .dolphin_placeholder\r\n";
           binaryStringSender.sendStringInBinaryMode(placeholderLine);
-        }
           Log.d(TAG, "DirectoryListSender [Empty Dir], sending placeholder line: [" + placeholderLine + "]"); // Debug
+        }
       }
       else  // 列出成功
       {
