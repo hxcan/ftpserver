@@ -194,6 +194,9 @@ public class DirectoryListSender
 
     currentLine = currentLine + fileName;
 
+    // 🔍 DEBUG: Log the exact line content with visible line ending markers
+    Log.d(TAG, "📤 [CONSTRUCT] Line constructed: [" + currentLine + "] (length=" + currentLine.length() + ")");
+
     return currentLine;
   }
 
@@ -217,7 +220,17 @@ public class DirectoryListSender
     if (photoDirecotry.isFile())  // 是一个文件。
     {
       String currentLine = construct1LineListFile(photoDirecotry, photoDirecotry.getName()); // 构造针对这个文件的一行输出。
-        Log.d(TAG, "DirectoryListSender [Single File], sending line: [" + currentLine + "]"); // Debug
+      Log.d(TAG, "DirectoryListSender [Single File], sending line: [" + currentLine + "]"); // Debug
+      
+      // 🔍 DEBUG: Log exact bytes being sent
+      byte[] lineBytes = (currentLine + "\r\n").getBytes();
+      StringBuilder hexDump = new StringBuilder();
+      for (byte b : lineBytes) {
+        hexDump.append(String.format("%02X ", b));
+      }
+      Log.d(TAG, "📤 [SINGLE FILE] Sending bytes (" + lineBytes.length + "): " + hexDump.toString());
+      Log.d(TAG, "📤 [SINGLE FILE] Sending text: [" + currentLine + "\\r\\n]");
+      
       binaryStringSender.sendStringInBinaryMode(currentLine); // 发送回复内容。
     }
     else  // 是目录
@@ -294,12 +307,25 @@ public class DirectoryListSender
           if (fileName.equals(nameOfFile) || nameOfFile.isEmpty())  // 匹配或全部列出
           {
             Log.d(TAG, "DirectoryListSender [Dir Loop], sending line: [" + currentLine + "]"); // Debug
+            
+            // 🔍 DEBUG: Log exact bytes being sent for each line
+            byte[] lineBytes = (currentLine + "\r\n").getBytes();
+            StringBuilder hexDump = new StringBuilder();
+            for (byte b : lineBytes) {
+              hexDump.append(String.format("%02X ", b));
+            }
+            Log.d(TAG, "📤 [DIR LOOP] Sending bytes (" + lineBytes.length + "): " + hexDump.toString());
+            Log.d(TAG, "📤 [DIR LOOP] Sending text: [" + currentLine + "\\r\\n]");
+            
             binaryStringSender.sendStringInBinaryMode(currentLine); // 发送当前行
           }
         }
       }
     }
 
+    // 🔍 DEBUG: Log the final \r\n terminator
+    Log.d(TAG, "📤 [FINAL] Writing final \\r\\n terminator (2 bytes: 0D 0A)");
+    
     Util.writeAll(data_socket, "\r\n".getBytes(), new CompletedCallback()
     {
       @Override
