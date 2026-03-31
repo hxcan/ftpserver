@@ -304,7 +304,10 @@ public class DirectoryListSender
             }
           }
 
-          if (fileName.equals(nameOfFile) || nameOfFile.isEmpty())  // 匹配或全部列出
+          // 🔍 FIX: Check if nameOfFile ends with "/" which indicates a directory listing
+          // This handles cases like "LIST /", "LIST /Download/", etc.
+          // For specific files like "LIST file.txt", only match that exact filename
+          if (fileName.equals(nameOfFile) || nameOfFile.isEmpty() || nameOfFile.endsWith("/"))  // 匹配或全部列出
           {
             Log.d(TAG, "DirectoryListSender [Dir Loop], sending line: [" + currentLine + "]"); // Debug
             
