@@ -1,6 +1,6 @@
 package com.stupidbeauty.ftpserver.lib;
 
-import tjava.util.Timer;
+import java.util.Timer;
 import java.util.TimerTask;
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -19,7 +19,7 @@ import android.os.LocaleList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import tandroid.provider.DocumentsContract;
+import android.provider.DocumentsContract;
 import java.util.Locale;
 import java.time.ZoneId;
 import java.time.LocalDateTime;
