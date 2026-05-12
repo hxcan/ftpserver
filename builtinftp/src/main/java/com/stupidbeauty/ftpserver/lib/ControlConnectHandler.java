@@ -1,3 +1,4 @@
+// [DEBUG] Minimal debug logging for FTP upload issue
 package com.stupidbeauty.ftpserver.lib;
 
 import 	java.util.Timer;
@@ -57,6 +58,7 @@ import android.provider.Settings;
 import android.content.Intent;
 import android.os.Environment;
 
+
 /**
 * The handler of control connection.
 */
@@ -74,9 +76,9 @@ public class ControlConnectHandler implements DataServerManagerInterface
   private static final String TAG ="ControlConnectHandler"; //!<  输出调试信息时使用的标记。
   private Context context; //!< 执行时使用的上下文。
   private AsyncSocket data_socket; //!< 当前的数据连接。
-  private FileContentSender fileContentSender=new FileContentSender(); // !< 文件内容发送器。
-  private ThumbnailSender thumbnailSender = new ThumbnailSender(); // !< Thumbnail sender.
-  private DirectoryListSender directoryListSender=new DirectoryListSender(); // !< 目录列表发送器。
+  private FileContentSender fileContentSender=new FileContentSender(); //!< !< 文件内容发送器。
+  private ThumbnailSender thumbnailSender = new ThumbnailSender(); //!< !< Thumbnail sender.
+  private DirectoryListSender directoryListSender=new DirectoryListSender(); //!< !< 目录列表发送器。
   private byte[] dataSocketPendingByteArray=null; //!< 数据套接字数据内容 排队。
   private String currentWorkingDirectory="/"; //!< 当前工作目录
   private int data_port=1544; //!< 数据连接端口。
@@ -100,6 +102,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
   private InetAddress host;
   private File rootDirectory=null; //!< 根目录。
 
+  
   /**
   * 是否启用 Dolphin bug #474238 的绕过方案。
   */
@@ -117,6 +120,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     return enableDolphinBug474238Placeholder;
   }
 
+  
   /**
   * 将一个完整路径拆分为父路径和最后的目录名。
   * @param fullPath 完整路径
@@ -210,6 +214,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     thumbnailSender.setRootDirectory(rootDirectory); // Set the root directory.
   } // public void setRootDirectory(File root)
 
+  
   /**
   * File name tolerant. For example: /Android/data/com.client.xrxs.com.xrxsapp/files/XrxsSignRecordLog/Zw40VlOyfctCQCiKL_63sg==, with a trailing <LF> (%0A).
   */
@@ -293,9 +298,11 @@ public class ControlConnectHandler implements DataServerManagerInterface
       } // public void onConnectCompleted(Exception ex, final AsyncSocket socket) 
     }); // AsyncServer.getDefault().connectSocket(new InetSocketAddress(ip, port), new ConnectCallback() 
     
-    
+    // [DEBUG] 记录数据连接尝试
+    logDebug("CONNECT_TO_CLIENT", "port=" + port);
   } // private void connectToClientDataPort()
     
+  
   /**
   * 打开指向客户端特定端口的连接。
   */
@@ -318,6 +325,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     connectToClientDataPort(); // Connect to client data port.
   } //private void openDataConnectionToClient(String content)
 
+    
     /**
     * Notify the file send started.
     */
@@ -328,6 +336,9 @@ public class ControlConnectHandler implements DataServerManagerInterface
       Log.d(TAG, "reply string: " + replyString); //Debug.
 
       binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
+
+      // [DEBUG] 记录 150 响应
+      logDebug("NOTIFY_FILE_SEND_STARTED", "filePath=" + filePath + ", reply=" + replyString);
 
       // controlConnectHandler.notifyFileSendStarted(wholeDirecotoryPath); // Notify that the file send started.
     } // private void notifyFileSendStarted()
@@ -426,6 +437,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
       timerObj.schedule(timerTaskObj, 20); // delay and run.
     } // public void delayednotifyFileSendCompleted()
 
+    
     /**
     * 告知已经发送文件内容数据。
     */
@@ -442,6 +454,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
       notifyEvent(EventListener.DOWNLOAD_FINISH); // Notify event, file download finished.
     } // private void notifyFileSendCompleted()
 
+    
     /**
     * 发送文件内容。
     */
@@ -475,6 +488,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
       sendListContentBySender(fileName, currentWorkingDirectory, extraInformation) ;
     } // private void sendListContentBySender(String fileName, String currentWorkingDirectory)
 
+    
     /**
     * 告知上传完成。
     */
@@ -492,7 +506,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     
     /**
      * 告知已经发送目录数据。
-     */
+    */
     public void notifyLsCompleted()
     {
       String replyString="226 Data transmission OK. ChenXin"; // 回复内容。
@@ -536,6 +550,7 @@ private void processThmbCommand(String data51) {
 } // private void processThmbCommand(String data51)
 
 
+
 /**
 * Generate thumbnail and send it.
 */
@@ -546,6 +561,7 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
       
 } // private void sendThumbnail(String pathname, String currentWorkingDirectory, int maxWidth, int maxHeight)
 
+    
     /**
     * Process the retr command.
     */
@@ -572,9 +588,13 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
         replyString="550 it is a directory: " + data51; // The reply content. Do not allow to replace a directory with a normal file.
       } // else // Failed to start stor
 
+      // [DEBUG] 记录 STOR 命令及响应
+      logDebug("PROCESS_STOR", "data51=" + data51 + ", result=" + storStartResult + ", reply=" + replyString);
+
       binaryStringSender.sendStringInBinaryMode(replyString);
     } // private void processStorCommand(String data51)
 
+    
     /**
     * 上传文件内容。
     */
@@ -686,6 +706,7 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
       }
     } // private void processPassCommand(String targetWorkingDirectory)
 
+    
     /**
     * Process feat command.
     */
@@ -708,6 +729,7 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
       binaryStringSender.sendStringInBinaryMode("331 Send password"); //  发送回复。
     } // private void processUserCommand(String userName)
 
+    
     /**
     * 处理改变目录命令。
     */
@@ -812,6 +834,7 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
 
     } // private void processAvblCommand()
 
+    
     /**
     * 处理尺寸查询命令。
     */
@@ -1042,11 +1065,12 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
         binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
     } // private void processPasvCommand()
 
+    
     /**
      * 处理命令。
      * @param command 命令关键字
      * @param content 整个消息内容。
-     */
+    */
     public void processCommand(String command, String content, boolean hasFolloingCommand)
     {
       cancelDisconnectTimer(); // Cancelt he disconnect timer.
@@ -1294,6 +1318,7 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
       } //else if (command.equals("EPSV")) // Extended passive mode.
     } // private void processCommand(String command, String content)
 
+    
     /**
     * Report event.
     */
@@ -1319,6 +1344,7 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
       } //if (eventListener!=null) // 有事件监听器。
     } // private void notifyEvent(String eventCode)
 
+    
     /**
     * Report event.
     */
@@ -1343,6 +1369,7 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
       } //if (eventListener!=null) // 有事件监听器。
     } // private void notifyEvent(String eventCode)
 
+    
     /**
     * Report event.
     */
@@ -1351,6 +1378,7 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
       notifyEvent(eventCode, null);
     } //private void notifyEvent(String eventCode)
 
+    
     /**
     *  Check the permission of file manager.
     */
@@ -1408,6 +1436,7 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
       } // if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) // Android 11. isExternalStorageManager
     } // private void checkFileManagerPermission()
 
+    
     /**
     *   Goto file manager settings page.
     */
@@ -1510,6 +1539,7 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
       } // if (paths.length==0) // Unable to list files
     } // private void CheckAndroidDataPermission()
 
+    
     /**
     * Process the command of nlst.
     */
@@ -1628,6 +1658,7 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
       Log.d(TAG, CodePosition.newInstance().toString() +  ", 📁 File write session ended" ); // Debug.
     }
 
+    
     /**
     * Handle connect completed. Connect to port specified by the client.
     */
@@ -1723,7 +1754,7 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
     /**
      * Accept data connection.
      * @param socket 连接对象。
-     */
+    */
     public void handleDataAccept(final AsyncSocket socket)
     {
       Log.d(TAG, CodePosition.newInstance().toString() + ", handleDataAccept, [Server] data New Connection " + socket.toString());
@@ -1788,10 +1819,11 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
       });
     } //private void handleDataAccept(final AsyncSocket socket)
 
+    
     /**
      * 接受新连接
      * @param socket 新连接的套接字对象
-     */
+    */
     public void handleAccept(final AsyncSocket socket)
     {
       this.socket = socket;
@@ -1865,7 +1897,7 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
     @Override
     /**
      * 启动数据传输服务器。
-     */
+    */
     public void setupDataServer()
     {
       setupDataServerByManager(); // Set up data server by manager.
@@ -1879,9 +1911,10 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
       data_port = dataServerManager.setupDataServer(this); // Set up data server.
     } // private void setupDataServerByManager()
 
+    
     /**
      * 启动数据传输服务器。
-     */
+    */
     private void setupDataServerListen()
     {
       Random random=new Random(); //随机数生成器。
@@ -1920,4 +1953,22 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
         } // public void onCompleted(Exception ex) 
       });
     } //private void setupDataServer()
+
+    // [DEBUG] 新增：调试日志方法
+    private void logDebug(String tag, String message) {
+        try {
+            String packageName = context.getPackageName();
+            String logFilePath = "/sdcard/Download/builtinftp_" + packageName + "_debug.log";
+            String timestamp = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new java.util.Date());
+            String logEntry = timestamp + " [" + tag + "] " + message + "\n";
+            
+            java.io.FileWriter writer = new java.io.FileWriter(logFilePath, true);
+            writer.write(logEntry);
+            writer.close();
+            
+            Log.d(TAG, "[DEBUG LOG] " + tag + ": " + message);
+        } catch (Exception e) {
+            Log.e(TAG, "[DEBUG LOG FAILED] " + e.getMessage());
+        }
+    }
 }
