@@ -110,17 +110,15 @@ public class ControlConnectHandler implements DataServerManagerInterface
 
   /**
    * 调试日志文件路径（包含包名，避免多应用冲突）
-   * 格式: /sdcard/Download/builtinftp_<包名>_debug.log
    */
   private String getDebugLogFilePath() {
+      if (context == null) return "/sdcard/Download/builtinftp_debug.log";
       String packageName = context.getPackageName();
       return "/sdcard/Download/builtinftp_" + packageName + "_debug.log";
   }
 
   /**
-   * 写入调试日志到外置存储（供未来姐姐读取）
-   * @param tag 日志标签
-   * @param message 日志消息
+   * 写入调试日志
    */
   private void writeDebugLog(String tag, String message) {
       try {
@@ -133,27 +131,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
       } catch (Exception e) {
           Log.e(TAG, "Failed to write debug log: " + e.getMessage());
       }
-  }
-
-  /**
-   * 记录 FTP 命令（核心调试）
-   * @param command 命令关键字
-   * @param content 命令内容
-   */
-  private void logFtpCommand(String command, String content) {
-      String logMsg = ">>> " + command + " " + content;
-      writeDebugLog("FTP_CMD", logMsg);
-      Log.d(TAG, logMsg);
-  }
-
-  /**
-   * 记录 FTP 响应（核心调试）
-   * @param reply 响应内容
-   */
-  private void logFtpReply(String reply) {
-      String logMsg = "<<< " + reply;
-      writeDebugLog("FTP_REPLY", logMsg);
-      Log.d(TAG, logMsg);
   }
 
   public void setEnableDolphinBug474238Placeholder(boolean enable)
@@ -206,7 +183,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     }
     return new String[]{parentPath, dirName};
   }
-
+  
   /**
   * Set the user manager.
   */
@@ -243,7 +220,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
   {
     rootDirectory=root;
     Log.d(TAG, "setRootDirectory, rootDirectory: " + rootDirectory); // Debug.
-    writeDebugLog("INIT", "setRootDirectory: " + rootDirectory.getAbsolutePath());
         
     fileContentSender.setRootDirectory(rootDirectory); // 设置根目录。
     directoryListSender.setRootDirectory(rootDirectory); // 设置根目录。
@@ -257,7 +233,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
   {
     directoryListSender.setFileNameTolerant(toleranttrue);
   } // public void setFileNameTolerant(boolean toleranttrue)
-
+  
   /**
   * 从数据套接字处接收数据，陈欣
   */
@@ -302,13 +278,13 @@ public class ControlConnectHandler implements DataServerManagerInterface
     fileContentSender.setContext(context); // Set the context.
     thumbnailSender.setContext(context); // Set the context.
     
-    writeDebugLog("INIT", "ControlConnectHandler created. allowActiveMode=" + allowActiveMode + ", Debug log path: " + getDebugLogFilePath());
+    writeDebugLog("INIT", "ControlConnectHandler created. allowActiveMode=" + allowActiveMode);
   } // public ControlConnectHandler(Context context, boolean allowActiveMode, InetAddress host, String ip)
-
+  
   /**
   * Connect to client data port.
   */
-  private void connectToClientDataPort()
+  private void connectToClientDataPort() 
   {
     String ip=clientIp;
     int port=clientDataPort;
@@ -316,18 +292,16 @@ public class ControlConnectHandler implements DataServerManagerInterface
     Log.d(TAG, CodePosition.newInstance().toString()+ ", connecting to port specified by client: " + port  +", this: " + this); // Debug.
     writeDebugLog("ACTIVE_MODE", "Connecting to client " + ip + ":" + port);
     
-    AsyncServer.getDefault().connectSocket(new InetSocketAddress(ip, port), new ConnectCallback()
+    AsyncServer.getDefault().connectSocket(new InetSocketAddress(ip, port), new ConnectCallback() 
     {
       @Override
-      public void onConnectCompleted(Exception ex, final AsyncSocket socket)
+      public void onConnectCompleted(Exception ex, final AsyncSocket socket) 
       {
         handleConnectCompleted(ex, socket);
-      } // public void onConnectCompleted(Exception ex, final AsyncSocket socket)
-    }); // AsyncServer.getDefault().connectSocket(new InetSocketAddress(ip, port), new ConnectCallback())
-
-    
+      } // public void onConnectCompleted(Exception ex, final AsyncSocket socket) 
+    }); // AsyncServer.getDefault().connectSocket(new InetSocketAddress(ip, port), new ConnectCallback() 
   } // private void connectToClientDataPort()
-
+    
   /**
   * 打开指向客户端特定端口的连接。
   */
@@ -353,7 +327,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
   {
     String replyString="150 start send content: " + filePath ; // The reply string.
     Log.d(TAG, "reply string: " + replyString); //Debug.
-    logFtpReply(replyString); // 核心调试：记录 FTP 响应
     binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
   } // private void notifyFileSendStarted()
 
@@ -364,14 +337,13 @@ public class ControlConnectHandler implements DataServerManagerInterface
   {
     String replyString="550 File not exist " + filePath; // File does not exist.
     Log.d(TAG, CodePosition.newInstance().toString()+ ", reply string: " + replyString  +", this: " + this); // Debug.
-    logFtpReply(replyString); // 核心调试：记录 FTP 响应
     binaryStringSender.sendStringInBinaryMode(replyString); // 发送。
   } // private void notifyFileNotExist()
-
+  
   /**
   * Cancel the disconnect tiemr.
   */
-  private void cancelDisconnectTimer()
+  private void cancelDisconnectTimer() 
   {
     if (disconnectTimer!=null) // The disconnect timer exists
     {
@@ -379,7 +351,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
       disconnectTimer = null; // ✅ 避免重复取消
     } // if (disconnectTimer!=null) // The disconnect timer exists
   } // private void cancelDisconnectTimer()
-
+  
   /**
   * Schedule disconnect.
   */
@@ -389,7 +361,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     
     TimerTask timerTaskObj = new TimerTask()
     {
-      public void run()
+      public void run() 
       {
         socket.close(); // close the connection.
       }
@@ -420,16 +392,16 @@ public class ControlConnectHandler implements DataServerManagerInterface
     
     disconnectIntervalManager.markScheduleDisconnect(); // mark scheduled disconnect.
   } // private void scheduleDisconnect()
-
+  
   /**
   * Delay and notify the file send completed.
   */
   public void delayednotifyFileSendCompleted()
   {
     Timer timerObj = new Timer();
-    TimerTask timerTaskObj = new TimerTask()
+    TimerTask timerTaskObj = new TimerTask() 
     {
-      public void run()
+      public void run() 
       {
         notifyFileSendCompleted(); // Notify file send completed.
       }
@@ -442,9 +414,8 @@ public class ControlConnectHandler implements DataServerManagerInterface
   */
   public void notifyFileSendCompleted() 
   {
-    String replyString="226 File sent. " + "ChenXin"; // The reply message.
+    String replyString="226 File sent. " + "ChenXin" + " 嘴巴上挂着价签吗" + " 并不好吃，感觉它本身的味道没调好" + " 你还是去闻熏村那种"; // The reply message.
     Log.d(TAG, CodePosition.newInstance().toString()+ ", reply string: " + replyString  +", this: " + this); // Debug.
-    logFtpReply(replyString); // 核心调试：记录 FTP 响应
     binaryStringSender.sendStringInBinaryMode(replyString); //发送。
     
     scheduleDisconnect(); // Schedule disconnect.
@@ -455,7 +426,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
   /**
   * 发送文件内容。
   */
-  private void sendFileContent(String data51, String currentWorkingDirectory)
+  private void sendFileContent(String data51, String currentWorkingDirectory) 
   {
     fileContentSender.setControlConnectHandler(this); // 设置控制连接处理器。
     fileContentSender.setDataSocket(data_socket); // 设置数据连接套接字。
@@ -463,7 +434,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     
     notifyEvent(EventListener.DOWNLOAD_START); // 报告事件，开始下载文件。
   } //private void sendFileContent(String data51, String currentWorkingDirectory)
-
+  
   /**
   * Send directory list content.
   */
@@ -473,12 +444,12 @@ public class ControlConnectHandler implements DataServerManagerInterface
     directoryListSender.setDataSocket(data_socket); // 设置数据连接套接字。
     directoryListSender.setExtraInformationEnabled(extraInformation); // Set the option of sending extra inforamtion.
     directoryListSender.sendDirectoryList(fileName, currentWorkingDirectory); // 让目录列表发送器来发送。
-  } // private void sendListContentBySender(String fileName, String currentWorkingDirectory, boolean extraInformation)
-
+  } // private void sendListContentBySender(String fileName, String currentWorkingDirectory, boolean extraInformation) 
+  
   /**
   * Send directory list content.
   */
-  private void sendListContentBySender(String fileName, String currentWorkingDirectory)
+  private void sendListContentBySender(String fileName, String currentWorkingDirectory) 
   {
     boolean extraInformation = true; // Send extra informations.
     sendListContentBySender(fileName, currentWorkingDirectory, extraInformation) ;
@@ -489,25 +460,25 @@ public class ControlConnectHandler implements DataServerManagerInterface
   */
   private void notifyStorCompleted() 
   {
+    // if (writingFile!=null)
     String replyString="226 Stor completed."; // 回复内容。
     Log.d(TAG, "reply string: " + replyString); //Debug.
-    logFtpReply(replyString); // 核心调试：记录 FTP 响应
     binaryStringSender.sendStringInBinaryMode(replyString);
     
     notifyEvent(EventListener.UPLOAD_FINISH, (Object)(writingFile)); // Notify event, uplaod finished.
   } //private void notifyStorCompleted()
-
+  
   /**
    * 告知已经发送目录数据。
    */
   public void notifyLsCompleted()
   {
     String replyString="226 Data transmission OK. ChenXin"; // 回复内容。
+    
     binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
     Log.d(TAG, "reply string: " + replyString); //Debug.
-    logFtpReply(replyString); // 核心调试：记录 FTP 响应
   } //private void notifyLsCompleted()
-
+  
   /**
   * Process quit command.
   */
@@ -516,8 +487,38 @@ public class ControlConnectHandler implements DataServerManagerInterface
     String replyString="221 Quit OK. ChenXin"; // The reply string.
     binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
     Log.d(TAG, "reply string: " + replyString); //Debug.
-    logFtpReply(replyString); // 核心调试：记录 FTP 响应
   } // private void processQuitCommand()
+
+/**
+* Handle the command thmb.
+*
+private void processThmbCommand(String data51) {
+  String[] parts = data51.split(" ");
+  if (parts.length < 3) {
+    String replyString = "501 Syntax error in parameters or arguments.";
+    binaryStringSender.sendStringInBinaryMode(replyString);
+    return;
+  }
+  
+  // Extract max-width, max-height, and pathname from parts array
+  String maxWidthStr = parts[1];
+  String maxHeightStr = parts[2];
+  
+  int maxWidth = Integer.parseInt(maxWidthStr);
+  int maxHeight = Integer.parseInt(maxHeightStr);
+  
+  sendThumbnail(data51, currentWorkingDirectory, maxWidth, maxHeight); // Use the same method as for file retrieval.
+} // private void processThmbCommand(String data51)
+
+/**
+* Generate thumbnail and send it.
+*
+private void sendThumbnail(String pathname, String currentWorkingDirectory, int maxWidth, int maxHeight) {
+      thumbnailSender.setControlConnectHandler(this); // 设置控制连接处理器。
+      thumbnailSender.setDataSocket(data_socket); // 设置数据连接套接字。
+      thumbnailSender.sendThumbnail(pathname, currentWorkingDirectory, maxWidth, maxHeight); // Adding width and height parameters.
+      
+} // private void sendThumbnail(String pathname, String currentWorkingDirectory, int maxWidth, int maxHeight)
 
   /**
   * Process the retr command.
@@ -526,7 +527,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
   {
     sendFileContent(data51, currentWorkingDirectory); // Send file content.
   } // private void processRetrCommand(String data51)
-
+  
   /**
   *  处理上传文件命令。
   */
@@ -534,25 +535,22 @@ public class ControlConnectHandler implements DataServerManagerInterface
   {
     String replyString="150 "; // 回复内容。
     
-    writeDebugLog("STOR_START", "Processing STOR command for file: " + data51);
+    writeDebugLog("STOR", "Processing STOR: " + data51);
     
     boolean storStartResult = startStor(data51, currentWorkingDirectory); // Start stor process.
     
     if (storStartResult) // Start stor successfully
     {
-      replyString = "150 Opening data connection for STOR: " + data51; // 核心调试：改进响应消息
-      writeDebugLog("STOR_SUCCESS", "File opened for write: " + data51);
+      replyString = "150 Opening data connection for STOR: " + data51;
+      writeDebugLog("STOR", "Success, sending: " + replyString);
     } // if (storStartResult) // Start stor successfully
     else // Failed to start stor
     {
       replyString="550 it is a directory: " + data51; // The reply content. Do not allow to replace a directory with a normal file.
-      writeDebugLog("STOR_FAILED", "Failed to start STOR: " + data51);
+      writeDebugLog("STOR", "Failed, sending: " + replyString);
     } // else // Failed to start stor
     
-    Log.d(TAG, "STOR reply string: [" + replyString + "], length=" + replyString.length()); // 核心调试：明确显示响应内容
-    writeDebugLog("STOR_REPLY", "Sending reply: [" + replyString + "], length=" + replyString.length());
-    logFtpReply(replyString); // 核心调试：记录 FTP 响应
-    
+    writeDebugLog("STOR_REPLY", replyString);
     binaryStringSender.sendStringInBinaryMode(replyString);
   } // private void processStorCommand(String data51)
 
@@ -565,9 +563,9 @@ public class ControlConnectHandler implements DataServerManagerInterface
     
     DocumentFile photoDirecotry = filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // Resolve file path.
 
+    // writingFile = photoDirecotry; // 先不赋值，等 createFile 后再赋
     isUploading = true; // 记录，处于上传状态。
     Log.d(TAG, CodePosition.newInstance().toString() + ", startStor: target path=" + data51); // Debug.
-    writeDebugLog("START_STOR", "Target path: " + data51);
     
     if (photoDirecotry != null && photoDirecotry.exists()) // The file exists
     {
@@ -575,23 +573,19 @@ public class ControlConnectHandler implements DataServerManagerInterface
       {
         result = false;
         Log.d(TAG, CodePosition.newInstance().toString() + ", STOR failed: target is a directory: " + data51); // Debug.
-        writeDebugLog("START_STOR", "Failed: target is directory");
       } //  if (photoDirecotry.isDirectory()) // It is an existing directory
       else // It is a normal file.
       {
         photoDirecotry.delete();
         Log.d(TAG, CodePosition.newInstance().toString() + ", Deleted existing file: " + photoDirecotry.getUri().toString() ); // Debug.
-        writeDebugLog("START_STOR", "Deleted existing file");
       } // else // It is a normal file.
     } // if (photoDirecotry.exists()) // The file exists
-    
+
     if (result) // We can proceed so far
     {
       try // Create the file.
       {
         Log.d(TAG, CodePosition.newInstance().toString() + ", Creating new file for STOR: " + data51 ); // Debug.
-        writeDebugLog("START_STOR", "Creating new file...");
-        
         File virtualFile = new File(data51);
         File parentVirtualFile = virtualFile.getParentFile();
 
@@ -608,16 +602,11 @@ public class ControlConnectHandler implements DataServerManagerInterface
         DocumentFile parentDocumentFile = filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, currentTryingPath);
         String fileNameOnly = virtualFile.getName();
         
-        writeDebugLog("START_STOR", "Parent path: " + currentTryingPath + ", File name: " + fileNameOnly);
-        
         writingFile = parentDocumentFile.createFile("", fileNameOnly); // Creat eh file.
-        
-        Log.d(TAG, CodePosition.newInstance().toString() + ", Created new file: " + (writingFile != null ? writingFile.getUri().toString() : "null")); // Debug.
-        writeDebugLog("START_STOR", "createFile result: " + (writingFile != null ? writingFile.getUri().toString() : "null"));
+        Log.d(TAG, CodePosition.newInstance().toString() + ", Created new file: " + (writingFile != null ? writingFile.getUri().toString() : "null") ); // Debug.
         
         if (writingFile == null) {
-          Log.d(TAG, CodePosition.newInstance().toString() + ", createFile returned null!");
-          writeDebugLog("START_STOR_ERROR", "createFile returned null!");
+          Log.d(TAG, CodePosition.newInstance().toString() + ", createFile returned null!"); // Debug.
           result = false;
         } else {
           // 打开文件句柄
@@ -628,16 +617,13 @@ public class ControlConnectHandler implements DataServerManagerInterface
               fileOutputStream = new FileOutputStream(pfd.getFileDescriptor());
               totalWritten = 0;
               lastLogTime = System.currentTimeMillis();
-              Log.d(TAG, CodePosition.newInstance().toString() + ", File opened for write: " + writingFile.getUri().toString()); // Debug.
-              writeDebugLog("START_STOR", "File successfully opened for write");
+              Log.d(TAG, CodePosition.newInstance().toString() + ", File opened for write: " + writingFile.getUri().toString() ); // Debug.
             } else {
-              Log.d(TAG, CodePosition.newInstance().toString() + ", openFileDescriptor returned null!");
-              writeDebugLog("START_STOR_ERROR", "openFileDescriptor returned null!");
+              Log.d(TAG, CodePosition.newInstance().toString() + ", openFileDescriptor returned null!"); // Debug.
               result = false;
             }
           } catch (Exception e) {
-            Log.d(TAG, CodePosition.newInstance().toString() + ", Exception opening file descriptor: " + e.getMessage()); // Debug.
-            writeDebugLog("START_STOR_ERROR", e.getMessage());
+            Log.d(TAG, CodePosition.newInstance().toString() + ", Exception opening file descriptor: " + e.getMessage() ); // Debug.
             e.printStackTrace();
             result = false;
           }
@@ -646,39 +632,36 @@ public class ControlConnectHandler implements DataServerManagerInterface
       catch (Exception e) // Catch any exception.
       {
         e.printStackTrace();
-        Log.d(TAG, CodePosition.newInstance().toString() + ", Exception during startStor: " + e.getMessage()); // Debug.
-        writeDebugLog("START_STOR_ERROR", e.getMessage());
+        Log.d(TAG, CodePosition.newInstance().toString() + ", Exception during startStor: " + e.getMessage() ); // Debug.
         result = false;
       } // catch (Exception e) // Catch any exception.
     } // if (result) // We can proceed so far
     
     Log.d(TAG, CodePosition.newInstance().toString() + ", startStor result: " + result + ", writingFile=" + (writingFile != null ? writingFile.getUri().toString() : "null") ); // Debug.
-    writeDebugLog("START_STOR_RESULT", "Result: " + result);
-    
     return result;
   } // private boolean startStor
-
+  
   /**
   * Process pass command.
   */
-  private void processPassCommand(String targetWorkingDirectory)
+  private void processPassCommand(String targetWorkingDirectory) 
   {
     this.passWord=targetWorkingDirectory; // Remember password.
+    
     
     if (userManager!=null)
     {
       authenticated=userManager.authenticate(userName, passWord); // Authenticate.
     } // if (userManager!=null)
     
+    
     if (authenticated) // Login correct
     {
       binaryStringSender.sendStringInBinaryMode("230 Loged in."); // 回复，登录成功。
-      logFtpReply("230 Loged in.");
     } // if (authenticated) // Login correct
     else // Login not correct
     {
       binaryStringSender.sendStringInBinaryMode("430 Invalid username or password."); // 回复，登录成功。
-      logFtpReply("430 Invalid username or password.");
     }
   } // private void processPassCommand(String targetWorkingDirectory)
 
@@ -693,7 +676,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     binaryStringSender.sendStringInBinaryMode(" THMB JPEG|PNG"); //  support thmb. thumbnail
     binaryStringSender.sendStringInBinaryMode("211 end"); //  end feature list
   } // private void processFeatCommand()
-
+  
   /**
   * Process user command.
   */
@@ -702,7 +685,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
     this.userName=userName; // Remember user name.
     
     binaryStringSender.sendStringInBinaryMode("331 Send password"); // 发送回复。
-    logFtpReply("331 Send password");
   } // private void processUserCommand(String userName)
 
   /**
@@ -710,48 +692,52 @@ public class ControlConnectHandler implements DataServerManagerInterface
   */
   private void processCwdCommand(String targetWorkingDirectory) 
   {
+//       FilePathInterpreter filePathInterpreter=new FilePathInterpreter(); // Create the file path interpreter.
       DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, targetWorkingDirectory); // 照片目录。
-    String replyString="" ; // 回复内容。
-    String fullPath=filePathInterpreter.resolveWholeDirectoryPath( rootDirectory, currentWorkingDirectory, targetWorkingDirectory); // resolve 完整路径。
-    if (photoDirecotry!=null) // The object exists
-    {
-      if (photoDirecotry.isDirectory()) // It is a directory.
-      {
-        String rootPath=rootDirectory.getPath(); // 获取根目录的完整路径。
-        
-        currentWorkingDirectory=fullPath.substring(rootPath.length()); // 去掉开头的根目录路径。
-        
-        if (currentWorkingDirectory.isEmpty()) // 是空白的了
-        {
-          currentWorkingDirectory="/"; // 当前工作目录是根目录。
-        } // if (currentWorkingDirectory.isEmpty()) // 是空白的了
-        
-        Log.d(TAG, CodePosition.newInstance().toString()+ ", fullPath: " + fullPath ); // Debug.
-        Log.d(TAG, "processCwdCommand, rootPath: " + rootPath ); // Debug.
-        Log.d(TAG, "processCwdCommand, currentWorkingDirectory: " + currentWorkingDirectory ); // Debug.
-        replyString="250 cwd succeed" ; // 回复内容。
-      } //if (photoDirecotry.isDirectory()) // 是个目录
-      else //不是个目录
-      {
-        replyString="550 not a directory: " + targetWorkingDirectory; // 回复内容。
-      }
-    } // if (photoDirecotry!=null) // The object exists
-    else // The object does not exist
-    {
-      replyString="550 File not exist " + targetWorkingDirectory; // File does not exist.
-    } // else // The object does not exist
-    Log.d(TAG, CodePosition.newInstance().toString()+ ", reply string: " + replyString); //Debug.
-    logFtpReply(replyString);
-      
-    binaryStringSender.sendStringInBinaryMode(replyString); //发送回复。
-    
-    if (filePathInterpreter.isSamePath (fullPath, Constants.FilePath.AndroidData)) // It is /Android/data, same path.
-    {
-      Log.d(TAG, CodePosition.newInstance().toString()+ ", full path : " + fullPath + ", other path: " + Constants.FilePath.AndroidData + ", checking /Android/data permission"); // Debug.
-      CheckAndroidDataPermission(); // Check /Android/data permission.
-    } // if (currentWorkingDirectory.equals(Constants.FilePath.AndroidData)) // It is /Android/data
-  } // private void processCwdCommand(String targetWorkingDirectory)
+//       File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, targetWorkingDirectory); //照片目录。
 
+      String replyString="" ; // 回复内容。
+//       String fullPath="";
+      String fullPath=filePathInterpreter.resolveWholeDirectoryPath( rootDirectory, currentWorkingDirectory, targetWorkingDirectory); // resolve 完整路径。
+
+      if (photoDirecotry!=null) // The object exists
+      {
+        if (photoDirecotry.isDirectory()) // It is a directory. 07-07 09:51:11.419 21116 21153 E AndroidRuntime: java.lang.NullPointerException: Attempt to invoke virtual method 'boolean androidx.documentfile.provider.DocumentFile.isDirectory()' on a null object reference
+        {
+          String rootPath=rootDirectory.getPath(); // 获取根目录的完整路径。
+          
+          currentWorkingDirectory=fullPath.substring(rootPath.length()); // 去掉开头的根目录路径。
+          
+          if (currentWorkingDirectory.isEmpty()) // 是空白的了
+          {
+            currentWorkingDirectory="/"; // 当前工作目录是根目录。
+          } // if (currentWorkingDirectory.isEmpty()) // 是空白的了
+          
+          Log.d(TAG, CodePosition.newInstance().toString()+ ", fullPath: " + fullPath ); // Debug.
+          Log.d(TAG, "processCwdCommand, rootPath: " + rootPath ); // Debug.
+          Log.d(TAG, "processCwdCommand, currentWorkingDirectory: " + currentWorkingDirectory ); // Debug.
+          replyString="250 cwd succeed" ; // 回复内容。
+        } //if (photoDirecotry.isDirectory()) // 是个目录
+        else //不是个目录
+        {
+          replyString="550 not a directory: " + targetWorkingDirectory; // 回复内容。
+        }
+      } // if (photoDirecotry!=null) // The object exists
+      else // The object does not exist
+      {
+        replyString="550 File not exist " + targetWorkingDirectory; // File does not exist.
+      } // else // The object does not exist
+      Log.d(TAG, CodePosition.newInstance().toString()+ ", reply string: " + replyString); //Debug.
+        
+      binaryStringSender.sendStringInBinaryMode(replyString); //发送回复。
+      
+      if (filePathInterpreter.isSamePath (fullPath, Constants.FilePath.AndroidData)) // It is /Android/data, same path.
+      {
+        Log.d(TAG, CodePosition.newInstance().toString()+ ", full path : " + fullPath + ", other path: " + Constants.FilePath.AndroidData + ", checking /Android/data permission"); // Debug.
+        CheckAndroidDataPermission(); // Check /Android/data permission.
+      } // if (currentWorkingDirectory.equals(Constants.FilePath.AndroidData)) // It is /Android/data
+  } // private void processCwdCommand(String targetWorkingDirectory)
+  
   /**
   * Process the avbl command.
   */
@@ -773,28 +759,33 @@ public class ControlConnectHandler implements DataServerManagerInterface
     
     DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve file path.
     String replyString=""; // 回复字符串。
-    
+    Log.d(TAG, CodePosition.newInstance().toString()+ ", file name: " + data51); // Debug.
+
     if  ((photoDirecotry!=null) && (photoDirecotry.exists() && (photoDirecotry.isFile()))) // The path exists. And it is a file.
     {
       long fileSize= photoDirecotry.length(); //文件尺寸。 陈欣
+      Log.d(TAG, CodePosition.newInstance().toString()+ ", file name: " + data51); // Debug.
+            
       replyString="213 " + fileSize + " "; // 文件尺寸。
     } //if (photoDirecotry.exists()) // 文件存在
     else // Not an existing file
     {
+      Log.d(TAG, CodePosition.newInstance().toString()+ ", file name: " + data51 + ", file object: " + photoDirecotry); // Debug.
       if ((photoDirecotry==null) || (!photoDirecotry.exists())) // not exist
       {
         replyString="550 File not exist " + data51; // File does not exist.
+        Log.d(TAG, CodePosition.newInstance().toString()+ ", file name: " + data51); // Debug.
       } // if ((photoDirecotry==null) || (!photoDirecotry.exists())) // not exist
       else // Directory
       {
+        Log.d(TAG, CodePosition.newInstance().toString()+ ", file name: " + data51); // Debug.
         replyString="550 No directory traversal allowed in SIZE param"; // File does not exist.
       } // else // Directory
     } //else // 文件不 存在
-
     Log.d(TAG, CodePosition.newInstance().toString()+ ", file name: " + data51 + ", reply content: " + replyString); // Debug.
     binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
   } //private void processSizeCommand(String data51)
-
+  
   /**
   * Procee the rnto command
   */
@@ -809,11 +800,13 @@ public class ControlConnectHandler implements DataServerManagerInterface
       String wholeDirecotoryPath= rootDirectory.getPath() + currentWorkingDirectory + originalName; // 构造完整路径。
                   
       wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
-      {
+                  {
         File virtualFile=new File(data51);
+        
         String fileNameOnly=virtualFile.getName();
+
         boolean renameResult = photoDirecotry.renameTo(fileNameOnly); // Try to rename.
-        Log.d(TAG, CodePosition.newInstance().toString()+ ", target file name to rename: " + data51 + ", length: " + data51.length() + ", rename result: " + renameResult); // Debug.
+        Log.d(TAG, CodePosition.newInstance().toString()+ ", target file name to rename: " + data51 + ", lnegth: " + data51.length() + ", rename result: " + renameResult); // Debug.
         
         if (renameResult) // Success
         {
@@ -825,7 +818,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
           
           replyString="250 Requested file action okay, completed. " + data51; // Reply, delete success.
           
-          PathDocumentFileCacheManager pathDocumentFileCacheManager = filePathInterpreter.getPathDocumentFileCacheManager(); // Get the path documet
+          PathDocumentFileCacheManager pathDocumentFileCacheManager = filePathInterpreter.getPathDocumentFileCacheManager(); // Get the path documetfile cache manager.
           String effectiveVirtualPathForCurrentSegment=wholeDirecotoryPath; // Remember effective virtual path.
           effectiveVirtualPathForCurrentSegment=effectiveVirtualPathForCurrentSegment.replace("//", "/"); // Remove consecutive /
           pathDocumentFileCacheManager.remove(effectiveVirtualPathForCurrentSegment); // Remove it from the cache.
@@ -834,6 +827,11 @@ public class ControlConnectHandler implements DataServerManagerInterface
         {
           replyString="550 File rename failed " + data51; // File delete failed.
         } // else // rename failed
+        
+        // Chen xin. remove cache DocumentFile.
+        
+        // Chen xin
+        
       } // if (deleteResult) // Delete success
     } // if (photoDirecotry!=null) // The documentfile object exists
     else // The doucmentfile object does not exist
@@ -842,7 +840,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     } // else // The doucmentfile object does not exist
     binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
   } // private void processRntoCommand(String data51)
-
+  
   /**
   * Procee the rnfr command
   */
@@ -855,11 +853,18 @@ public class ControlConnectHandler implements DataServerManagerInterface
     DocumentFile photoDirecotry = filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve file
     
     String replyString="350 "; // 回复内容。
+
     if (photoDirecotry!=null) // The documentfile object exists
     {
       {
         replyString="350 Requested file action pending further information. " + data51; // Reply, delete success.
+        
+        // Chen xin. remove cache DocumentFile.
+        
+        // Chen xin
+        
         renamingFile = photoDirecotry; // Remember the renaming file.
+        
       } // if (deleteResult) // Delete success
     } // if (photoDirecotry!=null) // The documentfile object exists
     else // The doucmentfile object does not exist
@@ -868,7 +873,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     } // else // The doucmentfile object does not exist
     binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
   } // private void processRnfrCommand(String data51)
-
+  
   /**
   *  Process the dele command
   */
@@ -881,6 +886,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve file
     
     String replyString="250 "; // 回复内容。
+
     if (photoDirecotry!=null) // The documentfile object exists
     {
       boolean deleteResult= photoDirecotry.delete();
@@ -890,7 +896,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
         notifyEvent(EventListener.DELETE, (Object)(photoDirecotry)); // Notify event, delete file.
         replyString="250 Delete success " + data51; // Reply, delete success.
         
-        PathDocumentFileCacheManager pathDocumentFileCacheManager = filePathInterpreter.getPathDocumentFileCacheManager(); // Get the path documet
+        PathDocumentFileCacheManager pathDocumentFileCacheManager = filePathInterpreter.getPathDocumentFileCacheManager(); // Get the path documetfile cache manager.
         String effectiveVirtualPathForCurrentSegment=wholeDirecotoryPath; // Remember effective virtual path.
         effectiveVirtualPathForCurrentSegment=effectiveVirtualPathForCurrentSegment.replace("//", "/"); // Remove consecutive /
         pathDocumentFileCacheManager.remove(effectiveVirtualPathForCurrentSegment); // Remove it from the cache.
@@ -907,7 +913,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     } // else // The doucmentfile object does not exist
     binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
   } // private void processDeleCommand(String data51)
-
+  
   /**
   *  process pasv command.
   */
@@ -916,6 +922,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
         data_socket=null; // Forget the used data socket.
         setupDataServer(); // 初始化数据服务器。
         String ipAddress = ip;
+
 
         if (ipAddress==null) // Have not set ip.
         {
@@ -927,7 +934,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
         int portModule=data_port-port256*256;
         String replyString="227 Entering Passive Mode ("+ipString+","+port256+","+portModule+")"; // 回复内容。
         Log.d(TAG, CodePosition.newInstance().toString()+ ", reply string: " + replyString); // Debug.
-        logFtpReply(replyString); // 核心调试：记录 FTP 响应
         binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
   } // private void processPasvCommand()
 
@@ -942,7 +948,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     disconnectIntervalManager.markNewCommand(); // mark new command.
     
     Log.d(TAG, CodePosition.newInstance().toString()+ ", command: " + command + ", content: " + content); // Debug.
-    logFtpCommand(command, content); // 核心调试：记录 FTP 命令
+    writeDebugLog("CMD", command + " " + content);
     
     if (command.equals("SYST")) // 系统信息
     {
@@ -952,17 +958,13 @@ public class ControlConnectHandler implements DataServerManagerInterface
     {
       String replyString="257 \"" + currentWorkingDirectory + "\""; // 回复内容。
       Log.d(TAG, "reply string: " + replyString); //Debug.
-      logFtpReply(replyString);
-          
-      binaryStringSender.sendStringInBinaryMode(replyString); //发送回复内容。
+          binaryStringSender.sendStringInBinaryMode(replyString); //发送回复内容。
     } //else if (command.equals("PWD")) // 查询当前工作目录
     else if (command.equals("TYPE")) // 传输类型
     {
       String replyString="200 binary type set"; // 回复内容。
       Log.d(TAG, "reply string: " + replyString); //Debug.
-      logFtpReply(replyString);
-          
-      binaryStringSender.sendStringInBinaryMode(replyString); //发送回复内容。
+          binaryStringSender.sendStringInBinaryMode(replyString); //发送回复内容。
     } //else if (command.equals("TYPE")) // 传输类型
     else if (command.equalsIgnoreCase("PASV")) // passive transmission.
     {
@@ -977,9 +979,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
         else //if (hasFolloingCommand) // 还有后续命令。
         {
           Log.d(TAG, "reply string: " + replyString); //Debug.
-          logFtpReply(replyString);
-          
-          binaryStringSender.sendStringInBinaryMode(replyString); //发送回复。
+            binaryStringSender.sendStringInBinaryMode(replyString); //发送回复。
         } // else // if (hasFolloingCommand) // 还有后续命令。
     } //else if (command.equals("EPSV")) // 扩展被动模式
     else if (command.equals("PORT")) // 要求服务器主动连接客户端的端口
@@ -1007,9 +1007,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
         if (shouldSend) // 应当发送回复。
         {
           Log.d(TAG, "reply string: " + replyString); //Debug.
-          logFtpReply(replyString);
-          
-          binaryStringSender.sendStringInBinaryMode(replyString); //发送回复。
+            binaryStringSender.sendStringInBinaryMode(replyString); //发送回复。
         } // if (shouldSend) // 应当发送回复。
     } //else if (command.equals("EPSV")) // Extended passive mode.
     else if (command.toLowerCase().equals("list")) // 列出目录 陈欣
@@ -1033,8 +1031,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
       data51=data51.trim(); // 去掉末尾换行
       String replyString="350 Restart position accepted (" + data51 + ")"; // 回复内容。
       Log.d(TAG, "reply string: " + replyString); //Debug.
-      logFtpReply(replyString);
-        
         binaryStringSender.sendStringInBinaryMode(replyString); //发送回复。
         
         Long restartPosition=Long.valueOf(data51);
@@ -1070,6 +1066,13 @@ public class ControlConnectHandler implements DataServerManagerInterface
       
       processStorCommand(data51); // 处理上传文件命令。
     } //else if (command.equals("stor")) // 上传文件
+    else if (command.equalsIgnoreCase("thmb")) // Get a thumbnail
+    {
+      String data51= content.substring(5);
+      data51=data51.trim(); // 去掉末尾换行
+      
+      processThmbCommand(data51); // Handle the command thmb.
+    } //else if (command.equals("stor")) // 上传文件
     else if (command.equalsIgnoreCase("quit")) // Quit
     {
       processQuitCommand(); // Process quit command.
@@ -1087,28 +1090,28 @@ public class ControlConnectHandler implements DataServerManagerInterface
     else if (command.equals("DELE")) // 删除文件
     {
       String data51= content.substring(5);
-      Log.d(TAG, CodePosition.newInstance().toString()+ ", file name to delete: " + data51 + ", length: " + data51.length()); // Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+ ", file name to delete: " + data51 + ", lnegth: " + data51.length()); // Debug.
       data51=data51.trim(); // 去掉末尾换行
       
-      Log.d(TAG, CodePosition.newInstance().toString()+ ", file name to delete: " + data51 + ", length: " + data51.length()); // Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+ ", file name to delete: " + data51 + ", lnegth: " + data51.length()); // Debug.
       processDeleCommand(data51); // Procee the dele command
     } //else if (command.equals("DELE")) // 删除文件
     else if (command.equals("RNFR")) // Source file name of the inplace rename operation.
     {
       String data51= content.substring(5);
-      Log.d(TAG, CodePosition.newInstance().toString()+ ", file name to rename: " + data51 + ", length: " + data51.length()); // Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+ ", file name to rename: " + data51 + ", lnegth: " + data51.length()); // Debug.
       data51=data51.trim(); // 去掉末尾换行
       
-      Log.d(TAG, CodePosition.newInstance().toString()+ ", file name to rename: " + data51 + ", length: " + data51.length()); // Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+ ", file name to rename: " + data51 + ", lnegth: " + data51.length()); // Debug.
       processRnfrCommand(data51); // Procee the rnfr command
     } //else if (command.equals("DELE")) // 删除文件
     else if (command.equals("RNTO")) // Destination file name of the inplace rename operation.
     {
       String data51= content.substring(5);
-      Log.d(TAG, CodePosition.newInstance().toString()+ ", target file name to rename: " + data51 + ", length: " + data51.length()); // Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+ ", target file name to rename: " + data51 + ", lnegth: " + data51.length()); // Debug.
       data51=data51.trim(); // 去掉末尾换行
       
-      Log.d(TAG, CodePosition.newInstance().toString()+ ", target file name to rename: " + data51 + ", length: " + data51.length()); // Debug.
+      Log.d(TAG, CodePosition.newInstance().toString()+ ", target file name to rename: " + data51 + ", lnegth: " + data51.length()); // Debug.
       processRntoCommand(data51); // Procee the rnto command
     } //else if (command.equals("DELE")) // 删除文件
     else if (command.equals("RMD")) // 删除目录
@@ -1122,6 +1125,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
                   
       wholeDirecotoryPath=wholeDirecotoryPath.replace("//", "/"); // 双斜杠替换成单斜杠
                   
+//       File photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); //照片目录。
       DocumentFile photoDirecotry= filePathInterpreter.getFile(rootDirectory, currentWorkingDirectory, data51); // resolve 目录。
       boolean deleteResult= photoDirecotry.delete();
             
@@ -1131,9 +1135,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
       
       String replyString="250 Delete success "+ data51; // 回复内容。
       Log.d(TAG, "reply string: " + replyString); //Debug.
-      logFtpReply(replyString);
-        
-      binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
+        binaryStringSender.sendStringInBinaryMode(replyString); // 回复内容。
     } //else if (command.equals("DELE")) // 删除文件
     else if (command.equalsIgnoreCase("MKD")) // 创建目录
     {
@@ -1144,8 +1146,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
     {
       String replyString="502 " + content.trim()  +  " not implemented"; // 回复内容。未实现。
       Log.d(TAG, "reply string: " + replyString); //Debug.
-      logFtpReply(replyString);
-        
         binaryStringSender.sendStringInBinaryMode(replyString); // 回复。
     } //else if (command.equals("EPSV")) // Extended passive mode.
   } // private void processCommand(String command, String content)
@@ -1160,6 +1160,9 @@ public class ControlConnectHandler implements DataServerManagerInterface
       Handler uiHandler = new Handler(Looper.getMainLooper());
       Runnable runnable= new Runnable()
       {
+        /**
+          * 具体执行的代码
+        */
         public void run()
         {
           eventListener.onEvent(eventCode); // report event.
@@ -1181,6 +1184,9 @@ public class ControlConnectHandler implements DataServerManagerInterface
       Handler uiHandler = new Handler(Looper.getMainLooper());
       Runnable runnable= new Runnable()
       {
+        /**
+          * 具体执行的代码
+        */
         public void run()
         {
           errorListener.onError(eventCode); // report error.
@@ -1257,7 +1263,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     intent.setData(Uri.parse(url));
     context.startActivity(intent);
   } // private void gotoFileManagerSettingsPage()
-
+  
   /**
   * Request /Android/data permisson.
   */
@@ -1267,12 +1273,13 @@ public class ControlConnectHandler implements DataServerManagerInterface
       Uri uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fdata");
       openDirectory(uri); // Open directory.
   } // private void requestAndroidDataPermission()
-
+  
   /**
   * Request to open directory
   */
-  public void openDirectory(Uri uriToLoad)
+  public void openDirectory(Uri uriToLoad) 
   {
+    // Choose a directory using the system's file picker.
     Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
     intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);            
     intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uriToLoad);
@@ -1287,12 +1294,12 @@ public class ControlConnectHandler implements DataServerManagerInterface
     browseRequest.setRequestCode(yourrequestcode); // SEt intent.
     browseRequest.setIntent(intent); // SEt intent.
     notifyEvent(EventListener.NEED_BROWSE_DOCUMENT_TREE, (Object)(browseRequest)); // Notify event, uplaod finished.
-  } // public void openDirectory(Uri uriToLoad)
-
+  } // public void openDirectory(Uri uriToLoad) 
+  
   /**
   * Check /Android/data permission.
   */
-  private void CheckAndroidDataPermission()
+  private void CheckAndroidDataPermission() 
   {
     File photoDirecotry=new File(Constants.FilePath.AndroidData); // Get the file object.
     
@@ -1319,7 +1326,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
     
     String content = ""; // Target directory.
     Log.d(TAG, CodePosition.newInstance().toString()+ ", reply string: " + replyString + ", list command content: " + content); // Debug.
-    logFtpReply(replyString);
     binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
     boolean extraFileInformation = false; // Do not send extra file information.
     sendListContentBySender(content, currentWorkingDirectory, extraFileInformation); // 发送目录列表数据。
@@ -1332,11 +1338,9 @@ public class ControlConnectHandler implements DataServerManagerInterface
     String parentPath = parts[0]; // 父路径
     String dirName = parts[1];    // 要创建的目录名
     Log.d(TAG, "Parent path: " + parentPath + ", Dir name: " + dirName); // Debug.
-    writeDebugLog("MKD", "Creating directory: " + dirName + " in " + parentPath);
     if (dirName.isEmpty()) {
         String replyString = "550 Invalid directory name";
         Log.d(TAG, "reply string: " + replyString);
-        logFtpReply(replyString);
         binaryStringSender.sendStringInBinaryMode(replyString);
         return;
     }
@@ -1347,7 +1351,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
     if (parentDir == null || !parentDir.exists() || !parentDir.isDirectory()) {
         String replyString = "550 Failed to resolve parent directory: " + effectiveParentPath;
         Log.d(TAG, "reply string: " + replyString);
-        logFtpReply(replyString);
         binaryStringSender.sendStringInBinaryMode(replyString);
         return;
     }
@@ -1357,16 +1360,14 @@ public class ControlConnectHandler implements DataServerManagerInterface
         String fullCreatedPath = effectiveParentPath + "/" + dirName;
         String replyString = "257 \"" + fullCreatedPath + "\" created";
         Log.d(TAG, "reply string: " + replyString);
-        logFtpReply(replyString);
         binaryStringSender.sendStringInBinaryMode(replyString);
     } else {
         String replyString = "550 Can't create directory: " + fullPath;
         Log.d(TAG, "reply string: " + replyString);
-        logFtpReply(replyString);
         binaryStringSender.sendStringInBinaryMode(replyString);
     }
   }
-
+  
   /**
   * 处理目录列表命令。
   */
@@ -1374,11 +1375,10 @@ public class ControlConnectHandler implements DataServerManagerInterface
   {
     String replyString="150 Opening BINARY mode data connection for file list, Ch"; // 回复内容。
     Log.d(TAG, CodePosition.newInstance().toString()+ ", reply string: " + replyString + ", list command content: " + content); // Debug.
-    logFtpReply(replyString);
     binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
     sendListContentBySender(content, currentWorkingDirectory); // 发送目录列表数据。
   } //private void processListCommand(String content)
-
+  
   /**
   * 安全关闭上传文件句柄，释放资源。
   */
@@ -1445,7 +1445,6 @@ public class ControlConnectHandler implements DataServerManagerInterface
         
         retryConnectClientDataPortAmount++; // Count the times.
       } // else // Still retry
-      
     } // if(ex != null) // There was a problem.
     else // 无异常。
     {
@@ -1455,15 +1454,15 @@ public class ControlConnectHandler implements DataServerManagerInterface
       fileContentSender.setDataSocket(socket); // 设置数据连接套接字。
       Log.d(TAG, CodePosition.newInstance().toString()+ ", setting data socket: " + socket ); // Debug.
       directoryListSender.setDataSocket(socket); // 设置数据连接套接字。
-      socket.setDataCallback(new DataCallback()
+      socket.setDataCallback(new DataCallback() 
       {
         @Override
-        public void onDataAvailable(DataEmitter emitter, ByteBufferList bb)
+        public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) 
         {
           receiveDataSocket(bb);
-        } //public void onDataAvailable(DataEmitter emitter, ByteBufferList bb)
+        } //public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) 
       }); //socket.setDataCallback(new DataCallback() {
-      socket.setClosedCallback(new CompletedCallback()
+      socket.setClosedCallback(new CompletedCallback() 
       {
         @Override
         public void onCompleted(Exception ex) 
@@ -1478,7 +1477,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
                     ", Active mode data socket closed gracefully" ); // Debug.
             writeDebugLog("ACTIVE_SOCKET", "Socket closed gracefully");
           }
-          
+
           if (writingFile == null) {
             notifyStorCompleted();
             Log.d(TAG, CodePosition.newInstance().toString() + 
@@ -1493,7 +1492,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
           directoryListSender.setDataSocket(null);
         }
       });
-      socket.setEndCallback(new CompletedCallback()
+      socket.setEndCallback(new CompletedCallback() 
       {
         @Override
         public void onCompleted(Exception ex) 
@@ -1501,9 +1500,9 @@ public class ControlConnectHandler implements DataServerManagerInterface
           if(ex != null) // There is some exception.
           {
             ex.printStackTrace(); // Report error.
-          } // if(ex != null)
+          } // if(ex != null) 
         } // public void onCompleted(Exception ex) 
-      }); // socket.setEndCallback(new CompletedCallback()
+      }); // socket.setEndCallback(new CompletedCallback() 
     } //else // 无异常。
   }
 
@@ -1526,12 +1525,12 @@ public class ControlConnectHandler implements DataServerManagerInterface
         new DataCallback()
         {
           @Override
-          public void onDataAvailable(DataEmitter emitter, ByteBufferList bb)
+          public void onDataAvailable(DataEmitter emitter, ByteBufferList bb) 
           {
             receiveDataSocket(bb);
           }
         }); // socket.setDataCallback(
-      socket.setClosedCallback(new CompletedCallback()
+      socket.setClosedCallback(new CompletedCallback() 
       {
         @Override
         public void onCompleted(Exception ex) 
@@ -1591,7 +1590,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     
     socket.setDataCallback(dataCallback); // SEt the data call back.
 
-        socket.setClosedCallback(new CompletedCallback()
+        socket.setClosedCallback(new CompletedCallback() 
         {
           @Override
           public void onCompleted(Exception ex) 
@@ -1606,7 +1605,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
             }
           }
         });
-        socket.setEndCallback(new CompletedCallback()
+        socket.setEndCallback(new CompletedCallback() 
         {
           @Override
           public void onCompleted(Exception ex) 
@@ -1628,9 +1627,8 @@ public class ControlConnectHandler implements DataServerManagerInterface
           } // public void onCompleted(Exception ex) 
         });
         binaryStringSender.sendStringInBinaryMode("220 StupidBeauty FtpServer"); // 发送回复内容。
-        logFtpReply("220 StupidBeauty FtpServer");
   } //private void handleAccept(final AsyncSocket socket)
-
+  
   /**
   * Stop the control connectin.
   */
@@ -1655,7 +1653,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
   {
     setupDataServerByManager(); // Set up data server by manager.
   } //private void setupDataServer()
-
+  
   /**
   * Set up data server by manager.
   */
@@ -1672,7 +1670,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     Random random=new Random(); //随机数生成器。
     int randomIndex=random.nextInt(65535-1025)+1025; //随机选择一个端口。
     data_port=randomIndex;
-    AsyncServer.getDefault().listen(host, data_port, new ListenCallback()
+    AsyncServer.getDefault().listen(host, data_port, new ListenCallback() 
     {
       @Override
       public void onAccepted(final AsyncSocket socket)
@@ -1686,7 +1684,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
       }
 
       @Override
-      public void onCompleted(Exception ex)
+      public void onCompleted(Exception ex) 
       {
         if(ex != null) 
         {
