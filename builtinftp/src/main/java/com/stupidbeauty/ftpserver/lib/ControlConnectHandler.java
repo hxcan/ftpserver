@@ -557,9 +557,15 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
     /**
     *  处理上传文件命令。
     */
-    private void processStorCommand(String data51)
+  private void processStorCommand(String data51)
+  {
+    Log.d(TAG, CodePosition.newInstance().toString() + ", 📤 STOR command received: " + data51); // Debug.
+    String replyString="150 "; // 回复内容。
     {
-      String replyString="150 "; // 回复内容。
+      if (storStartResult) // Start stor successfully
+      {
+        Log.d(TAG, CodePosition.newInstance().toString() + ", ✅ STOR started successfully"); // Debug.
+      } // if (storStartResult) // Start stor successfully
 
       boolean storStartResult = startStor(data51, currentWorkingDirectory); // Start stor process.
       
@@ -569,7 +575,9 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
       else // Failed to start stor
       {
         // replyString="150 "; // 回复内容。
-        replyString="550 it is a directory: " + data51; // The reply content. Do not allow to replace a directory with a normal file.
+      binaryStringSender.sendStringInBinaryMode(replyString);
+    Log.d(TAG, CodePosition.newInstance().toString() + ", 📤 STOR reply: " + replyString); // Debug.
+  } // private void processStorCommand(String data51)
       } // else // Failed to start stor
 
       binaryStringSender.sendStringInBinaryMode(replyString);
