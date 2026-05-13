@@ -93,8 +93,8 @@ public class ControlConnectHandler implements DataServerManagerInterface
   private DocumentFile writingFile; //!< 当前正在写入的文件。
   private ParcelFileDescriptor pfd = null;
   private FileOutputStream fileOutputStream = null;
-  private long totalWritten = 0;         // 用于速度统计
-  private long lastLogTime = 0;          // 用于速度统计
+  private long totalWritten = 0;         //! 用于速度统计
+  private long lastLogTime = 0;          //! 用于速度统计
 
   private DocumentFile renamingFile; //!< The file being renamed.
   private boolean isUploading=false; //!< 是否正在上传。陈欣
@@ -300,7 +300,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     logDebug("CONNECT_TO_CLIENT", "port=" + port); // [DEBUG] 
   } // private void connectToClientDataPort()
     
-  
+    
   /**
   * 打开指向客户端特定端口的连接。
   */
@@ -572,7 +572,7 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
     */
     private void processStorCommand(String data51)
     {
-      String replyString="150 "; // 回复内容。
+      String replyString="150 Opening data connection for STOR"; // 回复内容。
 
       boolean storStartResult = startStor(data51, currentWorkingDirectory); // Start stor process.
       
@@ -923,6 +923,7 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
           {
             replyString="550 File rename failed " + data51; // File delete failed.
           } // else // rename failed
+          
           
           
           // Chen xin. remove cache DocumentFile.
@@ -1310,7 +1311,7 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
 
         Log.d(TAG, "reply string: " + replyString); //Debug.
           
-        binaryStringSender.sendStringInBinaryMode(replyString); // 回复。
+        binaryStringSender.sendStringInBinaryMode(replyString); // 发送。
       } //else if (command.equals("EPSV")) // Extended passive mode.
     } // private void processCommand(String command, String content)
 
@@ -1467,7 +1468,7 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
 //         try 
 //         {            
 //           Uri uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fdata");            
-    
+   
       File androidDataFile=new File(Constants.FilePath.AndroidData); // Get the file object.
       
       Uri uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fdata");            
