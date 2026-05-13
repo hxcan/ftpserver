@@ -31,7 +31,6 @@ import com.koushikdutta.async.AsyncSocket;
 import com.koushikdutta.async.ByteBufferList;
 import java.nio.ByteBuffer;
 import com.koushikdutta.async.DataEmitter;
-import java.net.InetSocketAddress;
 import com.koushikdutta.async.callback.ConnectCallback;
 import android.os.Handler;
 import android.os.Looper;
@@ -56,7 +55,7 @@ import java.net.UnknownHostException;
 import android.net.Uri;
 import android.provider.Settings;
 import android.content.Intent;
-import android.os.Environment;
+  private FileContentSender fileContentSender=new FileContentSender(); //!< !< 文件内容发送器。
 
 
 /**
@@ -363,177 +362,7 @@ public class ControlConnectHandler implements DataServerManagerInterface
     {
       if (disconnectTimer!=null) // The disconnect timer exists
       {
-        disconnectTimer.cancel(); // Cancel the timer.
-        disconnectTimer = null; // ✅ 避免重复取消
-      } // if (disconnectTimer!=null) // The disconnect timer exists
-      
-    } // private void cancelDisconnectTimer()
-    
-    /**
-    * Schedule disconnect.
-    */
-    private void scheduleDisconnect() // Schedule disconnect.
-    {
-      // Timer timerObj = new Timer();
-      
-      cancelDisconnectTimer(); // Cancel the disconnect tiemr.
-      
-      // disconnectTimer=timerObj; // Remember timer.
-
-      TimerTask timerTaskObj = new TimerTask()
-      {
-        public void run() 
-        {
-          // notifyFileSendCompleted(); // Notify file send completed.
-          // Chen xin.
-          socket.close(); // close the connection.
-        }
-      };
-      
-      long suggestedInterfal20=disconnectIntervalManager.getSuggestedDisconnectInterval(); // Get suggested disconnect interval.
-
-      if (disconnectTimer == null)
-      {
-        disconnectTimer = new Timer();
-      }
-
-      // ✅ 关键：检查 Timer 是否已取消
-      if (disconnectTimer != null )
-      {
-        try
-        {
-          disconnectTimer.schedule(timerTaskObj, suggestedInterfal20);
-        }
-        catch (IllegalStateException e)
-        {
-          // ✅ 忽略异常，连接应继续保持
-          Log.w(TAG, "Timer already cancelled, ignoring schedule", e);
-        }
-      }
-      else
-      {
-        Log.w(TAG, "Timer is null or already cancelled, not scheduling");
-      }
-
-      // timerObj.schedule(timerTaskObj, suggestedInterfal20); // delay and run.
-
-      disconnectIntervalManager.markScheduleDisconnect(); // mark scheduled disconnect.
-    } // private void scheduleDisconnect()
-    
-    /**
-    * Delay and notify the file send completed.
-    */
-    public void delayednotifyFileSendCompleted()
-    {
-      // Chen xin.
-      Timer timerObj = new Timer();
-      TimerTask timerTaskObj = new TimerTask() 
-      {
-        public void run() 
-        {
-          notifyFileSendCompleted(); // Notify file send completed.
-        }
-      };
-      timerObj.schedule(timerTaskObj, 20); // delay and run.
-    } // public void delayednotifyFileSendCompleted()
-
-    
-    /**
-    * 告知已经发送文件内容数据。
-    */
-    public void notifyFileSendCompleted() 
-    {
-      String replyString="226 File sent. " + "ChenXin" + " 嘴巴上挂着价签吗" + " 并不好吃，感觉它本身的味道没调好" + " 你还是去闻熏村那种"; // The reply message.
-
-      Log.d(TAG, CodePosition.newInstance().toString()+  ", reply string: " + replyString  + ", this: " + this); // Debug.
-        
-      binaryStringSender.sendStringInBinaryMode(replyString); // 发送。
-      
-      scheduleDisconnect(); // Schedule disconnect.
-      
-      notifyEvent(EventListener.DOWNLOAD_FINISH); // Notify event, file download finished.
-    } // private void notifyFileSendCompleted()
-
-    
-    /**
-    * 发送文件内容。
-    */
-    private void sendFileContent(String data51, String currentWorkingDirectory) 
-    {
-      fileContentSender.setControlConnectHandler(this); // 设置控制连接处理器。
-      fileContentSender.setDataSocket(data_socket); // 设置数据连接套接字。
-      fileContentSender.sendFileContent(data51, currentWorkingDirectory); // 让文件内容发送器来发送。
-      
-      notifyEvent(EventListener.DOWNLOAD_START); // 报告事件，开始下载文件。
-    } //private void sendFileContent(String data51, String currentWorkingDirectory)
-    
-    /**
-    * Send directory list content.
-    */
-    private void sendListContentBySender(String fileName, String currentWorkingDirectory, boolean extraInformation)
-    {
-      directoryListSender.setControlConnectHandler(this); // 设置控制连接处理器。
-
-      directoryListSender.setDataSocket(data_socket); // 设置数据连接套接字。
-      directoryListSender.setExtraInformationEnabled(extraInformation); // Set the option of sending extra inforamtion.
-      directoryListSender.sendDirectoryList(fileName, currentWorkingDirectory); // 让目录列表发送器来发送。
-    } // private void sendListContentBySender(String fileName, String currentWorkingDirectory, boolean extraInformation) 
-    
-    /**
-    * Send directory list content.
-    */
-    private void sendListContentBySender(String fileName, String currentWorkingDirectory) 
-    {
-      boolean extraInformation = true; // Send extra informations.
-      sendListContentBySender(fileName, currentWorkingDirectory, extraInformation) ;
-    } // private void sendListContentBySender(String fileName, String currentWorkingDirectory)
-
-    
-    /**
-    * 告知上传完成。
-    */
-    private void notifyStorCompleted() 
-    {
-      // if (writingFile!=null)
-      String replyString="226 Stor completed."; // 回复内容。
-
-      Log.d(TAG, "reply string: " + replyString); //Debug.
-
-      binaryStringSender.sendStringInBinaryMode(replyString);
-      
-      notifyEvent(EventListener.UPLOAD_FINISH, (Object)(writingFile)); // Notify event, uplaod finished.
-    } //private void notifyStorCompleted()
-    
-    /**
-     * 告知已经发送目录数据。
-    */
-    public void notifyLsCompleted()
-    {
-      String replyString="226 Data transmission OK. ChenXin"; // 回复内容。
-      
-      binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
-
-      Log.d(TAG, "reply string: " + replyString); //Debug.
-    } //private void notifyLsCompleted()
-    
-    /**
-    * Process quit command.
-    */
-    private void processQuitCommand()
-    {
-      String replyString="221 Quit OK. ChenXin"; // The reply string.
-      
-      binaryStringSender.sendStringInBinaryMode(replyString); // 发送回复。
-
-      Log.d(TAG, "reply string: " + replyString); //Debug.
-    } // private void processQuitCommand()
-
-/**
-* Handle the command thmb.
-*/
-private void processThmbCommand(String data51) {
-  String[] parts = data51.split(" ");
-  if (parts.length < 3) {
+        disconnectTimer.cancel(); // Cancel the timer.< 3) {
     String replyString = "501 Syntax error in parameters or arguments.";
     binaryStringSender.sendStringInBinaryMode(replyString);
     return;
@@ -1388,18 +1217,94 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
       
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) // Android 11. isExternalStorageManager
       {
-        boolean isFileManager=Environment.isExternalStorageManager();
+        boolean isFileManager
+        disconnectTimer = null; // ✅ 避免重复取消
+      } //=Environment.isExternalStorageManager(); if (disconnectTimer!=null) //
 
-        Log.d(TAG, "checkFileManagerPermission, is file manager: " + isFileManager ); //Debug.
-        if (isFileManager) // Is file manager
+        Log.d(TAG, "checkFileManager The disconnect timer exists
+      
+    } //Permission, is file manager: " + private void cancelDisconnectTimer() isFileManager ); //Debug.
+    
+    /**
+    * Schedule disconnect.
+        if (isFileManager) // Is file
+    */
+    private void schedule manager
         {
-        } // if (isFileManager) // Is file manager
-        else // Not file manager
+        } //Disconnect() // Schedule disconnect. if (isFileManager) // Is file
+    {
+      // Timer timerObj = manager
+        else // Not file manager new Timer();
+      
+      cancelDisconnect
         {
-          if (permissinTypeCode==Constants.Permission.Read) // Read permission
-          {
-            File photoDirecotry=Environment.getExternalStorageDirectory(); // Get the file object.
-            //           public static final String AndroidData = Environment.getExternalStorageDirectory().getPath() + "/Android/data/"; //!< /Android/data directory.
+          if (perTimer(); // Cancel the disconnect tiemmissinTypeCode==Constants.Permission.Readr.
+      
+      // disconnectTimer) // Read permission
+          {=timerObj; // Remember timer.
+            File photoDirecotry=Environment
+
+      TimerTask timerTaskObj =.getExternalStorageDirectory(); // Get the file object new TimerTask().
+            //           public static final
+      {
+        public void run() 
+        { String AndroidData = Environment.getExternalStorageDirectory().
+          // notifyFileSendCompleted();getPath() + "/Android/data/"; // Notify file send //! completed.
+          // Chen xin.
+          socket.close(); // close the connection.
+        }
+      };
+      
+      long suggestedInterfal20=disconnectIntervalManager.getSuggestedDisconnectInterval(); // Get suggested disconnect interval.
+
+      if (disconnectTimer == null)
+      {
+        disconnectTimer = new Timer();
+      }
+
+      // ✅ 关键：检查 Timer 是否已取消
+      if (disconnectTimer != null )
+      {
+        try
+        {
+          disconnectTimer.schedule(timerTaskObj, suggestedInterfal20);
+        }
+        catch (IllegalStateException e)
+        {
+          // ✅ 忽略异常，连接应继续保持
+          Log.w(TAG, "Timer already cancelled, ignoring schedule", e);
+        }
+      }
+      else
+      {
+        Log.w(TAG, "Timer is null or already cancelled, not scheduling");
+      }
+
+      // timerObj.schedule(timerTaskObj, suggestedInterfal20); // delay and run.
+
+      disconnectIntervalManager.markScheduleDisconnect(); // mark scheduled disconnect.
+    } // private void scheduleDisconnect()
+    
+    /**
+    * Delay and notify the file send completed.
+    */
+    public void delayednotifyFileSendCompleted()
+    {
+      // Chen xin.
+      Timer timerObj = new Timer();
+      TimerTask timerTaskObj = new TimerTask() 
+      {
+        public void run() 
+        {
+          notifyFileSendCompleted(); // Notify file send completed.
+        }
+      };
+      timerObj.schedule(timerTaskObj, 20); // delay and run.
+    } // public void delayednotifyFileSendCompleted()
+
+    
+    /**
+    * 告知已经发送< /Android/data directory.
 
             File[] paths = photoDirecotry.listFiles();
         
@@ -1433,109 +1338,201 @@ private void sendThumbnail(String pathname, String currentWorkingDirectory, int 
           //           gotoFileManagerSettingsPage(); // Goto file manager settings page.
           //           notifyEvent(EventListener.NEED_EXTERNAL_STORAGE_MANAGER_PERMISSION, null); // Notify event, need external storage manager permission.
         } // else // Not file manager
-      } // if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) // Android 11. isExternalStorageManager
-    } // private void checkFileManagerPermission()
+      } // if (Build.VERSION.SDK_INT >= Build文件内容数据。
+    */.VERSION_CODES.R) // Android 1
+    public void notifyFileSendCompleted()1. isExternalStorageManager 
+    {
+      String replyString
+    } // private void checkFileManagerPermission()="226 File sent. "
 
     
     /**
-    *   Goto file manager settings page.
+    * + "ChenXin" +   Goto file manager settings page. " 嘴巴上挂着价
     */
-    private void gotoFileManagerSettingsPage()
-    {
-      Log.d(TAG, "gotoFileManagerSettingsPage"); //Debug.
+    private void gotoFileManager签吗" + " 并不好吃SettingsPage()
+    {，感觉它本身的味道没调好
+      Log.d(TAG, "gotoFileManagerSettings" + " 你还是去闻熏Page"); //Debug.
 
-      Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);  // 跳转语言和输入设备
+      Intent村那种"; // The reply message. intent = new Intent(Settings.ACTION_MANAGE
 
-      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+      Log.d(TAG, CodePosition_APP_ALL_FILES_ACCESS_PERMISSION);.newInstance().toString()+  ", reply string  // 跳转语言和输入设备: " + replyString  + ",
 
-      String packageNmae=context.getPackageName();
-      Log.d(TAG, "gotoFileManagerSettingsPage, package name: " + packageNmae); //Debug.
+      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK this: " + this); // Debug);
 
-      String url = "package:"+packageNmae;
+      String packageNmae.
+        
+      binaryStringSender.send=context.getPackageName();
+      Log.dStringInBinaryMode(replyString); //(TAG, "goto 发送。
+      
+      scheduleDisconnectFileManagerSettingsPage, package name: " + packageNma(); // Schedule disconnect.e); //Debug.
 
-      Log.d(TAG, "gotoFileManagerSettingsPage, url: " + url); //Debug.
+      String
+      
+      notifyEvent(EventListener.DOWNLOAD_FINISH); url = "package:"+packageNma // Notify event, file download finished.e;
+
+      Log.d(TAG,
+    } // private void notifyFile "gotoFileManagerSettingsPage, url:SendCompleted()
+
+    
+    /** " + url); //Debug.
+    * 发送文件内容。
 
       intent.setData(Uri.parse(url));
+    */
+    private void sendFile
 
       context.startActivity(intent);
-    } // private void gotoFileManagerSettingsPage()
+    }Content(String data51, String current // private void gotoFileManagerSettingsPage()WorkingDirectory) 
+    {
     
     /**
-    * Request /Android/data permisson.
+    * Request
+      fileContentSender.setControlConnectHandler(this /Android/data permisson.); // 设置控制连接处理器。
     */
-    private void requestAndroidDataPermission()
+    private void requestAndroidData
+      fileContentSender.setDataSocket(dataPermission()
     {
-//       @TargetApi(26)    
-//       private void requestAccessAndroidData(Activity activity)
-//       {        
+//_socket); // 设置数据连接套       @TargetApi(26)接字。
+      fileContentSender    
+//       private void requestAccessAndroidData.sendFileContent(data51, currentWorking(Activity activity)
+//       {Directory); // 让文件内容发送        
 //         try 
-//         {            
-//           Uri uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fdata");            
-    
-      File androidDataFile=new File(Constants.FilePath.AndroidData); // Get the file object.
+//         {器来发送。
       
-      Uri uri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fdata");            
-//       Uri androidDataUri=Uri.fromFile(androidDataFile); // Create Uri.
+      notify            
+//           Uri uri = Uri.parse("Event(EventListener.DOWNLOAD_START); //content://com.android.externalstorage.documents/document 报告事件，开始下载文件。/primary%3AAndroid%2
+    } //private void sendFileFdata");            
     
-      openDirectory(uri); // Open directory.
-    } // private void requestAndroidDataPermission()
+      File androidContent(String data51, String currentDataFile=new File(Constants.FilePath.AndroidWorkingDirectory)
+    
+    /**Data); // Get the file object.
+    * Send directory list content.
+      
+      Uri uri = Uri.parse
+    */
+    private void sendList("content://com.android.externalstorage.documentsContentBySender(String fileName, String current/document/primary%3AAndroid%WorkingDirectory, boolean extraInformation)2Fdata");            
+//       Uri
+    {
+      directoryListSender.set androidDataUri=Uri.fromFile(androidControlConnectHandler(this); // 设置DataFile); // Create Uri.控制连接处理器。
+
+      directoryList
+    
+      openDirectory(uri);Sender.setDataSocket(data_socket); // // Open directory.
+    } // 设置数据连接套接字。 private void requestAndroidDataPermission()
+      directoryListSender.setExtraInformationEnabled
     
     /**
-    * Request to open directory
+    * Request to(extraInformation); // Set the option of open directory
     */
-    public void openDirectory(Uri uriToLoad) 
+    public sending extra inforamtion. void openDirectory(Uri uriToLoad)
+      directoryListSender.sendDirectoryList(fileName 
     {
-      // Choose a directory using the system's file picker.
-      Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+      // Choose a, currentWorkingDirectory); // 让 directory using the system's file picker.目录列表发送器来发送。
+      Intent intent = new Intent(Intent
+    } // private void sendListContent.ACTION_OPEN_DOCUMENT_TREE);
 
-//       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-      intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);            
-      
-      // Optionally, specify a URI for the directory that should be opened in
-      // the system file picker when it loads.
-      intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uriToLoad);
-
-      String packageNmae=context.getPackageName();
-      Log.d(TAG, "gotoFileManagerSettingsPage, package name: " + packageNmae); //Debug.
-
-      String url = "package:"+packageNmae;
-
-      Log.d(TAG, "gotoFileManagerSettingsPage, url: " + url); //Debug.
-
-//       intent.setData(Uri.parse(url));
-
-      int yourrequestcode=Constants.RequestCode.AndroidDataPermissionRequestCode;
-      
-//       context.startActivityForResult(intent, yourrequestcode);
-//       context.startActivity(intent);
-      
-//       Chen xin
-      
-      DocumentTreeBrowseRequest browseRequest=new DocumentTreeBrowseRequest(); // Create the browse request.
-      browseRequest.setRequestCode(yourrequestcode);
-      browseRequest.setIntent(intent); // SEt intent.
-
-      notifyEvent(EventListener.NEED_BROWSE_DOCUMENT_TREE, (Object)(browseRequest)); // Notify event, uplaod finished.
-    } // public void openDirectory(Uri uriToLoad) 
+//BySender(String fileName, String currentWorking       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASKDirectory, boolean extraInformation));
+      intent.addFlags(Intent.FLAG 
     
     /**
-    * Check /Android/data permission.
-    */
-    private void CheckAndroidDataPermission() 
+    * Send_GRANT_READ_URI_PERMISSION | Intent.FLAG directory list content.
+    */_GRANT_WRITE_URI_PERMISSION | Intent.FLAG
+    private void sendListContentBySender_GRANT_PERSISTABLE_URI_PERMISSION);(String fileName, String currentWorkingDirectory)            
+      
+      // Optionally, specify a 
     {
-      File photoDirecotry=new File(Constants.FilePath.AndroidData); // Get the file object.
+      boolean extraInformation URI for the directory that should be opened = true; // Send extra informations. in
+      // the system file picker
+      sendListContentBySender(fileName when it loads.
+      intent.putExtra, currentWorkingDirectory, extraInformation)(DocumentsContract.EXTRA_INITIAL_URI, ;
+    } // private void send uriToLoad);
+
+      String packageListContentBySender(String fileName, StringNmae=context.getPackageName(); currentWorkingDirectory)
+
+    
+    /**
+      Log.d(TAG, "gotoFileManager
+    * 告知上传完成。SettingsPage, package name: " +
+    */
+    private void notify packageNmae); //Debug.StorCompleted() 
+    {
+
+      String url = "package:"+
+      // if (writingFile!=nullpackageNmae;
+
+      Log)
+      String replyString="2.d(TAG, "gotoFileManagerSettingsPage26 Stor completed."; // 回复, url: " + url); //内容。
+
+      Log.d(TAGDebug.
+
+//, "reply string       intent.setData(Uri: " + reply.parse(url));String); //Debug.
+
+      binarycode=Constants.RequestStringSender.sendStringCode.AndroidDataPermissionInBinaryMode(replyRequestCode;String);
       
-      File[] paths = photoDirecotry.listFiles();
+//       context
       
-      if (paths==null) // Unable to list files
+      notifyEvent(.startActivityForResult(intent, yourrequestcode);EventListener.UPLOAD_FINISH, (Object)(
+//       context.startActivity(intent);writingFile)); // Notify event, up
+      
+//       Chenlaod finished. xin
+      
+      Document
+    } //TreeBrowseRequest browseprivate void notifyStorCompleted()Request=new DocumentTree
+    
+    /**BrowseRequest(); //
+     * 告知 Create the browse request.
+      browseRequest.setRequestCode(y已经发送目录数据。
+    */
+    public void notifyLsCompletedourrequestcode);
+      browseRequest.setIntent(intent);()
+    {
+      String reply.
+
+      notifyString="22Event(6 Data transmission OKEventListener.NEED_BROWSE_DOCUMENT. ChenXin"; // 回复_TREE, (Object)(browseRequest));内容。
+      
+      binaryStringSender // Notify event, uplaod finished.sendStringInBinaryMode(replyString);.
+    } // public void open // 发送回复。
+
+      LogDirectory(Uri uriToLoad).d(TAG, "reply string: " 
+    
+    /**
+    * Check /Android/data + replyString); //Debug. permission.
+    */
+    private
+    } //private void notifyLs void CheckAndroidDataPermission()Completed()
+    
+    /** 
+    {
+      File photoDirecotry
+    * Process quit command.
+    */=new File(Constants.FilePath.AndroidData);
+    private void processQuitCommand() // Get the file object.
+    {
+      String replyString
+      
+      File[] paths = photoDirecot="221 Quit OK. Chenry.listFiles();
+      
+      if (Xin"; // The reply string.paths==null) // Unable to list
+      
+      binaryStringSender.sendString files
       {
-        if (filePathInterpreter.virtualPathExists(Constants.FilePath.AndroidData)) // Does virtual path exist
+        if (InBinaryMode(replyString); //filePathInterpreter.virtualPathExists(Constants.FilePath 发送回复。
+
+      Log.d(TAG.AndroidData)) // Does virtual path exist, "reply string: " + reply
         {
-        } // if (filePathInterpreter.virtualPathExists(Constants.FilePath.AndroidData)) // Does virtual path exist
-        else // Virtual path does not exist
+        } // ifString); //Debug.
+    } (filePathInterpreter.virtualPathExists(Constants.File // private void processQuitCommand()Path.AndroidData)) // Does virtual path
+
+/**
+* Handle the command thmb exist
+        else // Virtual path does.
+*/
+private void processThmbCommand(String data not exist51) {
         {
-          requestAndroidDataPermission(); // Request /Android/data permisson.
-        } // else // Virtual path does not exist
+          requestAndroidDataPermission(); // Request /Android
+  String[] parts = data5/data permisson.1.split(" ");
+        } //
+  if ( else // Virtual path does not existparts.length 
       } // if (paths.length==0) // Unable to list files
     } // private void CheckAndroidDataPermission()
 
